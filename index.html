@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- [Cache-Bursting Skip-SW Logic] -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('clear-cache')) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(rs => {
+                    for(let r of rs) r.unregister();
+                });
+            }
+            window.location.href = window.location.pathname; 
+        }
+    </script>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="소나무족구단">
+    <meta name="theme-color" content="#1e3a8a">
+    
+    <!-- 바탕화면 앱 아이콘 및 PWA(웹앱) 설치 지원 -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='50' fill='%231e3a8a'/%3E%3Cpath d='M100 100v2a30 30 0 0 1-11 58H50a30 30 0 0 1-10-58v-2a30 30 0 0 1 60 0Z' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M70 160v60M130 190v30M120 190h83a10 10 0 0 0 7-17l-30-33h3a10 10 0 0 0 7-17l-30-33h2a10 10 0 0 0 8-17l-40-43-14 15' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='50' fill='%231e3a8a'/%3E%3Cpath d='M100 100v2a30 30 0 0 1-11 58H50a30 30 0 0 1-10-58v-2a30 30 0 0 1 60 0Z' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M70 160v60M130 190v30M120 190h83a10 10 0 0 0 7-17l-30-33h3a10 10 0 0 0 7-17l-30-33h2a10 10 0 0 0 8-17l-40-43-14 15' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    
+    <title>소나무 족구단 통합 관리 시스템</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="firebase-config.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-900">
+
+    <div id="dialog-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4 transition-opacity"><div class="bg-white p-6 md:p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl transform transition-transform duration-200 scale-95" id="dialog-content"><div class="flex items-center gap-3 mb-4 text-slate-800"><div class="bg-blue-100 p-2.5 rounded-xl"><i data-lucide="info" class="w-6 h-6 text-blue-600"></i></div><h3 class="text-2xl font-black tracking-tight" id="dialog-title">알림</h3></div><p class="text-sm font-bold text-slate-600 mb-6 whitespace-pre-wrap leading-relaxed" id="dialog-message"></p><input type="text" id="dialog-input" class="hidden w-full border-2 border-slate-200 p-4 rounded-2xl text-lg font-black focus:border-blue-500 outline-none mb-6 text-center"><div class="flex gap-3 justify-end"><button id="dialog-btn-cancel" class="flex-1 px-6 py-3.5 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 btn-touch hidden">취소</button><button id="dialog-btn-confirm" class="flex-1 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-black hover:shadow-lg btn-touch">확인</button></div></div></div>
+    <div id="toast" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full font-black text-sm shadow-2xl z-[5000] transition-all duration-300 translate-y-32 opacity-0 pointer-events-none whitespace-nowrap flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-blue-400"></i> <span id="toast-text">메시지</span></div>
+    
+    <div id="player-select-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="modal-content bg-white rounded-[2.5rem] p-5 max-w-md w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-3"><h3 class="text-lg font-black text-slate-800 flex items-center gap-2"><i data-lucide="user-check" class="w-5 h-5 text-blue-500"></i> 선수 선택</h3><button onclick="window.closePlayerSelectModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl"><i data-lucide="x"></i></button></div>
+            <div class="flex gap-2 mb-3"><label class="text-[10px] font-bold text-slate-600 flex items-center gap-1.5 cursor-pointer bg-slate-50 px-2 py-1.5 rounded-lg border hover:bg-slate-100 flex-1 justify-center"><input type="checkbox" id="allow-duplicate-cb" onchange="window.renderPlayerSelectList()" class="w-4 h-4 accent-blue-500"> 다른 팀 중복 허용</label><label class="text-[10px] font-bold text-slate-600 flex items-center gap-1.5 cursor-pointer bg-slate-50 px-2 py-1.5 rounded-lg border hover:bg-slate-100 flex-1 justify-center"><input type="checkbox" id="show-all-players-cb" onchange="window.renderPlayerSelectList()" class="w-4 h-4 accent-blue-500"> 전체회원 보기</label></div>
+            <div class="overflow-y-auto nav-scroll flex-grow pr-1" id="player-select-list"></div>
+        </div>
+    </div>
+
+    <div id="member-select-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[4000] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-[2.5rem] p-5 max-w-md w-full shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-black text-slate-800 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-blue-500"></i> 수입 등록 회원 선택</h3>
+                <button onclick="window.closeMemberSelectModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-y-auto nav-scroll flex-grow pr-1 grid grid-cols-2 md:grid-cols-3 gap-2 content-start" id="member-select-list"></div>
+        </div>
+    </div>
+
+    <div id="account-select-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[4000] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-[2.5rem] p-5 max-w-md w-full shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-black text-slate-800 flex items-center gap-2"><i data-lucide="list" class="w-5 h-5 text-indigo-500"></i> <span id="account-modal-title">항목 선택</span></h3>
+                <button onclick="window.closeAccountSelectModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-y-auto nav-scroll flex-grow pr-1 grid grid-cols-2 gap-2 content-start" id="account-select-list"></div>
+        </div>
+    </div>
+
+    <div id="special-dues-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] hidden items-center justify-center p-5 opacity-0 transition-opacity duration-200"><div class="modal-content bg-white rounded-[2.5rem] p-6 max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]" id="special-dues-modal-content-wrapper"><h3 class="text-xl font-black text-blue-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4 shrink-0"><div class="bg-blue-100 p-2 rounded-xl text-blue-600"><i data-lucide="receipt" class="w-5 h-5"></i></div> 특별 비용 청구</h3><div class="overflow-y-auto flex-grow pr-2 space-y-5 font-black nav-scroll" id="special-dues-modal-content"><div><label class="text-[10px] text-slate-500 uppercase block mb-1">청구 내역명</label><input type="text" id="sd-title" class="w-full border-2 border-slate-200 p-3.5 rounded-xl outline-none focus:border-blue-400"></div><div><label class="text-[10px] text-slate-500 uppercase block mb-1">1인당 금액</label><input type="text" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" id="sd-amount" class="w-full border-2 border-slate-200 p-3.5 rounded-xl outline-none focus:border-blue-400"></div><div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mt-2 flex-grow min-h-0 flex flex-col"><div class="flex justify-between items-center mb-4 shrink-0"><label class="text-[10px] text-slate-500 uppercase">대상자 선택</label><button onclick="window.toggleAllSdMembers()" class="text-[10px] bg-white border border-slate-300 px-3 py-1.5 rounded-lg btn-touch shadow-sm">전체 선택/해제</button></div><div id="sd-member-list" class="grid grid-cols-2 md:grid-cols-3 gap-2.5 text-sm text-slate-700 overflow-y-auto p-1 nav-scroll"></div></div></div><div class="modal-footer flex gap-3 justify-end pt-5 border-t border-slate-100 mt-4 shrink-0"><button onclick="window.closeSpecialDuesModal()" class="flex-1 bg-slate-100 text-slate-600 py-3.5 rounded-2xl font-black">닫기</button><button onclick="window.saveSpecialDues()" class="flex-1 bg-blue-600 text-white py-3.5 rounded-2xl font-black">저장</button></div></div></div>
+    <div id="memo-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-200"><div class="modal-content bg-white rounded-[2.5rem] p-6 max-w-md w-full shadow-2xl flex flex-col transform transition-transform duration-200 scale-95" id="memo-modal-content"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4 shrink-0"><h3 class="text-xl font-black text-slate-800 flex items-center gap-2"><div class="bg-purple-100 p-2 rounded-xl text-purple-600"><i data-lucide="clipboard-edit" class="w-5 h-5"></i></div> 훈련 노트</h3><button onclick="window.closeMemoModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl"><i data-lucide="x"></i></button></div><p class="text-xs font-bold text-slate-500 mb-2 shrink-0" id="memo-modal-subtitle"></p><textarea id="memo-modal-input" class="w-full h-40 border-2 border-slate-200 p-4 rounded-2xl text-sm font-bold text-slate-700 outline-none resize-none mb-4 shadow-inner flex-grow"></textarea><div class="modal-footer"><button onclick="window.saveMemo()" class="w-full bg-purple-600 text-white py-3.5 rounded-2xl font-black shadow-lg btn-touch shrink-0">기록 저장</button></div></div></div>
+    
+    <div id="upload-preview-modal" onclick="if(event.target === this) window.closeUploadPreview(false)" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[7000] hidden flex-col opacity-0 transition-opacity duration-300">
+        <div class="flex flex-col h-full w-full" onclick="event.stopPropagation()">
+            <div class="bg-slate-900 flex justify-between items-center p-4 border-b border-white/10 shrink-0">
+                <h3 class="text-white font-black flex items-center gap-2"><i data-lucide="image" class="w-5 h-5 text-purple-400"></i> 업로드 미리보기</h3>
+                <button onclick="window.closeUploadPreview(false)" class="text-white/70 hover:text-white p-2 bg-white/10 rounded-xl"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-4 md:p-6 nav-scroll">
+                <div id="upload-preview-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4"></div>
+            </div>
+            <div class="bg-slate-900 p-5 md:p-6 border-t border-white/10 shrink-0 flex flex-col gap-3 relative">
+                <div id="upload-preview-overlay" class="absolute inset-0 bg-slate-900/95 z-20 hidden flex-col justify-center px-6 transition-all">
+                    <div class="text-white text-xs font-black mb-2.5 text-center flex items-center justify-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin text-purple-400"></i> <span id="upload-preview-progress-text">업로드 중... (0%)</span></div>
+                    <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner border border-white/10">
+                        <div id="upload-preview-progress-bar" class="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.5)]" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="text-center text-white/70 text-[10px] md:text-xs font-bold" id="upload-preview-info">총 0장 투척됨</div>
+                <div class="flex gap-2 w-full max-w-sm mx-auto">
+                    <button onclick="window.closeUploadPreview(false)" class="flex-1 bg-slate-700 text-white py-3.5 rounded-xl text-sm font-black transition-colors hover:bg-slate-600 btn-touch shadow-md">업로드 취소</button>
+                    <button onclick="window.confirmPhotoUpload()" class="flex-1 bg-purple-600 text-white py-3.5 rounded-xl text-sm font-black shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-colors hover:bg-purple-500 btn-touch border-b-2 border-purple-800 active:border-b-0 active:translate-y-[2px]">업로드 시작</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="image-viewer-modal" onclick="if(event.target === this) window.closeImageViewer()" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[7000] hidden items-center justify-center p-2 md:p-4 opacity-0 transition-opacity duration-300">
+        <button onclick="window.closeImageViewer()" class="absolute top-4 right-4 text-white/50 hover:text-white p-2 bg-black/50 rounded-full z-[7010] transition-colors btn-touch"><i data-lucide="x"></i></button>
+        <button onclick="window.navigateImageViewer(-1)" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white p-2 md:p-3 bg-black/50 rounded-full z-[7010] transition-colors btn-touch"><i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8"></i></button>
+        <button onclick="window.navigateImageViewer(1)" class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white p-2 md:p-3 bg-black/50 rounded-full z-[7010] transition-colors btn-touch"><i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8"></i></button>
+        <div class="relative w-full h-full flex items-center justify-center" onclick="event.stopPropagation()">
+            <img id="image-viewer-img" src="" class="max-w-full max-h-full object-contain rounded-lg transition-transform duration-300 scale-95" draggable="false" style="transition: opacity 0.15s, transform 0.3s;">
+        </div>
+        <div class="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-2 px-4 z-[7010] font-black">
+            <div id="image-viewer-info" class="text-white/90 text-sm drop-shadow-md flex-1 text-center bg-black/40 py-1.5 px-3 rounded-xl border border-white/10 overflow-hidden whitespace-nowrap text-ellipsis"></div>
+            <button onclick="window.downloadCurrentPhoto()" class="bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs shadow-lg btn-touch border border-blue-400 shrink-0 flex items-center gap-1.5"><i data-lucide="download" class="w-3.5 h-3.5"></i> 다운로드</button>
+            <button id="btn-delete-photo" onclick="window.deleteCurrentPhoto()" class="hidden bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs shadow-lg btn-touch border border-rose-400 shrink-0 flex items-center gap-1.5"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제</button>
+        </div>
+    </div>
+
+
+
+    <div id="login-overlay" class="fixed inset-0 z-[1000] overflow-hidden bg-[#020617] flex">
+        <!-- [배경] 세련된 애니메이션 블롭 장식 -->
+        <div class="login-blob animate-blob top-[-10%] left-[-10%]"></div>
+        <div class="login-blob animate-blob bottom-[-10%] right-[-10%]" style="animation-delay: -5s; background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, transparent 70%);"></div>
+
+        <div class="w-full h-full flex flex-col md:flex-row relative z-10">
+            <!-- [PC 전용 좌측 브랜딩 영역] -->
+            <div class="hidden md:flex md:w-[45%] lg:w-[50%] h-full flex-col justify-between p-16 bg-gradient-to-br from-slate-900/60 via-indigo-950/40 to-slate-900/60 border-r border-white/5 relative overflow-hidden backdrop-blur-xl">
+                <!-- 상단 로고/이름 -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                        <i data-lucide="trees" class="w-6 h-6 text-white animate-pulse"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black text-blue-400 tracking-widest uppercase">Official Application</span>
+                        <span class="text-sm font-black text-white leading-none mt-0.5">SONAMU JOKGU</span>
+                    </div>
+                </div>
+
+                <!-- 중앙 홍보 메시지 및 일러스트 대용 장식 -->
+                <div class="my-auto space-y-8 pr-8">
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[10px] font-black text-blue-400 uppercase tracking-wider">
+                            <span>Since 2024</span>
+                            <span class="w-1 h-1 rounded-full bg-blue-500"></span>
+                            <span>Active Club</span>
+                        </div>
+                        <h1 class="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
+                            건강한 신체, <br>
+                            화합하는 우리, <br>
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-emerald-400">열정의 소나무족구단</span>
+                        </h1>
+                        <p class="text-slate-400 text-sm font-bold leading-relaxed max-w-md pt-2">
+                            구리시 최고의 명문 족구단, 소나무족구단 통합 관리 시스템에 오신 것을 환영합니다. 회원 및 회계, 경기 대진 관리를 더욱 간편하게 수행할 수 있습니다.
+                        </p>
+                    </div>
+
+                    <!-- 클럽 하이라이트 지표 카드 (Glassmorphism) -->
+                    <div class="grid grid-cols-3 gap-4 pt-4">
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400">🏆 대회 성적</span>
+                            <span class="text-xs lg:text-sm font-black text-white">우승 다수</span>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400">👥 활동 인원</span>
+                            <span class="text-xs lg:text-sm font-black text-white">50+ 명</span>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
+                            <span class="text-[10px] font-black text-slate-400">⚡ 정기 운동</span>
+                            <span class="text-xs lg:text-sm font-black text-white">매주 토/일</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 하단 구리시 마크 문구 -->
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Guri City Jokgu Association &bull; Sonamu Club
+                </div>
+            </div>
+
+            <!-- [우측/모바일 로그인 카드 영역] -->
+            <div class="w-full md:w-[55%] lg:w-[50%] h-full flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
+                <div class="glass-card rounded-[2.5rem] w-full max-w-[380px] p-6 sm:p-10 flex flex-col items-center animate-fadeIn shadow-2xl relative">
+                    <!-- [공통 헤더 영역 - 반응형 대응] -->
+                    <div class="text-center mb-8 flex flex-col items-center">
+                        <!-- 모바일용 로고 (PC에서는 숨김) -->
+                        <div class="relative mb-6 md:hidden">
+                            <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shadow-2xl relative overflow-hidden group">
+                                <i data-lucide="trees" class="w-10 h-10 text-blue-400 animate-sway relative z-10 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]"></i>
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 bg-blue-600 text-[7px] font-black px-1 py-0.5 rounded shadow-lg text-white">OFFICIAL</div>
+                        </div>
+
+                        <!-- PC용 로고 아이콘 (모바일에서는 숨김) -->
+                        <div class="hidden md:flex w-12 h-12 bg-blue-500/10 border border-blue-400/20 rounded-full items-center justify-center text-blue-400 mb-3 shadow-inner">
+                            <i data-lucide="lock" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+
+                        <!-- 제목 (PC/모바일 공통이지만 반응형 텍스트 크기 조절) -->
+                        <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tighter mb-1">
+                            소나무 족구단 <span id="login-app-version" class="text-[9px] font-bold text-blue-300/80 align-top opacity-60"></span>
+                        </h2>
+                        <p class="hidden md:block text-[11px] text-slate-500 font-bold mt-1.5">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
+                        <div class="md:hidden h-1 w-12 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full mt-3 opacity-50"></div>
+                    </div>
+
+                    <!-- 입력 폼 -->
+                    <div class="w-full space-y-3.5 sm:space-y-4">
+                        <div class="login-input-group">
+                            <i data-lucide="user" class="login-input-icon w-4 h-4 sm:w-5 sm:h-5"></i>
+                            <input type="text" id="login-id" placeholder="휴대폰 뒷자리 또는 ID" class="login-input w-full p-3.5 sm:p-4 rounded-2xl text-white placeholder-slate-500 text-sm outline-none transition-all border border-white/5 bg-black/20 focus:bg-black/40">
+                        </div>
+                        <div class="login-input-group">
+                            <i data-lucide="lock" class="login-input-icon w-4 h-4 sm:w-5 sm:h-5"></i>
+                            <input type="password" id="login-pw" placeholder="비밀번호" class="login-input w-full p-3.5 sm:p-4 rounded-2xl text-white placeholder-slate-500 text-sm outline-none transition-all border border-white/5 bg-black/20 focus:bg-black/40" onkeydown="if(event.key==='Enter') window.handleLogin()">
+                        </div>
+                        
+                        <div class="flex items-center justify-between px-1 mb-1 sm:mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" id="login-remember" class="w-4 h-4 accent-blue-500 bg-black/40 border-slate-700/50 rounded transition-all">
+                                <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 group-hover:text-slate-300 transition-colors">로그인 정보 기억하기</span>
+                            </label>
+                        </div>
+
+                        <button id="btn-login" disabled onclick="window.handleLogin()" class="login-btn-premium w-full py-3.5 sm:py-4 rounded-2xl text-white font-black text-base sm:text-lg tracking-widest uppercase disabled:opacity-40 disabled:cursor-not-allowed transform active:scale-[0.98]">
+                            Login
+                        </button>
+                    </div>
+
+                    <!-- [PWA 전용] 설치 유도 버튼 -->
+                    <div id="pwa-install-container" class="hidden w-full mt-6">
+                        <button onclick="window.installPWA()" class="w-full py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-black flex items-center justify-center gap-2 hover:bg-emerald-500/20 transition-all btn-touch">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 홈 화면에 앱 설치
+                        </button>
+                    </div>
+
+                    <!-- [푸터] -->
+                    <div class="mt-10 text-center">
+                        <p class="text-[9px] text-slate-500 font-bold tracking-[0.2em] uppercase opacity-60">
+                            &copy; 2026 Sonamu AI Management 
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="relative min-h-screen overflow-x-hidden">
+        <!-- [배경] 메인 화면용 은은한 블롭 장식 -->
+        <div class="main-bg-blob main-blob-1"></div>
+        <div class="main-bg-blob main-blob-2"></div>
+
+        <div class="sticky top-0 z-50 print:hidden flex flex-col w-full px-4 pt-4">
+            <header class="main-glass-card p-3 sm:p-4 text-white rounded-[2rem] relative z-20 w-full flex flex-col gap-3">
+                <div class="flex justify-between items-center w-full">
+                    <div class="flex items-center gap-3">
+                        <!-- 로그인 화면과 통일된 상태 표시 로고 -->
+                        <div id="main-logo-container" class="mini-logo-container">
+                            <i data-lucide="trees" class="text-blue-400"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-sm sm:text-base font-black tracking-tight uppercase text-premium-blue">Sonamu Club</h1>
+                                <span id="main-app-version" class="text-[8px] font-bold text-blue-300/40 px-1.5 py-0.5 bg-white/5 rounded-full"></span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <i data-lucide="user" class="w-2.5 h-2.5 text-slate-500"></i>
+                                <span id="header-account-name" class="text-[10px] font-bold text-slate-400/80"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <div id="ai-credit-status" onclick="window.startCloudSync(); window.showToast('서버 데이터를 새로고침합니다.');" class="cursor-pointer ai-credit-badge flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-2 rounded-xl text-[9px] font-black tracking-tight whitespace-nowrap shrink-0 active:scale-95 transition-all">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i>
+                            <span id="ai-credit-text" class="hidden sm:inline-block">서버 연결됨</span>
+                        </div>
+                        <button onclick="window.toggleTheme()" title="테마 변경" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-amber-200 hover:bg-white/10 transition-all btn-touch"><i id="theme-icon-m" data-lucide="moon" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                        <button onclick="window.openMyProfile()" title="내 정보" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-blue-400 hover:bg-white/10 transition-all btn-touch"><i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                        <button onclick="window.logout()" title="로그아웃" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-rose-400 hover:bg-white/10 transition-all btn-touch"><i data-lucide="log-out" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex items-center bg-black/20 border border-white/5 px-3 py-2 rounded-xl shadow-inner gap-3 overflow-hidden">
+                    <span class="text-[9px] text-blue-500/80 font-black shrink-0 uppercase tracking-widest">Live Access</span>
+                    <div class="ticker-container flex-1 text-[9px] font-bold text-slate-300"><span class="ticker-text" id="header-visitors-text">확인중...</span></div>
+                </div>
+            </header>
+        </div>
+
+        <main class="p-4 sm:p-6 md:p-8 flex-grow pb-32 md:pb-12 relative w-full max-w-7xl mx-auto">
+            <section id="dashboard" class="tab-content active space-y-8 font-black news-container p-4 sm:p-6 md:p-8 rounded-[2.5rem]">
+                <!-- [Newspaper Header] -->
+                <div class="news-hero text-center px-2">
+                    <div class="news-label">The Sonamu Daily</div>
+                    <h1 class="news-title mt-2">소나무 족구단 소식</h1>
+                    <div class="flex justify-center items-center gap-2 sm:gap-4 mt-3 text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest border-t border-slate-200 pt-3 flex-wrap">
+                        <span>Established 2024</span>
+                        <span class="hidden sm:inline w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                        <span id="news-current-date">2026. 04. 03</span>
+                        <span class="hidden sm:inline w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                        <span class="whitespace-nowrap">Edition #<span id="main-app-version-news">1.0</span></span>
+                    </div>
+                    
+                    <!-- 대시보드 퀵 버튼 그룹 (사용설명서 & 한마디 쓰기) -->
+                    <div class="flex justify-center gap-3 mt-5 flex-wrap">
+                        <button onclick="window.openUserManualModal()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:brightness-110 text-white font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 btn-touch">
+                            <i data-lucide="book-open" class="w-4 h-4"></i> 프로그램 사용설명서 📖
+                        </button>
+                        <button onclick="window.goToFreeBoard()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 btn-touch">
+                            <i data-lucide="message-square" class="w-4 h-4"></i> 클럽에 한마디 쓰기 💬
+                        </button>
+                    </div>
+                </div>
+
+
+
+                <!-- [Hall of Fame: Hall of Fame Ticker] -->
+                <div class="bg-slate-950 text-white/90 p-3 flex flex-col gap-1 items-stretch overflow-hidden rounded-sm shadow-xl border-l-[6px] border-l-amber-500 border-r border-y border-white/5">
+                    <div class="flex items-center gap-3 w-full">
+                        <div class="flex items-center gap-1.5 shrink-0 px-2 border-r border-white/10 mr-1">
+                            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400 animate-pulse"></i>
+                            <span class="text-amber-400 text-[10px] font-black uppercase italic tracking-wider">Hall of Fame</span>
+                        </div>
+                        <div id="dashboard-podium" class="flex-1 overflow-hidden"></div>
+                    </div>
+                    <div class="px-2 pb-0.5 text-[9px] text-white/40 font-bold flex items-center gap-1">
+                        <i data-lucide="info" class="w-2.5 h-2.5"></i>
+                        선정 기준: 운동 참석(3~5pt) 및 각종 투표 참여(2pt) 등 누적 마일리지 합계 (정규회원 이상)
+                    </div>
+                </div>
+
+                <div id="pending-vote-task-container" class="hidden news-card border-l-4 border-l-rose-500 bg-rose-50/50 mb-8 animate-newsFadeIn">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-rose-500 text-white p-2.5 rounded-2xl shadow-xl ring-4 ring-rose-500/10 animate-pulse"><i data-lucide="bell" class="w-6 h-6"></i></div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 leading-tight">미참여 투표 알림</h3>
+                                <p class="text-[10px] font-black text-rose-600 uppercase tracking-[0.1em]">Action Required: Please participate now</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/80 backdrop-blur px-3 py-1.5 rounded-xl border border-rose-200 shadow-sm flex items-center gap-2">
+                             <div class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></div>
+                             <span id="pending-vote-count" class="text-xs font-black text-rose-700">0건</span>
+                        </div>
+                    </div>
+                    <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- [Top Story: Admin DB / Active Votes] -->
+                <div class="news-grid">
+                    <div class="finance-admin-only news-card border-l-4 border-l-blue-600">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="news-label text-blue-600">System Report</div>
+                                <h3 class="text-lg font-black tracking-tight">DB/용량 분석 보고서</h3>
+                            </div>
+                            <button onclick="window.toggleDbCapacityDetail()" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 btn-touch">
+                                <span id="btn-toggle-db-label">상세 보기</span><i id="icon-toggle-db" data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="db-capacity-detail" class="hidden">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-slate-50 p-3 border border-slate-200 flex flex-col gap-1">
+                                    <span class="text-[9px] text-slate-500 font-black">데이터 건강도</span>
+                                    <div id="db-health-status" class="text-sm font-black text-emerald-600">계산 중...</div>
+                                </div>
+                                <div class="bg-slate-50 p-3 border border-slate-200 flex flex-col gap-1 text-right">
+                                    <span class="text-[9px] text-slate-500 font-black">가용 일수</span>
+                                    <div id="db-expected-life" class="text-sm font-black text-blue-600">데이터 부족</div>
+                                </div>
+                            </div>
+                            <div id="db-usage-container" class="space-y-4"></div>
+                            <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100 items-center justify-between">
+                                <div class="flex gap-2">
+                                    <button onclick="window.downloadBackup()" class="bg-slate-900 text-white px-3 py-2 rounded-lg text-[10px] font-black btn-touch">Backup</button>
+                                    <button onclick="window.$('restore-file-input').click()" class="master-only bg-white border border-slate-900 text-slate-900 px-3 py-2 rounded-lg text-[10px] font-black btn-touch">Restore</button>
+                                    <input type="file" id="restore-file-input" accept=".json" class="hidden" onchange="window.handleRestoreUpload(this)">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="window.migrateMileageToLedger()" class="master-only text-indigo-600 text-[10px] font-black hover:underline cursor-pointer mr-2 border border-indigo-200 px-2 rounded bg-indigo-50/50">마일리지 정산(원장화)</button>
+                                    <button onclick="window.cleanupOldData()" class="master-only text-rose-600 text-[10px] font-black hover:underline cursor-pointer">Cleanup (3Yr)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hero-vote-container" class="news-card border-l-4 border-l-rose-600">
+                        <div class="news-label text-rose-600">Top Story</div>
+                        <h3 class="text-xl font-black text-slate-800 flex items-center gap-2 mb-4 leading-tight">진행 중인 투표 안내</h3>
+                        <div id="dashboard-vote-status" class="space-y-4"></div>
+                    </div>
+                </div>
+
+                <!-- [Briefs: Quick Stats] -->
+                <div class="news-divider"></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border border-slate-200 divide-x divide-slate-200">
+                    <div class="p-4 bg-white flex flex-col items-center">
+                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Members</span>
+                        <div id="summary-members" class="text-lg font-black text-slate-800">0명</div>
+                    </div>
+                    <div class="p-4 bg-white flex flex-col items-center">
+                        <span class="text-[9px] font-black text-blue-400 uppercase mb-1">Account Income</span>
+                        <div id="summary-income" class="text-lg font-black text-blue-600">0원</div>
+                    </div>
+                    <div class="p-4 bg-white flex flex-col items-center">
+                        <span class="text-[9px] font-black text-rose-400 uppercase mb-1">Monthly Cost</span>
+                        <div id="summary-expense" class="text-lg font-black text-rose-600">0원</div>
+                    </div>
+                    <div class="p-4 bg-white flex flex-col items-center">
+                        <span class="text-[9px] font-black text-indigo-400 uppercase mb-1">Bank Balance</span>
+                        <div id="summary-balance" class="text-lg font-black text-indigo-600">0원</div>
+                    </div>
+                </div>
+
+
+
+                <!-- [Local Features Grid] -->
+                <div class="news-divider"></div>
+                <div class="news-grid">
+                    <!-- Announcements -->
+                    <div class="news-card">
+                        <div class="news-label">Public Notices</div>
+                        <h3 class="text-xl font-black mb-4 flex items-center gap-2 border-b-2 border-slate-900 pb-2">공지사항</h3>
+                        <div id="dashboard-notices" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Recent Activity List -->
+                    <div id="dashboard-recent-activity-wrapper" class="partner-hidden">
+                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2 flex justify-between items-center">
+                            최근 활동 기록
+                            <span class="text-[9px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase" id="dashboard-visitors-text">상태 양호</span>
+                        </h3>
+                        <div id="dashboard-recent-activities" class="space-y-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                    </div>
+
+                    <!-- Birthdays -->
+                    <div id="dashboard-birthdays" class="news-card border-2 border-dashed border-rose-200 hidden">
+                        <div class="news-label text-rose-500 border-rose-500">Celebrate!</div>
+                        <h3 class="text-xl font-black mb-4 flex items-center gap-2 text-rose-700">이번 달 생일 멤버</h3>
+                        <div id="birthday-list" class="flex flex-wrap gap-2.5"></div>
+                    </div>
+
+                    <!-- Gallery Preview -->
+                    <div class="news-card partner-hidden">
+                        <div class="news-label text-purple-600 border-purple-600">Photo Gallery</div>
+                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2 flex justify-between items-center">
+                            최근 활동 사진
+                            <span class="text-[9px] font-black text-slate-400" id="dashboard-gallery-stats">5GB Limit</span>
+                        </h3>
+                        <div class="gallery-marquee-container">
+                            <div id="dashboard-gallery-preview" class="gallery-marquee-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- [Luck Winners / Events] -->
+                <div id="dashboard-luck-winners" class="news-card border-2 border-amber-400 bg-amber-50 hidden"></div>
+
+                <div class="news-divider"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Bank Account Info -->
+                    <div class="bg-yellow-100 p-6 rounded-sm border-2 border-yellow-300 shadow-news relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 opacity-10 text-yellow-900 rotate-12"><i data-lucide="landmark" style="width: 80px; height: 80px;"></i></div>
+                        <div class="relative z-10">
+                            <div class="news-label text-yellow-800 border-yellow-800">Financial info</div>
+                            <div class="text-[10px] font-black text-yellow-900 mb-1">소나무 족구단 공식 회비 계좌</div>
+                            <div class="font-black text-base sm:text-lg tracking-tight text-slate-900 leading-tight">카카오 <span class="whitespace-nowrap">3333-32-8844095</span> <span class="text-xs font-bold text-slate-600 block sm:inline-block sm:ml-1">소나무_박재구</span></div>
+                            <button onclick="window.copyToClipboard('3333328844095')" class="mt-4 bg-slate-900 text-yellow-400 px-6 py-2.5 rounded-sm text-xs font-black flex items-center gap-2 btn-touch">
+                                <i data-lucide="copy" class="w-4 h-4"></i> 계좌번호 복사하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Events -->
+                    <div class="news-card">
+                        <div class="news-label">Upcoming Calendar</div>
+                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2">예정된 일정</h3>
+                        <div id="dashboard-upcoming-events" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- [Newspaper Footer] -->
+                <div class="text-center py-12 border-t border-slate-200 mt-12 bg-slate-50 rounded-b-[2.5rem]">
+                    <div class="news-label">Editorial Contact</div>
+                    <p class="text-[10px] text-slate-400 font-bold max-w-sm mx-auto px-4 mt-2">
+                        본 시스템은 소나무 족구단 회원들의 활동 증진과 원활한 클럽 관리를 위해 AI 기술을 활용하여 제작되었습니다. 정보의 누락이 있는 경우 마스터에게 문의 바랍니다.
+                    </p>
+                    <div class="mt-6 flex justify-center gap-6">
+                        <i data-lucide="instagram" class="w-5 h-5 text-slate-300"></i>
+                        <i data-lucide="facebook" class="w-5 h-5 text-slate-300"></i>
+                        <i data-lucide="send" class="w-5 h-5 text-slate-300"></i>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="vote" class="tab-content space-y-6 font-black monitor-hidden">
+                <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-w-lg mb-2">
+                    <button id="btn-vote-tab-team" onclick="window.switchVoteTab('team')" class="flex-1 py-3 rounded-xl text-sm transition-all bg-white text-blue-600 shadow-sm font-black">운동 참가투표</button>
+                    <button id="btn-vote-tab-event" onclick="window.switchVoteTab('event')" class="partner-hidden flex-1 py-3 rounded-xl text-sm transition-all text-slate-500 hover:text-slate-700 font-black">소나무 회원투표</button>
+                    <button id="btn-vote-tab-anon" onclick="window.switchVoteTab('anon')" class="partner-hidden flex-1 py-3 rounded-xl text-sm transition-all text-slate-500 hover:text-slate-700 font-black">무기명 투표</button>
+                </div>
+                <div id="vote-team-view" class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <h3 class="text-xl flex items-center gap-2"><i data-lucide="volleyball" class="text-blue-500"></i> 운동 투표 <span class="text-xs text-slate-400 font-normal hidden md:inline">(파트너 포함)</span></h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button id="btn-add-external-team" onclick="window.openExternalTeamModal()" class="hidden text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 px-3 py-2 rounded-xl shadow-sm items-center gap-1.5 btn-touch hover:bg-purple-100 transition-colors"><i data-lucide="shield" class="w-3.5 h-3.5"></i> 외부팀 참석</button>
+                            <button id="btn-kakao-share-team" onclick="window.shareKakaoVoteTeam()" class="hidden text-[10px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl shadow-sm items-center gap-1.5 btn-touch hover:bg-indigo-200 transition-colors"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> 투표 공유</button>
+                        </div>
+                    </div>
+                    <select id="vote-team-select" onchange="window.changeVoteTeam()" class="w-full border-2 p-4 rounded-2xl bg-slate-50 outline-none mb-6"></select>
+                    <!-- 운동 정보(장소/시간) 변경 영역 (관리자 전용) -->
+                    <div id="vote-team-edit-container" class="hidden mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex flex-col sm:flex-row gap-3 items-end">
+                            <div class="flex-1 w-full">
+                                <label class="text-[10px] text-slate-500 mb-1 block ml-1">운동 장소 수정</label>
+                                <input type="text" id="vote-team-edit-location" placeholder="예: 소나무 족구장" class="w-full border p-2.5 rounded-lg text-sm outline-none focus:border-indigo-400">
+                            </div>
+                            <div class="flex-1 w-full">
+                                <label class="text-[10px] text-slate-500 mb-1 block ml-1">운동 시간 수정</label>
+                                <input type="text" id="vote-team-edit-time" placeholder="예: 08:00 ~ 13:00" class="w-full border p-2.5 rounded-lg text-sm outline-none focus:border-indigo-400">
+                            </div>
+                            <button onclick="window.saveVoteTeamEdit()" class="w-full sm:w-auto bg-indigo-600 text-white font-black text-sm px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors btn-touch">변경 저장</button>
+                        </div>
+                    </div>
+                    <div id="vote-team-action-container"></div>
+                    <div id="vote-team-status-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+                <div id="vote-event-view" class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 hidden">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <h3 class="text-xl flex items-center gap-2"><i data-lucide="clipboard-check" class="text-green-500"></i> 소나무 회원투표 <span class="text-xs text-slate-400 font-normal hidden md:inline">(정규회원 전용, 유기명)</span></h3>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-add-event-guest" onclick="window.openEventAddGuestModal()" class="hidden text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl shadow-sm items-center gap-1.5 btn-touch hover:bg-emerald-100 transition-colors"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> 비회원/가족 추가</button>
+                            <button id="btn-kakao-share-event" onclick="window.shareKakaoVoteEvent()" class="hidden text-[10px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl shadow-sm items-center gap-1.5 btn-touch hover:bg-indigo-200 transition-colors"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> 투표 공유</button>
+                        </div>
+                    </div>
+                    <select id="vote-event-select" onchange="window.changeVoteEvent()" class="w-full border-2 p-4 rounded-2xl bg-slate-50 outline-none mb-6"></select>
+                    <div id="vote-event-action-container"></div>
+                    
+                    <div id="vote-event-status-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
+
+                    <!-- [NEW] 종료된 투표 내역 (최근 10개) -->
+                    <div class="mt-12 border-t border-slate-100 pt-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-slate-100 p-2 rounded-xl"><i data-lucide="archive" class="w-4 h-4 text-slate-500"></i></div>
+                                <h4 class="text-sm font-black text-slate-600">지난 소나무 회원투표 <span id="ended-vote-count" class="text-[10px] bg-slate-200 px-1.5 rounded ml-1 text-slate-500">0</span></h4>
+                            </div>
+                            <button onclick="window.toggleEndedVoteList()" class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                                <span id="btn-toggle-ended-label">보기</span>
+                                <i data-lucide="chevron-down" id="icon-toggle-ended" class="w-3 h-3 transition-transform"></i>
+                            </button>
+                        </div>
+                        <div id="ended-vote-list-container" class="hidden space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                    </div>
+                </div>
+                <div id="vote-anon-view" class="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 hidden">
+                    <h3 class="text-xl mb-4 flex items-center gap-2"><i data-lucide="help-circle" class="text-rose-500"></i> 무기명 투표 <span class="text-xs text-slate-400 font-normal">(정규회원 이상, 비밀투표)</span></h3>
+                    <select id="vote-anon-select" onchange="window.changeVoteAnon()" class="w-full border-2 p-4 rounded-2xl bg-slate-50 outline-none mb-6"></select>
+                    <div id="vote-anon-action-container"></div>
+                    <div id="vote-anon-status-container"></div>
+
+                    <!-- [NEW] 종료된 무기명 투표 내역 -->
+                    <div class="mt-12 border-t border-slate-100 pt-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-rose-50 p-2 rounded-xl"><i data-lucide="archive" class="w-4 h-4 text-rose-500"></i></div>
+                                <h4 class="text-sm font-black text-slate-600">지난 소나무 무기명 투표 <span id="ended-vote-anon-count" class="text-[10px] bg-slate-200 px-1.5 rounded ml-1 text-slate-500">0</span></h4>
+                            </div>
+                            <button onclick="window.toggleEndedVoteListAnon()" class="text-[10px] font-black text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 hover:bg-rose-100 transition-colors flex items-center gap-1">
+                                <span id="btn-toggle-ended-label-anon">보기</span>
+                                <i data-lucide="chevron-down" id="icon-toggle-ended-anon" class="w-3 h-3 transition-transform"></i>
+                            </button>
+                        </div>
+                        <div id="ended-vote-anon-list-container" class="hidden space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="teams" class="tab-content space-y-6 font-black">
+                <!-- 서브 탭 분기 메뉴 -->
+                <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-w-md print:hidden mb-6">
+                    <button id="btn-team-tab-match" onclick="window.switchTeamSubTab('match')" class="flex-1 py-3 rounded-xl text-xs transition-all bg-white text-amber-600 shadow-sm font-black whitespace-nowrap">경기 대진/팀</button>
+                    <button id="btn-team-tab-calendar" onclick="window.switchTeamSubTab('calendar')" class="flex-1 py-3 rounded-xl text-xs transition-all text-slate-500 hover:text-slate-700 font-black whitespace-nowrap">소나무일정 (달력)</button>
+                </div>
+
+                <!-- 1. 경기 대진/팀 뷰 -->
+                <div id="team-match-view" class="space-y-6">
+                    <div class="bg-white p-6 rounded-[2rem] border shadow-sm space-y-4">
+                        <div class="flex flex-col md:flex-row justify-between gap-4">
+                            <div class="w-full md:w-1/2">
+                                <label class="text-[10px] text-blue-600 block mb-1">운동 일정 선택</label>
+                                <select id="team-event-select" onchange="window.changeTeamEvent()" class="w-full border-2 p-3 rounded-xl bg-blue-50 outline-none disabled:bg-slate-100 disabled:text-slate-400"></select>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-4 border-t team-admin-only">
+                            <button onclick="window.openAddTeamEvent()" class="bg-blue-100 px-3 py-2 rounded-xl text-xs text-blue-800">새 일정</button>
+                            <button onclick="window.openEditTeamEvent()" class="bg-indigo-50 text-indigo-600 px-3 py-2 rounded-xl text-xs border border-indigo-200">일정 수정</button>
+                            <button onclick="window.deleteCurrentTeamEvent()" class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-xs border border-red-100">일정 삭제</button>
+                        </div>
+                    </div>
+                    <!-- 다가오는 일정 (참석 현황 대체) -->
+                    <div id="upcoming-schedules-section" class="bg-white p-6 rounded-[2rem] border shadow-sm">
+                        <h4 class="text-lg mb-4 flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5 text-blue-600"></i> 다가오는 일정 (최근 5개)</h4>
+                        <div id="upcoming-schedules-list" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- 2. 소나무일정 달력 뷰 -->
+                <div id="team-calendar-view" class="hidden space-y-6">
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 pb-4 relative z-10">
+                            <div>
+                                <h3 class="text-xl md:text-2xl text-slate-800 flex items-center gap-2 mb-1">
+                                    <div class="bg-amber-100 p-2 rounded-xl text-amber-600 shadow-sm"><i data-lucide="calendar" class="w-5 h-5 md:w-6 md:h-6"></i></div> 소나무 일정
+                                </h3>
+                                <p class="text-[10px] md:text-xs text-slate-400 font-bold ml-1">대회, 야유회 등의 일정을 한눈에 확인해 보세요!</p>
+                            </div>
+                            <button onclick="window.openAddCalendarEvent()" id="btn-add-calendar-event" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-xl shadow-lg transition-all font-black text-xs md:text-sm flex items-center justify-center gap-1.5 btn-touch border-b-4 border-amber-700 active:border-b-0 active:translate-y-[2px]">
+                                <i data-lucide="calendar-plus" class="w-4 h-4"></i> 일정 등록
+                            </button>
+                        </div>
+
+                        <!-- 달력 컨트롤러 -->
+                        <div class="flex items-center justify-between mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100 max-w-md mx-auto">
+                            <button onclick="window.changeCalendarMonth(-1)" class="p-2 hover:bg-white rounded-xl transition-colors btn-touch shadow-sm"><i data-lucide="chevron-left" class="w-5 h-5 text-slate-600"></i></button>
+                            <span id="calendar-month-display" class="text-slate-800 text-base md:text-lg font-black tracking-tight w-32 text-center">2026년 07월</span>
+                            <div class="flex gap-1">
+                                <button onclick="window.goTodayCalendar()" class="px-3 py-1.5 text-xs bg-white border rounded-lg text-slate-600 hover:text-amber-600 transition-colors btn-touch font-bold shadow-sm">오늘</button>
+                                <button onclick="window.changeCalendarMonth(1)" class="p-2 hover:bg-white rounded-xl transition-colors btn-touch shadow-sm"><i data-lucide="chevron-right" class="w-5 h-5 text-slate-600"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- 달력 그리드 -->
+                        <div class="border border-slate-200 rounded-[1.5rem] overflow-hidden bg-white shadow-inner">
+                            <!-- 요일 헤더 -->
+                            <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center text-xs md:text-sm font-black py-3 text-slate-500">
+                                <div class="text-rose-500">일</div>
+                                <div>월</div>
+                                <div>화</div>
+                                <div>수</div>
+                                <div>목</div>
+                                <div>금</div>
+                                <div class="text-blue-500">토</div>
+                            </div>
+                            <!-- 날짜 그리드 -->
+                            <div id="calendar-days-grid" class="grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-100 bg-slate-50/20 min-h-[400px]">
+                                <!-- JavaScript에서 동적 렌더링 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="finance" class="tab-content space-y-6 font-black monitor-hidden partner-hidden temp-hidden">
+                <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-w-lg mb-2">
+                    <button id="btn-finance-tab-income" onclick="window.switchFinanceTab('income')" class="flex-1 py-3 rounded-xl text-xs transition-all bg-white text-blue-600 shadow-sm font-black whitespace-nowrap">수입 내역</button>
+                    <button id="btn-finance-tab-expense" onclick="window.switchFinanceTab('expense')" class="flex-1 py-3 rounded-xl text-xs transition-all text-slate-500 hover:text-slate-700 font-black whitespace-nowrap">지출 내역</button>
+                    <button id="btn-finance-tab-status" onclick="window.switchFinanceTab('status')" class="flex-1 py-3 rounded-xl text-xs transition-all text-slate-500 hover:text-slate-700 font-black whitespace-nowrap">회비 현황</button>
+                </div>
+                
+                <div id="income-view" class="space-y-6">
+                    <div class="finance-admin-only bg-white p-6 rounded-[2rem] border relative"><div class="absolute top-0 right-0 bg-blue-50 text-[9px] px-3 py-1 rounded-bl-xl text-blue-600">수입 등록</div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"><div class="md:col-span-2"><button id="btn-income-member" onclick="window.openMemberSelectModal()" class="w-full border-2 p-3 rounded-xl text-left bg-white flex justify-between items-center text-slate-400 font-black btn-touch"><span id="income-member-display">회원 선택</span><i data-lucide="chevron-down" class="w-4 h-4"></i></button><input type="hidden" id="income-member"></div><div><button id="btn-income-account" onclick="window.openAccountSelectModal('income')" class="w-full border-2 p-3 rounded-xl text-left bg-white flex justify-between items-center text-slate-400 font-black btn-touch"><span id="income-account-display">항목 선택</span><i data-lucide="chevron-down" class="w-4 h-4"></i></button><input type="text" id="income-account" class="hidden w-full border-2 p-3 rounded-xl mt-2" placeholder="직접 항목 입력" oninput="window.updatePaidMonthsUI(); window.autoPrice();"></div>
+                    <div class="flex gap-2"><input type="date" id="income-date" class="w-full border-2 p-3 rounded-xl"><button onclick="window.setRelativeDate('income-date',-1)" class="bg-slate-100 px-3 rounded-xl text-xs whitespace-nowrap">어제</button><button onclick="window.setRelativeDate('income-date',0)" class="bg-slate-100 px-3 rounded-xl text-xs whitespace-nowrap">오늘</button></div>
+                    <div id="year-selector-container" class="md:col-span-2 hidden"><select id="income-target-year" class="w-full border-2 p-3 rounded-xl" onchange="window.updatePaidMonthsUI(); window.autoPrice();"><option value="2025">2025년</option><option value="2026" selected>2026년</option></select></div><div id="month-selector-container" class="md:col-span-2 hidden p-4 bg-slate-50 border rounded-xl"><div class="grid grid-cols-4 md:grid-cols-6 gap-2" id="month-checkboxes"></div></div><div class="md:col-span-2 flex flex-col sm:flex-row gap-2"><input type="number" id="income-amount" placeholder="금액" class="w-full sm:w-1/2 border-2 p-3 rounded-xl text-blue-600"><input type="text" id="income-note" placeholder="비고 (비회원명, 내용 등)" class="w-full sm:w-1/2 border-2 p-3 rounded-xl hidden"></div><div class="md:col-span-2 flex gap-2"><button onclick="window.addTransaction('income')" id="btn-income-submit" class="flex-1 bg-slate-900 text-white p-3 rounded-xl">등록</button><button onclick="window.resetTransactionForm('income')" id="btn-income-cancel" class="hidden bg-slate-200 px-6 rounded-xl">취소</button></div></div></div>
+                    <div class="finance-admin-only bg-white p-6 rounded-[2rem] border-2 border-blue-100"><div class="flex justify-between mb-4"><h3 class="text-blue-900 text-lg">특별 청구</h3><button onclick="window.toggleClosedSpecialDues()" id="btn-toggle-closed-dues" class="text-[10px] border px-2 rounded">마감 내역</button></div><button onclick="window.openSpecialDuesModal()" class="bg-blue-600 text-white px-4 py-2 rounded-xl mb-4 text-xs">새 청구서</button><div id="special-dues-list" class="space-y-3"></div></div>
+                    <div class="bg-white p-6 rounded-[2rem] border"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-2"><span class="text-lg">수입장부</span><div class="bg-slate-100 flex rounded"><button onclick="window.changeLedgerMonth(-1)" class="px-2">&lt;</button><span class="ledger-month-display px-2 text-xs py-1"></span><button onclick="window.changeLedgerMonth(1)" class="px-2">&gt;</button></div></div><div class="flex gap-2 items-center"><button onclick="window.toggleTrash('income')" class="finance-admin-only text-[10px] bg-slate-100 px-2 py-1 rounded">휴지통</button><span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-1 border rounded hidden md:inline-block">합계 <span id="income-total-display">0</span></span><span class="text-white bg-slate-800 px-3 py-1.5 rounded-xl shadow-md border text-[10px]">통장잔고 <span id="income-bank-balance-display">0원</span></span></div></div><div class="overflow-x-auto border rounded-xl"><table class="w-full text-xs text-center"><thead class="bg-slate-800 text-white" id="income-thead"></thead><tbody id="income-list-body" class="divide-y"></tbody></table></div></div>
+                </div>
+
+                <div id="expense-view" class="space-y-6 hidden">
+                    <div class="expense-admin-only bg-white p-6 rounded-[2rem] border relative"><div class="absolute top-0 right-0 bg-red-50 text-[9px] px-3 py-1 rounded-bl-xl text-red-600">지출 등록</div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"><div><button id="btn-expense-account" onclick="window.openAccountSelectModal('expense')" class="w-full border-2 p-3 rounded-xl text-left bg-white flex justify-between items-center text-slate-400 font-black btn-touch"><span id="expense-account-display">항목 선택</span><i data-lucide="chevron-down" class="w-4 h-4"></i></button><input type="text" id="expense-account" class="hidden w-full border-2 p-3 rounded-xl mt-2" placeholder="직접 항목 입력"></div><div><input type="number" id="expense-amount" placeholder="금액" class="w-full border-2 p-3 rounded-xl text-red-600"></div><div class="md:col-span-2 flex flex-col sm:flex-row gap-2">
+                    <div class="flex gap-2 w-full sm:w-1/3"><input type="date" id="expense-date" class="w-full border-2 p-3 rounded-xl"><button onclick="window.setRelativeDate('expense-date',-1)" class="bg-slate-100 px-3 rounded-xl text-xs whitespace-nowrap">어제</button><button onclick="window.setRelativeDate('expense-date',0)" class="bg-slate-100 px-3 rounded-xl text-xs whitespace-nowrap">오늘</button></div>
+                    <input type="text" id="expense-note" placeholder="메모" class="w-full border-2 p-3 rounded-xl sm:flex-1"></div>
+                    <div class="md:col-span-2 flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.$('expense-receipt').click()" class="bg-indigo-50 text-indigo-600 px-4 py-3 rounded-xl text-xs border border-indigo-200 flex items-center gap-2 btn-touch font-black">
+                                <i data-lucide="camera" class="w-4 h-4"></i> 영수증 사진 첨부
+                            </button>
+                            <input type="file" id="expense-receipt" accept="image/*" class="hidden" onchange="window.handleReceiptSelect(this)">
+                            <span id="receipt-filename" class="text-[10px] text-slate-400 font-bold truncate max-w-[150px]">첨부된 사진 없음</span>
+                            <button id="btn-receipt-clear" onclick="window.clearReceipt()" class="hidden text-rose-500 p-2"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                        </div>
+                        <div id="receipt-preview-container" class="hidden bg-slate-50 p-2 rounded-xl border border-dashed border-slate-200 inline-block w-fit">
+                            <img id="receipt-preview-img" src="" class="max-h-32 rounded-lg shadow-sm">
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex gap-2"><button onclick="window.addTransaction('expense')" id="btn-expense-submit" class="flex-1 bg-slate-900 text-white p-3 rounded-xl">등록</button><button onclick="window.resetTransactionForm('expense')" id="btn-expense-cancel" class="hidden bg-slate-200 px-6 rounded-xl">취소</button></div></div></div>
+                    
+                    <div class="bg-white p-6 rounded-[2rem] border"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-2"><span class="text-lg">지출장부</span><div class="bg-slate-100 flex rounded"><button onclick="window.changeLedgerMonth(-1)" class="px-2">&lt;</button><span class="ledger-month-display px-2 text-xs py-1"></span><button onclick="window.changeLedgerMonth(1)" class="px-2">&gt;</button></div></div><div class="flex gap-2 items-center"><button onclick="window.toggleTrash('expense')" class="expense-admin-only text-[10px] bg-slate-100 px-2 py-1 rounded">휴지통</button><span class="text-[10px] bg-rose-50 text-rose-700 px-2 py-1 border rounded hidden md:inline-block">합계 <span id="expense-total-display">0</span></span><span class="text-white bg-slate-800 px-3 py-1.5 rounded-xl shadow-md border text-[10px]">통장잔고 <span id="expense-bank-balance-display">0원</span></span></div></div><div class="overflow-x-auto border rounded-xl"><table class="w-full text-xs text-center"><thead class="bg-slate-800 text-white" id="expense-thead"></thead><tbody id="expense-list-body" class="divide-y"></tbody></table></div></div>
+                </div>
+                
+                <div id="status-view" class="space-y-6 hidden">
+                    <!-- 헤더: 제목 + 연도 선택 -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-3 rounded-2xl shadow-lg">
+                                <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl tracking-tight">회비 납부 현황</h3>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Membership Fee Status</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                            <button onclick="window.changeStatusYear(-1)" class="p-2 hover:bg-slate-100 rounded-xl transition-colors"><i data-lucide="chevron-left" class="w-4 h-4 text-slate-500"></i></button>
+                            <span id="current-status-year-display" class="text-indigo-700 text-sm w-20 text-center font-black"></span>
+                            <button onclick="window.changeStatusYear(1)" class="p-2 hover:bg-slate-100 rounded-xl transition-colors"><i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- 요약 통계 카드 -->
+                    <div id="status-summary-cards" class="grid grid-cols-3 gap-3"></div>
+
+                    <!-- 검색 바 -->
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="text" id="status-search-input" oninput="window.filterStatusCards()" placeholder="회원명 검색..." class="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-slate-100 bg-slate-50 text-sm outline-none focus:border-indigo-400 focus:bg-white transition-all">
+                    </div>
+
+                    <!-- 회원별 카드 그리드 -->
+                    <div id="status-card-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+            </section>
+
+            <section id="member-mgmt" class="tab-content space-y-6 font-black monitor-hidden partner-hidden">
+                <!-- [소나무 실시간 통합 마일리지] -->
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden mb-6">
+                    <div class="absolute -right-6 -bottom-6 opacity-10 text-indigo-400 rotate-12 pointer-events-none"><i data-lucide="zap" style="width: 140px; height: 140px;"></i></div>
+                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-indigo-500/20 p-3 rounded-2xl border border-indigo-500/30 shadow-inner"><i data-lucide="shield-check" class="w-6 h-6 text-indigo-400"></i></div>
+                            <div>
+                                <h4 class="text-white text-lg font-black tracking-tight">실시간 통합 마일리지 시스템</h4>
+                                <p class="text-indigo-200/70 text-[10px] font-bold uppercase tracking-widest">Active Live v2.0 - All Records Consolidated</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <div class="bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-indigo-200 text-[9px] font-black tracking-wider uppercase whitespace-nowrap">Status: Synchronized</div>
+                            <button onclick="window.syncMileageHistory()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black shadow-lg transition-all flex items-center gap-2 group">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500"></i>
+                                기록 전수 조사 및 실시간 동기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- [신규] 행운 마일리지 상금 설정 버튼 (회장, 감독, 총무, 마스터 전용) -->
+                <div id="admin-luck-setting-btn-container" class="hidden mb-4">
+                    <button onclick="window.openLuckMileageModal()" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 rounded-2xl font-black shadow-lg hover:brightness-110 transition-all btn-touch">
+                        <i data-lucide="clover" class="w-5 h-5"></i> 마일리지 설정
+                    </button>
+                </div>
+
+
+                <!-- 마일리지 복구 모달 -->
+                <div id="mileage-recovery-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+                    <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div class="p-5 border-b flex justify-between items-center bg-rose-50 shrink-0">
+                            <div>
+                                <h3 class="text-lg font-black text-rose-800">🔧 마일리지 복구</h3>
+                                <p class="text-[10px] text-rose-500 mt-0.5">날짜를 선택하고 실제 참석한 회원을 체크 후 복구하세요</p>
+                            </div>
+                            <button onclick="document.getElementById('mileage-recovery-modal').classList.replace('flex','hidden')" class="text-slate-400 hover:text-rose-500 p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="p-5 border-b bg-white shrink-0 flex flex-col gap-4">
+                            <div class="flex gap-3 items-end">
+                                <div class="flex flex-col gap-1 flex-1">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">운동 날짜</label>
+                                    <input type="date" id="recovery-date" class="w-full border-2 p-3 rounded-xl outline-none focus:border-rose-400 font-black text-sm bg-slate-50">
+                                </div>
+                                <button onclick="window.smartDetectAttendees()" class="h-[52px] px-4 bg-slate-800 text-white rounded-xl font-black text-xs hover:bg-slate-700 shadow-sm flex items-center gap-2 shrink-0 transition-all active:scale-95">
+                                    <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> 자동 감지
+                                </button>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">부여 점수 (복구 포인트)</label>
+                                <select id="recovery-pts" class="w-full border-2 p-3 rounded-xl bg-white font-black outline-none focus:border-rose-400 text-sm">
+                                    <option value="5">🔥 5점 (투표 + 참석)</option>
+                                    <option value="2">🗳️ 2점 (투표만 수행)</option>
+                                    <option value="3">🏃 3점 (참석만 수행)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="recovery-member-list" class="overflow-y-auto flex-grow p-5 space-y-2"></div>
+                        <div class="p-5 border-t bg-slate-50 shrink-0 flex gap-3">
+                            <button onclick="window.selectAllRecovery(true)" class="flex-1 py-2.5 bg-slate-100 rounded-xl text-slate-700 text-sm font-black hover:bg-slate-200">전체선택</button>
+                            <button onclick="window.selectAllRecovery(false)" class="flex-1 py-2.5 bg-slate-100 rounded-xl text-slate-700 text-sm font-black hover:bg-slate-200">전체해제</button>
+                            <button onclick="window.batchRecoverMileage()" class="flex-2 py-2.5 px-6 bg-rose-600 text-white rounded-xl font-black hover:bg-rose-500 shadow">복구 적용</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- [Master Only] 마일리지 복구 버튼 -->
+                <div id="master-recovery-btn" class="master-only hidden mb-4">
+                    <button onclick="window.openMileageRecoveryModal()" class="w-full flex items-center justify-center gap-2 bg-rose-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-rose-500 transition-all btn-touch">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i> 분실된 마일리지 복구하기
+                    </button>
+                </div>
+
+                <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-md mb-2">
+                    <button id="btn-member-tab-list" onclick="window.switchMemberTab('list')" class="flex-1 py-3 rounded-xl text-sm transition-all bg-white text-indigo-600 shadow-sm font-black">회원 명부</button>
+                    <button id="btn-member-tab-activities" onclick="window.switchMemberTab('activities')" class="flex-1 py-3 rounded-xl text-sm transition-all text-slate-500 hover:text-slate-700 font-black">회원 활동 내역</button>
+                    <button id="btn-member-tab-positions" onclick="window.switchMemberTab('positions')" class="flex-1 py-3 rounded-xl text-sm transition-all text-slate-500 hover:text-slate-700 font-black">포지션 분포</button>
+                </div>
+
+
+                <div id="member-list-view" class="space-y-6">
+                    <div id="member-form-container" onclick="if(event.target === this) window.resetMemberForm(false)" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+                        <div id="member-form-card" onclick="event.stopPropagation()" class="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transform scale-95 transition-transform duration-300">
+                            <div class="p-6 border-b flex justify-between items-center shrink-0 bg-slate-50">
+                                <h3 class="text-xl font-black text-slate-800" id="member-form-title">회원 설정</h3>
+                                <button onclick="window.resetMemberForm()" class="text-slate-400 hover:text-rose-500 transition-colors p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
+                            </div>
+                            <div class="p-6 overflow-y-auto space-y-5 flex-grow font-black">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-1">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">성명</label>
+                                        <input type="text" id="m-name" placeholder="성명" class="w-full border-2 p-3 rounded-xl focus:border-indigo-400 outline-none">
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">직책/권한</label>
+                                        <select id="m-role" class="w-full border-2 p-3 rounded-xl bg-white focus:border-indigo-400 outline-none">
+                                            <option value="회장">회장</option><option value="감독">감독</option><option value="총무">총무</option><option value="감사">감사</option><option value="코치">코치</option><option value="플레잉코치">플레잉코치</option><option value="고문">고문</option><option value="일반회원">일반회원</option><option value="준회원">준회원</option><option value="파트너">파트너</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">아이디 (미입력시 연락처 뒤 4자리)</label>
+                                        <input type="text" id="m-loginId" placeholder="ID" class="w-full border-2 p-3 rounded-xl bg-slate-50 focus:border-indigo-400 outline-none">
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">비밀번호 (미입력시 연락처 뒤 4자리)</label>
+                                        <input type="text" id="m-loginPw" placeholder="PW" class="w-full border-2 p-3 rounded-xl bg-slate-50 focus:border-indigo-400 outline-none">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">연락처 (- 없이 숫자만)</label>
+                                        <input type="tel" id="m-phone" oninput="formatPhoneInput(this)" placeholder="연락처" class="w-full border-2 p-3 rounded-xl focus:border-indigo-400 outline-none">
+                                    </div>
+                                    <div class="col-span-2 flex flex-col sm:flex-row gap-4">
+                                        <div class="w-full sm:w-1/2">
+                                            <div class="flex justify-between items-center mb-1 px-1">
+                                                <label class="text-[10px] text-slate-500 font-black pl-1">생년월일</label>
+                                                <div class="flex gap-2">
+                                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="m-birthType" value="solar" checked class="w-3 h-3 accent-blue-500"><span class="text-[9px] font-black text-slate-500">양력</span></label>
+                                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="m-birthType" value="lunar" class="w-3 h-3 accent-rose-500"><span class="text-[9px] font-black text-slate-500">음력</span></label>
+                                                </div>
+                                            </div>
+                                            <input type="date" id="m-birth" class="w-full border-2 p-3 rounded-xl bg-white focus:border-indigo-400 outline-none">
+                                        </div>
+                                        <div class="w-full sm:w-1/2">
+                                            <label class="text-[10px] text-slate-500 font-black mb-1 block pl-1">가입일</label>
+                                            <input type="date" id="m-joinDate" class="w-full border-2 p-3 rounded-xl bg-white focus:border-indigo-400 outline-none">
+                                        </div>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="text-[10px] text-slate-500 mb-1 block ml-1">주소</label>
+                                        <input type="text" id="m-address" placeholder="주소" class="w-full border-2 p-3 rounded-xl focus:border-indigo-400 outline-none">
+                                    </div>
+                                    <div class="col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                        <div>
+                                            <label class="text-[10px] text-slate-500 mb-1 block">포지션</label>
+                                            <select id="m-position" class="w-full border-2 p-2 rounded outline-none text-sm text-slate-600 font-bold focus:border-indigo-400">
+                                                <option value="">미정</option><option value="공격수">공격수</option><option value="세터">세터</option><option value="좌수비">좌수비</option><option value="우수비">우수비</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-500 mb-1 block">등번호</label>
+                                            <input type="number" id="m-backNo" placeholder="등번호" class="w-full border-2 p-2 rounded outline-none focus:border-indigo-400">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-500 mb-1 block">대회 출전부</label>
+                                            <select id="m-division" class="w-full border-2 p-2 rounded outline-none text-sm text-slate-600 font-bold focus:border-indigo-400">
+                                                <option value="">미정</option>
+                                                <option value="1부">1부</option>
+                                                <option value="2부">2부</option>
+                                                <option value="3부">3부</option>
+                                                <option value="4부">4부</option>
+                                                <option value="5부">5부</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-500 mb-1 block">상의</label>
+                                            <input type="text" id="m-topSize" placeholder="상의" class="w-full border-2 p-2 rounded outline-none focus:border-indigo-400">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-500 mb-1 block">하의</label>
+                                            <input type="text" id="m-bottomSize" placeholder="하의" class="w-full border-2 p-2 rounded outline-none focus:border-indigo-400">
+                                        </div>
+                                    </div>
+                                    <div class="col-span-2 hidden bg-purple-50 p-4 rounded-xl border border-purple-100" id="m-score-container">
+                                        <div id="m-current-mileage-display" class="text-[11px] font-bold text-purple-600 mb-1 pl-1"></div>
+                                        <label class="text-[10px] text-purple-700 mb-1 block ml-1">[마스터 전용] 마일리지 조정</label>
+                                        <input type="number" id="m-score" placeholder="+/- 점수 입력" class="w-full border-2 p-3 rounded-xl bg-white focus:border-purple-400 outline-none">
+                                    </div>
+                                    <div class="col-span-2 hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100" id="m-bonus-container">
+                                        <div class="flex justify-between items-center mb-1 px-1">
+                                            <span class="text-[11px] font-black text-rose-500" id="m-bonus-mileage-display"></span>
+                                            <span id="m-bonus-limit-display" class="text-[10px] text-indigo-500 font-bold ml-auto"></span>
+                                        </div>
+                                        <label class="text-[10px] text-indigo-700 mb-1 block ml-1">연간 보너스 부여 (회당 최대 20p)</label>
+                                        <input type="number" id="m-bonus" placeholder="0" class="w-full border-2 p-3 rounded-xl bg-white focus:border-indigo-400 outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-6 bg-slate-50 border-t flex gap-3 shrink-0">
+                                <button onclick="window.resetMemberForm()" id="btn-member-cancel" class="flex-1 bg-white border border-slate-200 py-4 rounded-2xl font-black text-slate-500 hover:bg-slate-100 transition-colors shadow-sm">닫기 / 취소</button>
+                                <button onclick="window.addOrUpdateMember()" id="btn-member-submit" class="flex-[1.5] bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:shadow-xl transition-all">회원 정보 저장</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] border">
+                        <div class="flex flex-col md:flex-row justify-between gap-3 mb-4 items-start md:items-center">
+                            <div class="flex items-center gap-3">
+                                <h4 class="text-lg">회원 명단</h4>
+                                <label class="text-[10px] font-bold text-slate-600 flex items-center gap-1.5 cursor-pointer bg-slate-50 px-2 py-1.5 rounded-lg border hover:bg-slate-100">
+                                    <input type="checkbox" id="show-partners-cb" onchange="window.togglePartners()" class="w-3.5 h-3.5 accent-indigo-600">
+                                    파트너 표시
+                                </label>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="window.toggleTrash('member')" class="admin-only text-[10px] bg-slate-100 px-2 rounded">휴지통</button>
+                                <button onclick="window.showAdminForm()" class="admin-only text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded">신규가입</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto border rounded-xl"><table class="w-full text-xs text-center"><thead class="bg-slate-800 text-white text-[10px]" id="member-thead"></thead><tbody id="member-list-body" class="divide-y"></tbody></table></div>
+                    </div>
+                </div>
+
+                <div id="member-activities-view" class="space-y-6 hidden">
+                    <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-4 sm:p-8 shadow-2xl border border-white/40 ring-1 ring-slate-200/50">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                            <div>
+                                <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2.5">
+                                    <i data-lucide="line-chart" class="w-8 h-8 text-indigo-500"></i> 회원 활동 내역
+                                </h2>
+                                <p class="text-[11px] sm:text-xs text-slate-500 font-bold mt-1 ml-0.5">회원명을 클릭하면 상세 포인트 획득 내역을 확인할 수 있습니다.</p>
+                                <div id="mileage-start-notice" class="hidden mt-3 px-4 py-2.5 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col gap-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="bg-indigo-100 p-1.5 rounded-lg text-indigo-600">
+                                            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <span class="text-[10px] sm:text-[11px] font-black text-indigo-800">마일리지 시행일: <span id="mileage-start-date-display" class="bg-white px-2 py-0.5 rounded-md border border-indigo-200">2024-01-01</span> <span class="text-indigo-400 font-bold ml-1">(이후 기록만 집계에 반영됩니다)</span></span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-indigo-100/50 pt-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
+                                            <span class="text-[10px] font-black text-slate-600">운동 참석: <span class="text-blue-600">3 PT</span> (투표2 + 참석1)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
+                                            <span class="text-[10px] font-black text-slate-600">기타 투표: <span class="text-indigo-600">2 PT</span></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
+                                            <span class="text-[10px] font-black text-slate-600">행운 추첨: <span id="mileage-luck-amount-display" class="text-amber-600">10 PT</span> (랜덤)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i data-lucide="help-circle" class="w-3 h-3 text-slate-300"></i>
+                                            <span class="text-[9px] font-bold text-slate-400 whitespace-nowrap">멤버 클릭 시 상세 내역 확인 가능</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50 flex-wrap">
+                                <select id="mileage-year-select" onchange="window.changeMileageYear()" class="px-3 py-2 text-[10px] sm:text-xs font-black rounded-xl transition-all shadow-sm ring-1 ring-slate-200 bg-white outline-none cursor-pointer text-slate-700">
+                                    <option value="2026">2026년</option>
+                                    <option value="2025">2025년</option>
+                                    <option value="2024">2024년</option>
+                                    <option value="all">전체 누적</option>
+                                </select>
+                                <label class="flex items-center gap-1.5 px-3 py-2 text-[10px] sm:text-xs font-black rounded-xl transition-all shadow-sm ring-1 ring-slate-200 bg-white cursor-pointer select-none text-slate-700 hover:bg-slate-50">
+                                    <input type="checkbox" id="cb-exclude-lucky-mileage" onchange="window.toggleExcludeLuckyMileage(this.checked)" class="w-3.5 h-3.5 accent-indigo-600 rounded cursor-pointer" checked>
+                                    <span class="whitespace-nowrap">행운제외</span>
+                                </label>
+                                <button id="btn-activity-filter" onclick="window.toggleActivityFilter()" class="px-4 py-2 text-[10px] sm:text-xs font-black rounded-xl transition-all shadow-sm ring-1 ring-slate-200 bg-white">정회원만</button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto -mx-4 sm:mx-0">
+                            <table class="w-full border-separate border-spacing-y-2">
+                                <thead>
+                                    <tr class="text-slate-400 text-[10px] sm:text-xs font-black uppercase tracking-widest">
+                                        <th class="p-3 sm:p-4 text-center">순위</th>
+                                        <th class="p-3 sm:p-4 text-center">회원명</th>
+                                        <th class="p-3 sm:p-4 text-center">출석</th>
+                                        <th id="activity-score-header" class="p-3 sm:p-4 text-center text-blue-400">총 마일리지</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activities-list-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- [Mileage Detail Modal] -->
+                <div id="mileage-detail-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md opacity-0 transition-opacity duration-300">
+                    <div id="mileage-detail-card" class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+                        <div class="p-6 sm:p-8 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 flex justify-between items-center shrink-0">
+                            <div>
+                                <h3 id="mileage-detail-title" class="text-xl sm:text-2xl font-black text-slate-800">포인트 상세 내역</h3>
+                                <p id="mileage-detail-subtitle" class="text-xs text-slate-500 font-bold mt-1"></p>
+                            </div>
+                            <button onclick="window.closeMileageDetail()" class="p-3 bg-slate-100 text-slate-400 rounded-2xl hover:bg-slate-200 hover:text-slate-600 transition-all active:scale-95"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="p-4 sm:p-8 overflow-y-auto">
+                            <div class="overflow-hidden border border-slate-100 rounded-2xl shadow-sm">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50/80 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                            <th class="p-3 sm:p-4">날짜</th>
+                                            <th class="p-3 sm:p-4">활동 내용</th>
+                                            <th class="p-3 sm:p-4 text-right">포인트</th>
+                                            <th class="p-3 sm:p-4 text-center">상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mileage-detail-body" class="text-xs sm:text-sm font-bold text-slate-700"></tbody>
+                                </table>
+                            </div>
+                            
+                            <div id="mileage-summary-box" class="mt-6 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-wrap gap-4 justify-between items-center text-indigo-900">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-indigo-400 uppercase">보너스 및 기타 합계</span>
+                                    <span id="mileage-summary-bonus" class="text-lg font-black">0 pt</span>
+                                </div>
+                                <div class="flex flex-col gap-1 items-end">
+                                    <span class="text-[10px] font-black text-indigo-400 uppercase">최종 합계</span>
+                                    <span id="mileage-summary-total" class="text-2xl font-black text-indigo-600">0 pt</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 sm:p-8 bg-slate-50 border-t border-slate-100 shrink-0">
+                            <button onclick="window.closeMileageDetail()" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black shadow-lg hover:shadow-xl hover:bg-slate-700 active:scale-[0.98] transition-all">닫기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="member-positions-view" class="space-y-6 hidden">
+                    <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                        <!-- 타이틀 영역 -->
+                        <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4 relative z-10">
+                            <div class="bg-indigo-100 p-3 rounded-2xl text-indigo-600 shadow-sm">
+                                <i data-lucide="volleyball" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl md:text-2xl text-slate-800 font-black">포지션 분포 현황</h3>
+                                <p class="text-[10px] md:text-xs text-slate-400 font-bold ml-1">공격수, 세터, 좌수비, 우수비 자원의 분포를 확인합니다.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 분포 요약 카드 대시보드 -->
+                        <div id="positions-dashboard-summary" class="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-8">
+                            <!-- JS에서 동적 렌더링 -->
+                        </div>
+                        
+                        <!-- 포지션별 명단 그리드 -->
+                        <div id="positions-member-grids" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                            <!-- JS에서 동적 렌더링 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="board" class="tab-content space-y-6 font-black monitor-hidden partner-hidden">
+                <div class="notice-admin-only bg-white p-6 rounded-[2rem] border relative mb-6" id="board-form-container">
+                    <h3 class="text-lg mb-4">공지 및 행사 작성</h3><input type="text" id="board-title" placeholder="제목" class="w-full border-2 p-3 rounded-xl mb-3"><textarea id="board-content" placeholder="내용" class="w-full border-2 p-3 rounded-xl h-32 resize-none mb-3"></textarea>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                            <label class="flex gap-2 text-green-900 cursor-pointer">
+                                <input type="checkbox" id="board-is-event" class="w-4 h-4 accent-green-600" onchange="window.toggleEventFields()"> [소나무 회원투표] 생성
+                            </label>
+                            <div id="event-fields" class="hidden grid grid-cols-1 gap-3 mt-3">
+                                <label class="flex gap-2 text-green-900 cursor-pointer text-xs font-bold bg-white p-2 rounded border border-green-200 w-max">
+                                    <input type="checkbox" id="board-event-allow-multiple" class="w-4 h-4 accent-green-600">
+                                    복수 선택(중복 투표) 허용
+                                </label>
+                                <input type="date" id="board-event-date" class="border p-2 rounded">
+                                <input type="text" id="board-event-options" placeholder="투표 항목 (쉼표로 구분, 예: 참석,불참,기권)" value="참석,불참,미정" class="w-full border p-2 rounded text-sm">
+                                <input type="text" id="board-event-location" placeholder="장소(선택)" class="border p-2 rounded">
+                            </div>
+                        </div>
+                        <div class="bg-rose-50 p-4 rounded-xl border border-rose-100">
+                            <label class="flex gap-2 text-rose-900 cursor-pointer">
+                                <input type="checkbox" id="board-is-anon" class="w-4 h-4 accent-rose-600" onchange="window.toggleAnonFields()"> [무기명 투표] 생성
+                            </label>
+                            <div id="anon-fields" class="hidden mt-3">
+                                <input type="text" id="board-anon-options" placeholder="항목 (쉼표로 구분, 예: 찬성,반대)" value="찬성,반대" class="w-full border p-2 rounded text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="end-date-container" class="hidden mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <label class="text-[10px] text-slate-500 font-bold block mb-1">투표 종료일 (해당일이 지나면 투표가 마감되며 종료된 투표로 이동합니다)</label>
+                        <input type="date" id="board-end-date" class="w-full border-2 p-3 rounded-xl bg-white outline-none focus:border-blue-400">
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="window.addPost()" id="btn-board-submit" class="flex-1 bg-slate-900 text-white p-3 rounded-xl">등록</button>
+                        <button onclick="window.resetBoardForm()" id="btn-board-cancel" class="hidden bg-slate-200 px-6 rounded-xl">취소</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 class="text-lg">게시판</h4>
+                        <button onclick="window.toggleEndedPosts()" id="btn-toggle-ended-posts" class="text-[10px] border border-slate-300 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors btn-touch">종료된 투표 보기</button>
+                    </div>
+                    <div id="post-list" class="space-y-4"></div>
+                </div>
+            </section>
+
+            <section id="gallery" class="tab-content space-y-6 font-black monitor-hidden partner-hidden">
+                <!-- 활동 서브 탭 분기 -->
+                <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-w-md print:hidden">
+                    <button id="btn-activity-tab-photos" onclick="window.switchActivitySubTab('photos')" class="flex-1 py-3 rounded-xl text-xs md:text-sm transition-all bg-white text-emerald-600 shadow-sm font-black whitespace-nowrap">추억 사진첩</button>
+                    <button id="btn-activity-tab-free" onclick="window.switchActivitySubTab('free')" class="flex-1 py-3 rounded-xl text-xs md:text-sm transition-all text-slate-500 hover:text-slate-700 font-black whitespace-nowrap">자유게시판</button>
+                    <button id="btn-activity-tab-rules" onclick="window.switchActivitySubTab('rules')" class="flex-1 py-3 rounded-xl text-xs md:text-sm transition-all text-slate-500 hover:text-slate-700 font-black whitespace-nowrap">족구규칙</button>
+                </div>
+
+                <!-- 1. 추억 사진첩 콘텐츠 영역 -->
+                <div id="activity-photos-view" class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-4 -top-8 opacity-[0.03] text-purple-900 pointer-events-none"><i data-lucide="camera" style="width: 180px; height: 180px;"></i></div>
+                    <div class="flex justify-between items-end mb-6 border-b border-slate-100 pb-4 relative z-10">
+                        <div>
+                            <h3 class="text-xl md:text-2xl text-slate-800 flex items-center gap-2 mb-1"><div class="bg-purple-100 p-2 rounded-xl text-purple-600 shadow-sm"><i data-lucide="camera" class="w-5 h-5 md:w-6 md:h-6"></i></div> 추억 사진첩</h3>
+                            <p id="gallery-title-info" class="text-[10px] md:text-xs text-slate-400 font-bold ml-1">우리들의 멋진 순간들을 공유해보세요!</p>
+                        </div>
+                        <div class="relative shrink-0 group">
+                            <input type="file" id="photo-upload-input" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 peer" onchange="window.previewSelectedPhotos(event)">
+                            <div class="bg-purple-600 text-white px-4 md:px-5 py-2 md:py-3 rounded-xl shadow-lg border-b-4 border-purple-800 peer-hover:bg-purple-500 peer-hover:translate-y-0.5 peer-hover:border-b-2 peer-active:translate-y-1 peer-active:border-b-0 transition-all font-black text-xs md:text-sm flex items-center justify-center gap-1.5 pointer-events-none relative z-10 w-full h-full">
+                                <i data-lucide="upload" class="w-4 h-4"></i> 사진올리기
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="gallery-progress-container" class="hidden w-full bg-slate-100 rounded-full h-2 mb-6 overflow-hidden shadow-inner relative z-10">
+                        <div id="gallery-progress-bar" class="bg-purple-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 relative z-10">
+                        <!-- Photos will be rendered here -->
+                    </div>
+                    
+                    <div id="gallery-pagination" class="flex justify-center items-center gap-4 mt-8 pb-32 relative z-10 hidden">
+                        <button onclick="window.changeGalleryPage(-1)" id="btn-gallery-prev" class="bg-white border-2 border-slate-200 p-3 md:p-3.5 rounded-full shadow-lg text-slate-500 hover:text-purple-600 hover:bg-purple-50 btn-touch transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                        <span id="gallery-page-info" class="text-sm font-black text-slate-600 bg-white/50 px-4 py-1.5 rounded-full backdrop-blur-sm border border-slate-100">1 / 1</span>
+                        <button onclick="window.changeGalleryPage(1)" id="btn-gallery-next" class="bg-white border-2 border-slate-200 p-3 md:p-3.5 rounded-full shadow-lg text-slate-500 hover:text-purple-600 hover:bg-purple-50 btn-touch transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+                    </div>
+                </div>
+
+                <!-- 2. 자유게시판 콘텐츠 영역 -->
+                <div id="activity-free-view" class="hidden bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                    <!-- 글쓰기 폼 -->
+                    <div class="bg-slate-50 p-5 rounded-[1.5rem] border border-slate-200 mb-6" id="free-form-container">
+                        <h3 class="text-base font-black text-slate-800 mb-3 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5 text-emerald-500"></i> 자유로운 한마디 작성
+                        </h3>
+                        <input type="text" id="free-title" placeholder="제목을 입력해 주세요" class="w-full border p-3 rounded-xl mb-3 text-sm outline-none focus:border-emerald-500 bg-white font-bold">
+                        <textarea id="free-content" placeholder="함께 나눌 이야기를 적어주세요." class="w-full border p-3 rounded-xl h-24 resize-none mb-3 text-sm outline-none focus:border-emerald-500 bg-white font-bold"></textarea>
+                        
+                        <div class="flex items-center justify-between mb-4 px-1">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" id="free-is-secret" class="w-4 h-4 accent-emerald-500 rounded">
+                                <span class="text-xs font-black text-slate-600 group-hover:text-slate-800 transition-colors flex items-center gap-1">
+                                    <i data-lucide="lock" class="w-3.5 h-3.5"></i> 비밀글로 작성하기 (임원진만 열람)
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="window.addFreePost()" id="btn-free-submit" class="flex-1 bg-slate-900 text-white p-3.5 rounded-xl font-black text-sm btn-touch transition-all active:scale-[0.98]">등록하기</button>
+                            <button onclick="window.resetFreeForm()" id="btn-free-cancel" class="hidden bg-slate-200 text-slate-600 px-6 rounded-xl font-black text-sm btn-touch">취소</button>
+                        </div>
+                    </div>
+
+                    <!-- 글 목록 -->
+                    <div class="border-t border-slate-100 pt-4">
+                        <h4 class="text-base font-black text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="message-square-quote" class="w-5 h-5 text-indigo-500"></i> 클럽 자유 토크
+                        </h4>
+                        <div id="free-post-list" class="space-y-4"></div>
+                    </div>
+                </div>
+
+                <!-- 3. 족구규칙 콘텐츠 영역 -->
+                <div id="activity-rules-view" class="hidden bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-4 -top-8 opacity-[0.03] text-emerald-900 pointer-events-none"><i data-lucide="award" style="width: 180px; height: 180px;"></i></div>
+                    
+                    <!-- 헤더 -->
+                    <div class="flex justify-between items-end mb-6 border-b border-slate-100 pb-4 relative z-10">
+                        <div>
+                            <h3 class="text-xl md:text-2xl text-slate-800 flex items-center gap-2 mb-1">
+                                <div class="bg-emerald-100 p-2 rounded-xl text-emerald-600 shadow-sm"><i data-lucide="award" class="w-5 h-5 md:w-6 md:h-6"></i></div> 대한민국족구협회 경기규칙
+                            </h3>
+                            <p class="text-[10px] md:text-xs text-slate-400 font-bold ml-1">공인 대회 및 생활체육의 공식 족구 규정 요약 가이드</p>
+                        </div>
+                    </div>
+
+                    <!-- 1. 기본 경기 규칙 (Grid) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative z-10">
+                        <div class="bg-slate-50/60 border border-slate-150 p-5 rounded-2xl">
+                            <h4 class="text-sm font-black text-slate-800 flex items-center gap-2 mb-3.5 border-b pb-2 border-slate-200">
+                                <i data-lucide="help-circle" class="w-4 h-4 text-emerald-600"></i> 기본 경기 방법
+                            </h4>
+                            <ul class="space-y-2.5 text-xs font-bold text-slate-600">
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>경기 인원:</strong> 각 팀 4명으로 구성 (공격수, 세터, 좌수비, 우수비)</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>경기 진행:</strong> 3세트 2선승제 (각 세트 15점 선취 승리)</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>듀스 규칙:</strong> 14:14 동점 시 2점 차를 내야 승리 (최대 19점 상한선 적용)</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>터치 부위:</strong> 발(무릎 아래) 및 머리(턱 이상 부위)만 접촉 허용</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>바운드/터치 제한:</strong> 한 진영에서 원바운드 원터치가 원칙이며, 최대 3바운드 및 3터치 내에 상대 진영으로 넘겨야 함</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-50/60 border border-slate-150 p-5 rounded-2xl">
+                            <h4 class="text-sm font-black text-slate-800 flex items-center gap-2 mb-3.5 border-b pb-2 border-slate-200">
+                                <i data-lucide="layout" class="w-4 h-4 text-emerald-600"></i> 코트 및 네트 규격
+                            </h4>
+                            <ul class="space-y-2.5 text-xs font-bold text-slate-600">
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>코트 크기:</strong> 길이 15m (양 팀 각 7.5m) × 폭 6.5m</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>서브 제한구역:</strong> 코트 엔드라인 뒤쪽 3m 공간</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>네트 높이:</strong> 센터라인 기준 남자 105cm, 여자 90cm (주니어 90cm)</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>사이드 안테나:</strong> 사이드라인 외곽 21cm에 설치, 높이 150cm 수직 유지</span></li>
+                                <li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span> <span><strong>안테나 통과 규칙:</strong> 공은 안테나 사이(안테나 내측 상공)를 완전히 통과해야 함</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 2. 4인 포지션 소개 (Flex / Grid) -->
+                    <div class="mb-8 relative z-10">
+                        <h4 class="text-base font-black text-slate-800 flex items-center gap-2 mb-4">
+                            <i data-lucide="users" class="w-5 h-5 text-indigo-500"></i> 팀 포지션 및 역할 분담
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- 공격수 -->
+                            <div class="bg-rose-50/40 border border-rose-100 rounded-2xl p-4 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-rose-700">공격수 🔥</span>
+                                    <span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded">Killer</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                    강력한 서브 및 네트 근처에서의 리바운드/스파이크를 통해 직접적인 득점을 창출하는 최전방 공격의 핵심입니다.
+                                </p>
+                            </div>
+                            <!-- 세터 -->
+                            <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-4 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-blue-700">세터 ⚡</span>
+                                    <span class="text-[9px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">Setter</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                    수비가 리시브한 공을 받아 공격수가 최상의 타격 각도와 힘으로 스파이크를 날릴 수 있도록 안정적이고 정밀하게 공을 토스(조율)합니다.
+                                </p>
+                            </div>
+                            <!-- 좌수비 -->
+                            <div class="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-emerald-700">좌수비 🛡️</span>
+                                    <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">Left Defense</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                    상대 공격수의 직선 강타, 깊은 A코스 및 서브 리시브를 전담하며 역동적인 다이빙 리시브로 볼을 살려내는 든든한 방패입니다.
+                                </p>
+                            </div>
+                            <!-- 우수비 -->
+                            <div class="bg-amber-50/40 border border-amber-100 rounded-2xl p-4 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-amber-700">우수비 ⚔️</span>
+                                    <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">Right Defense</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                    상대 공격수의 큰 각도 페인트 및 C코스 타구를 방어하며 중앙 빈 공간을 전진 커버하여 수비 안정성을 극대화합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 실점 및 반칙 기준 (Fouls) -->
+                    <div class="bg-rose-50/20 border border-rose-100 rounded-2xl p-5 relative z-10">
+                        <h4 class="text-sm font-black text-rose-800 flex items-center gap-2 mb-3">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i> 실점 대상이 되는 주요 반칙 (파울)
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-slate-700 leading-relaxed">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">바디 터치</span>
+                                    <span>무릎 아래(발)와 턱 이상(머리)을 제외한 신체 부위(가슴, 배, 손, 팔 등)에 공이 접촉했을 때</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">오버넷</span>
+                                    <span>경기 플레이 중 신체의 일부(발 등) 또는 옷이 네트 라인을 가로질러 상대방 진영을 침범했을 때</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">네트 터치</span>
+                                    <span>경기 도중 선수나 선수의 옷이 네트 또는 지주대에 닿았을 때</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">투바운드</span>
+                                    <span>공이 우리 코트 진영 바닥에 2회 연속으로 튀었을 때 (바운드는 무조건 1회씩만 가능)</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">드리블 / 더블</span>
+                                    <span>한 선수가 바운드 여부와 관계없이 공을 연속으로 2회 이상 터치했을 때</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="text-[9px] font-black bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded shrink-0">라인 아웃</span>
+                                    <span>서브 또는 공격한 공이 상대 진영 코트 사이드/엔드라인 밖으로 바로 떨어졌을 때</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. 하단 협회 연결 -->
+                    <div class="mt-8 text-center border-t border-slate-100 pt-5 relative z-10">
+                        <a href="https://www.jokgu.or.kr/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-all btn-touch shadow-sm">
+                            <i data-lucide="external-link" class="w-4 h-4"></i> 대한민국족구협회 공식 홈페이지 방문
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="report" class="tab-content space-y-6 font-black monitor-hidden partner-hidden temp-hidden">
+                <div class="flex flex-col gap-3 print:hidden">
+                    <div class="flex gap-2 bg-slate-200/50 p-1.5 rounded-[1.25rem] w-full mx-auto max-w-md">
+                        <button id="btn-report-type-month" onclick="window.switchReportType('month')" class="flex-1 py-3 rounded-xl text-sm transition-all bg-white text-blue-600 shadow-sm font-black">월간 결산</button>
+                        <button id="btn-report-type-year" onclick="window.switchReportType('year')" class="flex-1 py-3 rounded-xl text-sm transition-all text-slate-500 hover:text-slate-700 font-black">년간 결산</button>
+                    </div>
+                    <div class="flex gap-2 w-full mx-auto max-w-md">
+                        <input type="month" id="report-month" class="flex-1 border-2 p-3 rounded-xl outline-none focus:border-blue-400" onchange="window.renderReport()">
+                        <select id="report-year" class="flex-1 border-2 p-3 rounded-xl outline-none focus:border-blue-400 hidden" onchange="window.renderReport()">
+                            <script>
+                                const currY = new Date().getFullYear();
+                                for(let y=currY-3; y<=currY+2; y++) document.write(`<option value="${y}" ${y===currY?'selected':''}>${y}년</option>`);
+                            </script>
+                        </select>
+                        <button onclick="window.shareReport()" class="bg-indigo-600 text-white px-5 rounded-xl shadow-sm btn-touch flex items-center gap-2 text-xs font-black"><i data-lucide="share-2" class="w-4 h-4"></i> 보고서 공유</button>
+                        <button onclick="window.print()" class="bg-slate-800 text-white px-4 rounded-xl shadow-sm btn-touch"><i data-lucide="printer"></i></button>
+                    </div>
+                </div>
+                <div id="printable-report" class="border border-slate-200 md:border-2 p-4 md:p-8 rounded-[2rem] bg-white shadow-sm"><div class="text-center mb-6 border-b-2 border-slate-100 pb-4"><div class="bg-slate-900 text-white text-[10px] px-3 py-1 rounded-full inline-block mb-2 shadow-sm tracking-widest">REPORT</div><h2 class="text-2xl md:text-3xl mb-1 text-slate-800 tracking-tight">결산 보고</h2><p id="report-period-text" class="text-blue-600 text-sm md:text-xl font-black"></p></div><div id="report-content-body"></div><div class="mt-8 pt-5 border-t-2 border-slate-200 flex justify-between items-end"><div class="text-[9px] md:text-xs text-slate-400 font-bold" id="report-gen-date"></div><div class="text-xs md:text-sm text-right text-slate-700">소나무족구단 총무 (인)<div class="h-0.5 md:h-1 bg-slate-800 w-24 md:w-32 ml-auto mt-1.5 md:mt-2"></div></div></div></div>
+            </section>
+        </main>
+
+        <!-- [네비게이션] 하단 플로팅 글래스 스타일 -->
+        <nav class="nav-floating print:hidden">
+            <button onclick="window.showTab('dashboard')" id="tab-dashboard" class="monitor-hidden partner-hidden text-slate-400 active-tab flex flex-col items-center justify-center transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5 text-blue-400"></i>
+                <span class="text-[9px] font-black uppercase">홈</span>
+            </button>
+            <button onclick="window.showTab('vote')" id="tab-vote" class="monitor-hidden text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="vote" class="w-5 h-5 mb-0.5 text-rose-400"></i>
+                <span class="text-[9px] font-black uppercase">투표</span>
+            </button>
+            <button onclick="window.showTab('teams')" id="tab-teams" class="text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="calendar" class="w-5 h-5 mb-0.5 text-amber-400"></i>
+                <span class="text-[9px] font-black uppercase">일정</span>
+            </button>
+            <button onclick="window.showTab('board')" id="tab-board" class="partner-hidden text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="megaphone" class="w-5 h-5 mb-0.5 text-pink-400"></i>
+                <span class="text-[9px] font-black uppercase">공지</span>
+            </button>
+            <button onclick="window.showTab('gallery')" id="tab-gallery" class="text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="activity" class="w-5 h-5 mb-0.5 text-emerald-400"></i>
+                <span class="text-[9px] font-black uppercase">활동</span>
+            </button>
+            <button onclick="window.showTab('finance')" id="tab-finance" class="monitor-hidden partner-hidden temp-hidden text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="wallet" class="w-5 h-5 mb-0.5 text-indigo-400"></i>
+                <span class="text-[9px] font-black uppercase">수지</span>
+            </button>
+            <button onclick="window.showTab('member-mgmt')" id="tab-member-mgmt" class="monitor-hidden partner-hidden text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="users" class="w-5 h-5 mb-0.5 text-orange-400"></i>
+                <span class="text-[9px] font-black uppercase">회원</span>
+            </button>
+            <button onclick="window.showTab('report')" id="tab-report" class="monitor-hidden partner-hidden temp-hidden text-slate-400 flex flex-col items-center justify-center transition-all">
+                <i data-lucide="calculator" class="w-5 h-5 mb-0.5 text-violet-400"></i>
+                <span class="text-[9px] font-black uppercase">결산</span>
+            </button>
+        </nav>
+    </div>
+
+<!-- [스크립트 로딩] DOM 로드 후 실행 보장 -->
+<!-- 외부 라이브러리 및 엔진 -->
+<script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
+
+<!-- 분리된 어플리케이션 로직 -->
+<script src="src/js/01_kakao_optimization.js"></script>
+<script src="src/js/02_env_version.js"></script>
+<script src="src/js/03_init_utils.js"></script>
+<script src="src/js/04_scope_adjust.js"></script>
+<script src="src/js/05_mileage_engine.js"></script>
+<script src="src/js/06_common_ui_utils.js"></script>
+<script src="src/js/07_firebase_init.js"></script>
+<script src="src/js/08_auth_logic.js"></script>
+<script src="src/js/09_navigation_sync.js"></script>
+<script src="src/js/10_dashboard_logic.js"></script>
+<script src="src/js/11_vote_logic.js"></script>
+<script src="src/js/12_team_mgmt.js"></script>
+<script src="src/js/13_finance_logic.js"></script>
+<script src="src/js/14_member_mgmt.js"></script>
+<script src="src/js/15_board_logic.js"></script>
+<script src="src/js/16_gallery_report.js"></script>
+<script src="src/js/17_calendar_logic.js"></script>
+<script src="src/js/18_member_positions.js"></script>
+
+<div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
+    <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
+        <div class="absolute -right-16 -top-16 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div class="absolute -left-16 -bottom-16 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl"></div>
+        
+        <div class="relative z-10 flex flex-col gap-5">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-100 p-3 rounded-2xl">
+                    <i data-lucide="calendar-plus" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <h4 class="text-xl font-black text-slate-800" id="team-event-form-title">새 운동 만들기</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-blue-600 ml-1">날짜 선택</label>
+                        <input type="date" id="new-team-event-date" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-slate-700">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-blue-600 ml-1">일정 제목</label>
+                        <input type="text" id="new-team-event-title" placeholder="예: 평일 야간 운동" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-slate-700">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-blue-600 ml-1">운동 장소</label>
+                        <input type="text" id="new-team-event-location" placeholder="예: 소나무 족구장" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-slate-700">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-blue-600 ml-1">시작 시간</label>
+                        <input type="time" id="new-team-event-time" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-blue-400 focus:bg-white transition-all font-bold text-slate-700">
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50/50 p-4 rounded-3xl border border-slate-100 flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-blue-600 ml-1">반복 옵션</label>
+                        <select id="new-team-event-repeat" class="w-full border-2 border-slate-100 bg-white p-3.5 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-slate-700" onchange="window.toggleRepeatOptions()">
+                            <option value="none">경기 일정등록</option>
+                            <option value="weekly">매주 정기 운동</option>
+                            <option value="monthly">매월 정기 운동</option>
+                        </select>
+                    </div>
+                    
+                    <div id="repeat-weekly-options" class="hidden flex flex-wrap gap-2 pt-1">
+                        <script>document.write(['일','월','화','수','목','금','토'].map((d,i)=>`<label class="flex-1 min-w-[40px] flex flex-col items-center gap-1.5 bg-white border border-slate-200 p-2.5 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"><input type="checkbox" value="${i}" class="repeat-weekday accent-blue-600 w-4 h-4"><span class="text-[10px] font-black text-slate-500">${d}</span></label>`).join(''))</script>
+                    </div>
+                    
+                    <div id="repeat-monthly-options" class="hidden grid grid-cols-2 gap-3 pt-1">
+                        <select id="repeat-month-week" class="w-full border-2 border-slate-100 bg-white p-3 rounded-xl font-bold text-slate-700">
+                            <option value="1">첫째주</option><option value="2">둘째주</option><option value="3">셋째주</option><option value="4">넷째주</option><option value="5">마지막주</option>
+                        </select>
+                        <select id="repeat-month-day" class="w-full border-2 border-slate-100 bg-white p-3 rounded-xl font-bold text-slate-700">
+                            <script>document.write(['일','월','화','수','목','금','토'].map((d,i)=>`<option value="${i}">${d}요일</option>`).join(''))</script>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="px-2">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" id="new-team-event-pinned" class="sr-only peer">
+                            <div class="w-5 h-5 border-2 border-slate-200 rounded-lg group-hover:border-blue-400 peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all flex items-center justify-center">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs font-black text-slate-600 group-hover:text-blue-600 transition-colors">상단에 고정하기 (진행중인 투표 노출)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+                <button onclick="window.closeAddTeamEvent()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-[1.5rem] text-xs font-black hover:bg-slate-200 transition-all active:scale-95 shadow-sm">취소</button>
+                <button onclick="window.confirmAddTeamEvent()" id="btn-team-event-submit" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 rounded-[1.5rem] text-xs font-black hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-blue-200/50">생성하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- [소나무 일정 등록/수정 모달] -->
+<div id="calendar-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
+    <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
+        <div class="absolute -right-16 -top-16 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl"></div>
+        <div class="absolute -left-16 -bottom-16 w-32 h-32 bg-indigo-50/5 rounded-full blur-3xl"></div>
+        
+        <div class="relative z-10 flex flex-col gap-5">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-100 p-3 rounded-2xl">
+                    <i data-lucide="calendar" class="w-6 h-6 text-amber-600"></i>
+                </div>
+                <h4 class="text-xl font-black text-slate-800" id="calendar-event-form-title">일정 등록</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-black text-amber-600 ml-1">날짜 선택</label>
+                    <input type="date" id="cal-event-date" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-amber-500 focus:bg-white transition-all font-bold text-slate-700">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-black text-amber-600 ml-1">일정 제목</label>
+                    <input type="text" id="cal-event-title" placeholder="예: 구리시협회장배 족구대회" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-amber-500 focus:bg-white transition-all font-bold text-slate-700">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-black text-amber-600 ml-1">일정 구분</label>
+                    <select id="cal-event-type" class="w-full border-2 border-slate-100 bg-white p-3.5 rounded-2xl outline-none focus:border-amber-500 transition-all font-bold text-slate-700">
+                        <option value="대회">🏆 대회</option>
+                        <option value="야유회">🌳 야유회</option>
+                        <option value="행사">🎉 행사/모임</option>
+                        <option value="기타">📌 기타</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-black text-amber-600 ml-1">상세 내용 (메모)</label>
+                    <textarea id="cal-event-note" placeholder="행사 시간, 장소, 준비물 등 상세 내용을 적어주세요." class="w-full h-24 border-2 border-slate-100 bg-slate-50 p-3.5 rounded-2xl outline-none focus:border-amber-500 focus:bg-white transition-all font-bold text-slate-700 resize-none"></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 pt-2">
+                <button onclick="window.closeCalendarEventModal()" class="flex-1 bg-slate-100 text-slate-500 py-3.5 rounded-2xl text-xs font-black hover:bg-slate-200 transition-all active:scale-95 shadow-sm">취소</button>
+                <button onclick="window.deleteCalendarEvent()" id="btn-cal-event-delete" class="hidden flex-1 bg-rose-50 text-rose-600 py-3.5 rounded-2xl text-xs font-black border border-rose-100 hover:bg-rose-100 transition-all active:scale-95 shadow-sm">삭제</button>
+                <button onclick="window.confirmSaveCalendarEvent()" id="btn-cal-event-submit" class="flex-[1.5] bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3.5 rounded-2xl text-xs font-black hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-amber-200/50">저장하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- [행운 마일리지 설정 모달] -->
+    <div id="luck-mileage-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
+        <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10 flex flex-col gap-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-100 p-3 rounded-2xl text-amber-600">
+                            <i data-lucide="clover" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-black">마일리지 설정</h4>
+                    </div>
+                    <button onclick="window.closeLuckMileageModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-all"><i data-lucide="x"></i></button>
+                </div>
+                
+                <p class="text-xs font-bold text-slate-500 leading-relaxed bg-amber-50 p-4 rounded-2xl border border-amber-100">전일 활동(운동 참가, 투표 등) 기록이 있는 회원 중 당첨자에게 지급될 포인트를 설정합니다.</p>
+                
+                <!-- [NEW] 마일리지 부여 기준 안내 -->
+                <div class="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex flex-col gap-3.5">
+                    <h5 class="text-[11px] font-black text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-3.5 h-3.5 text-indigo-500"></i> 마일리지 자동 부여 기준 안내
+                    </h5>
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-800">운동 참석: <span class="text-blue-600">3 PT</span></div>
+                                <div class="text-[11px] text-slate-700 font-bold leading-tight">투표 참여(2pt) + 실제 참석 보너스(1pt) 합산</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-1.5 shrink-0"></div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-800">투표만 참여: <span class="text-indigo-600">2 PT</span></div>
+                                <div class="text-[9px] text-slate-400 font-bold leading-tight">운동 및 각종 설문/무기명 투표 참여 시 부여</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-1.5 h-1.5 bg-amber-500 rounded-full mt-1.5 shrink-0"></div>
+                            <div>
+                                <div class="text-[10px] font-black text-slate-800">추첨 당첨: <span class="text-amber-600">설정된 점수</span></div>
+                                <div class="text-[9px] text-slate-400 font-bold leading-tight">전일 접속 또는 투표 기록이 있는 회원 중 무작위 선정</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-5">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-black text-amber-600 ml-1 flex items-center gap-1.5"><i data-lucide="calendar" class="w-3 h-3"></i> 마일리지 시작일</label>
+                        <input type="date" id="input-mileage-start-date" class="w-full border-2 border-slate-100 bg-slate-50 p-4 rounded-2xl outline-none focus:border-amber-400 focus:bg-white transition-all font-black text-slate-700 shadow-inner">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-black text-amber-600 ml-1 flex items-center gap-1.5"><i data-lucide="coins" class="w-3 h-3"></i> 행운 마일리지</label>
+                            <div class="relative">
+                                <input type="number" id="input-luck-mileage" class="w-full border-2 border-slate-100 bg-slate-50 p-4 rounded-2xl outline-none focus:border-amber-400 focus:bg-white transition-all font-black text-slate-700 shadow-inner" value="10">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">PT</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-black text-amber-600 ml-1 flex items-center gap-1.5"><i data-lucide="users" class="w-3 h-3"></i> 추첨 인원</label>
+                            <div class="relative">
+                                <input type="number" id="input-luck-count" class="w-full border-2 border-slate-100 bg-slate-50 p-4 rounded-2xl outline-none focus:border-amber-400 focus:bg-white transition-all font-black text-slate-700 shadow-inner" value="2">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">명</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-3 pt-2">
+                    <button onclick="window.updateLuckMileageSetting()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-4 rounded-[1.5rem] text-sm font-black shadow-lg shadow-amber-200/50 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> 설정 정보 저장하기
+                    </button>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="window.showLuckEligibleMembers()" class="bg-slate-100 text-slate-600 py-3.5 rounded-[1.25rem] text-[11px] font-black hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                            <i data-lucide="list-checks" class="w-3.5 h-3.5 text-slate-400"></i> 대상 확인
+                        </button>
+                        <button onclick="window.redrawLuckMileage()" class="bg-slate-100 text-slate-600 py-3.5 rounded-[1.25rem] text-[11px] font-black hover:bg-slate-200 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-slate-400"></i> 재추첨하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [프로그램 사용설명서 모달] -->
+    <div id="user-manual-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
+        <div class="modal-content bg-white w-[95%] max-w-2xl p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu flex flex-col max-h-[85vh] relative">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl"></div>
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-100 p-3 rounded-2xl text-emerald-600">
+                        <i data-lucide="book-open" class="w-6 h-6 animate-pulse"></i>
+                    </div>
+                    <h4 class="text-xl font-black text-black">소나무 시스템 사용설명서</h4>
+                </div>
+                <button onclick="window.closeUserManualModal()" class="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-all"><i data-lucide="x"></i></button>
+            </div>
+            
+            <!-- 스크롤 가능한 본문 영역 -->
+            <div class="overflow-y-auto pr-2 space-y-6 font-black nav-scroll flex-grow mt-4 text-xs md:text-sm text-slate-700 leading-relaxed">
+                <!-- 개요 -->
+                <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 text-emerald-800">
+                    <p class="font-bold">
+                        본 프로그램은 <strong>소나무 족구단</strong>의 투표, 경기 대진, 마일리지 점수 자동화, 회계 및 결산 업무를 하나의 통합 환경에서 효율적으로 처리하기 위해 맞춤 설계된 관리 어플리케이션입니다.
+                    </p>
+                </div>
+
+                <!-- 메뉴 트리 -->
+                <div class="space-y-3">
+                    <h5 class="text-sm md:text-base font-black text-slate-900 border-b pb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="network" class="w-4.5 h-4.5 text-indigo-500"></i> 🗺️ 전체 시스템 메뉴 트리 (Menu Tree)
+                    </h5>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2.5 font-bold text-slate-600">
+                        <div>🏠 <strong>홈 (대시보드)</strong>: 명예의 전당(마일리지 랭킹), 미참여 투표 알림, 당일 행운 당첨 보드, 사진첩 미리보기, DB 용량 관제</div>
+                        <div>🗳️ <strong>투표</strong>: 정기 운동 및 안건 찬반 투표 참여, [관리자] 투표 등록(무기명/일반), 투표 종료 및 아카이빙</div>
+                        <div>📅 <strong>일정</strong>:
+                            <ul class="list-disc pl-5 mt-1.5 space-y-1 text-slate-500">
+                                <li><strong>경기 대진/팀</strong>: 참석 선수 명단 구성, 자동 대진 매칭(청/홍팀), 세트 점수 입력, 승점 및 승리 수당 적립</li>
+                                <li><strong>소나무일정 (달력)</strong>: 정기 운동 일정(🏐 간소화), 주요 1회성 일정(대회, 행사 등), 회원 생일(음력 자동 양력 환산) 자동 표출</li>
+                            </ul>
+                        </div>
+                        <div>📢 <strong>공지</strong>: 클럽 중요 소식 전파 및 공유, [관리자] 공지글 작성/삭제</div>
+                        <div>🎬 <strong>활동</strong>:
+                            <ul class="list-disc pl-5 mt-1.5 space-y-1 text-slate-500">
+                                <li><strong>추억 사진첩</strong>: 클럽 정기 운동 및 대회 단체 사진 실시간 업로드 및 아카이브</li>
+                                <li><strong>자유게시판</strong>: 임원 전용 비밀글 작성을 지원하는 자유 소통 공간</li>
+                                <li><strong>족구규칙</strong>: 대한족구협회 공식 경기 진행법, 코트 규격, 4대 포지션 설명, 반칙(파울) 요약 가이드</li>
+                            </ul>
+                        </div>
+                        <div>💰 <strong>수지</strong>: 월별 회계 장부(수입/지출/잔액) 조회, [관리자] 회계 추가/편집 및 특별회비 일괄 청구</div>
+                        <div>👥 <strong>회원</strong>:
+                            <ul class="list-disc pl-5 mt-1.5 space-y-1 text-slate-500">
+                                <li><strong>회원 명부</strong>: [관리자] 회원 정보 수정(대회 출전부 1~5부 등급 및 등번호 관리)</li>
+                                <li><strong>회원 활동 내역</strong>: 개별 회원 마일리지 점수 및 상세 내역(참여 이력) 조회</li>
+                                <li><strong>포지션 분포</strong>: 공격/세터/수비 포지션 인원 비중 차트 및 출전부 등급 순 선수 카드 그리드</li>
+                            </ul>
+                        </div>
+                        <div>📊 <strong>결산</strong>: 회계/마일리지 기간별 종합 결산 보고서 생성, [관리자] 전체 데이터 백업 및 복원</div>
+                    </div>
+                </div>
+
+                <!-- 마일리지 규칙 -->
+                <div class="space-y-3">
+                    <h5 class="text-sm md:text-base font-black text-slate-900 border-b pb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="award" class="w-4.5 h-4.5 text-amber-500"></i> 💡 마일리지 점수 적산 규칙
+                    </h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-4">
+                            <div class="font-black text-blue-700 mb-1.5">⚽ 정기 운동 참석 (3pt)</div>
+                            <ul class="list-disc pl-4 space-y-1 text-slate-600 font-bold text-[11px]">
+                                <li>운동 투표 참여 후 실제 참석 시: <strong>+3 PT</strong></li>
+                                <li>(단순 투표만 하고 운동 미참석 시: <strong>+2 PT</strong>)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-indigo-50/40 border border-indigo-100 rounded-2xl p-4">
+                            <div class="font-black text-indigo-700 mb-1.5">🗳️ 각종 안건 투표 참여 (+2pt)</div>
+                            <ul class="list-disc pl-4 space-y-1 text-slate-600 font-bold text-[11px]">
+                                <li>회원 명부 보너스 항목으로 자동 누적</li>
+                                <li>기명/무기명 설문 조사에 투표 완료 시 즉시 <strong>+2 PT</strong> 자동 부여</li>
+                            </ul>
+                        </div>
+                        <div class="bg-amber-50/40 border border-amber-100 rounded-2xl p-4 md:col-span-2">
+                            <div class="font-black text-amber-700 mb-1.5">🍀 전일 접속 행운의 마일리지 (Daily Draw)</div>
+                            <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                전일 운동 투표 또는 시스템 접속 기록이 존재하는 일반 회원들을 대상으로 **매일 새벽 자동 추첨**하여 지정된 행운 마일리지(기본 10pt)를 부여합니다. (금액을 0으로 설정하면 작동이 중단됩니다.)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 권한 테이블 -->
+                <div class="space-y-3">
+                    <h5 class="text-sm md:text-base font-black text-slate-900 border-b pb-1.5 flex items-center gap-1.5">
+                        <i data-lucide="shield" class="w-4.5 h-4.5 text-rose-500"></i> 🔑 사용자 권한 분류 가이드
+                    </h5>
+                    <div class="overflow-x-auto border rounded-2xl">
+                        <table class="w-full text-[11px] font-bold text-slate-600 border-collapse text-left">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-800 border-b">
+                                    <th class="p-3 border-r">수행 권한</th>
+                                    <th class="p-3 border-r">일반 회원 (정/준/신입)</th>
+                                    <th class="p-3">임원진 (회장/감독/총무/마스터)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr>
+                                    <td class="p-3 border-r bg-slate-50/30">투표 및 사진첩</td>
+                                    <td class="p-3 border-r text-emerald-600">투표 참여, 자유 게시글 작성, 사진 업로드 가능</td>
+                                    <td class="p-3 text-blue-600">투표 생성/삭제, 사진/게시글 전체 관리</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-r bg-slate-50/30">대진 매칭 & 경기</td>
+                                    <td class="p-3 border-r text-slate-400">참석 등록 및 대진 현황 확인 (수정 불가)</td>
+                                    <td class="p-3 text-blue-600">대진 드래프트 생성, 세트 점수 및 결과 입력</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-r bg-slate-50/30">회원 명부 관리</td>
+                                    <td class="p-3 border-r text-slate-400">명부 및 포지션 분포 현황 조회</td>
+                                    <td class="p-3 text-blue-600">신규 회원 가입, 포지션 배정, 출전부 등급 배정, 등번호 부여</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-r bg-slate-50/30">회계 및 결산</td>
+                                    <td class="p-3 border-r text-slate-400">회계 내역 및 수지 결산 보고서 조회</td>
+                                    <td class="p-3 text-blue-600">회계 내역 추가/삭제, 특별회비 일괄 청구, 결산 리포트 생성, 엑셀 백업</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer pt-5 border-t border-slate-100 mt-4 shrink-0 flex gap-3 w-full">
+                <button onclick="window.shareUserManual()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3.5 rounded-2xl font-black shadow-lg shadow-emerald-200/50 hover:brightness-110 active:scale-[0.98] transition-all btn-touch flex items-center justify-center gap-1.5">
+                    <i data-lucide="share-2" class="w-4 h-4"></i> 설명서 공유하기
+                </button>
+                <button onclick="window.closeUserManualModal()" class="flex-1 bg-slate-950 text-white py-3.5 rounded-2xl font-black hover:bg-slate-800 active:scale-[0.98] transition-all btn-touch">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 회원투표 비회원/가족 참석자 수기 추가 모달 -->
+    <div id="event-add-guest-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 overflow-y-auto flex-col justify-center items-center px-4 py-8">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-full">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-6 h-6 text-emerald-500"></i> 비회원/가족 참석자 수기 추가
+                </h3>
+                <button onclick="window.closeEventAddGuestModal()" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">참석자 이름/표기명 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="input-event-guest-name" placeholder="예: 김철수(비회원), 홍길동 가족" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-emerald-400 focus:bg-white transition-all font-black text-slate-700 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">총 참가 인원수 (명) <span class="text-rose-500">*</span></label>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="const el=window.$('input-event-guest-count'); el.value=Math.max(1, parseInt(el.value||1)-1);" class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-black text-lg btn-touch flex items-center justify-center">-</button>
+                        <input type="number" id="input-event-guest-count" value="1" min="1" max="99" class="flex-1 border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-emerald-400 focus:bg-white transition-all font-black text-slate-700 text-center text-lg">
+                        <button type="button" onclick="const el=window.$('input-event-guest-count'); el.value=Math.min(99, parseInt(el.value||1)+1);" class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-black text-lg btn-touch flex items-center justify-center">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">배정할 투표 항목 <span class="text-rose-500">*</span></label>
+                    <select id="select-event-guest-option" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-emerald-400 font-black text-slate-700 text-sm"></select>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                <button onclick="window.closeEventAddGuestModal()" class="flex-1 py-3.5 rounded-xl font-black text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-colors">취소</button>
+                <button onclick="window.submitEventAddGuest()" class="flex-[2] py-3.5 rounded-xl font-black text-white bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-200 transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> 참석자 추가 완료
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- [NEW] 외부팀 참석 수기 추가 모달 -->
+    <div id="external-team-modal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-base font-black text-slate-800 flex items-center gap-2">
+                    <i data-lucide="shield" class="w-6 h-6 text-purple-500"></i> 외부팀 참석 수기 등록
+                </h3>
+                <button onclick="window.closeExternalTeamModal()" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">외부팀 이름 <span class="text-rose-500">*</span></label>
+                    <input type="text" id="input-ext-team-name" placeholder="예: 한마음 족구단, 청룡팀 등" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-purple-400 focus:bg-white transition-all font-black text-slate-700 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">참석 인원수 (명) <span class="text-rose-500">*</span></label>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="const el=window.$('input-ext-team-count'); el.value=Math.max(1, parseInt(el.value||4)-1);" class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-black text-lg btn-touch flex items-center justify-center">-</button>
+                        <input type="number" id="input-ext-team-count" value="4" min="1" max="99" class="flex-1 border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-purple-400 focus:bg-white transition-all font-black text-slate-700 text-center text-lg">
+                        <button type="button" onclick="const el=window.$('input-ext-team-count'); el.value=Math.min(99, parseInt(el.value||4)+1);" class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-black text-lg btn-touch flex items-center justify-center">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-slate-700 mb-1.5">참석 구분 <span class="text-rose-500">*</span></label>
+                    <select id="select-ext-team-status" class="w-full border-2 border-slate-100 bg-slate-50 p-3.5 rounded-xl outline-none focus:border-purple-400 font-black text-slate-700 text-sm">
+                        <option value="attend" selected>참석</option>
+                        <option value="late">늦참</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                <button onclick="window.closeExternalTeamModal()" class="flex-1 py-3.5 rounded-xl font-black text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-colors">취소</button>
+                <button onclick="window.submitExternalTeam()" class="flex-[2] py-3.5 rounded-xl font-black text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-200 transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> 외부팀 등록 완료
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제됨: 과거 내역 마이그레이션 스크립트 -->
+</body>
+</html>
