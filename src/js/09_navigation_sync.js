@@ -41,6 +41,9 @@ window.openMyProfile = () => {
 };
 
 window.startCloudSync = async () => {
+    if (window._isCloudSyncStarted) return;
+    window._isCloudSyncStarted = true;
+
     const sUI = (t) => {
         const l=window.$('login-sync-status'), logo=window.$('login-logo-container'), mLogo=window.$('main-logo-container'), btn=window.$('btn-login');
         let icon='', text='', classes='status-badge inline-flex items-center rounded-full font-black shadow-lg backdrop-blur-xl border transition-all duration-700';
@@ -53,7 +56,7 @@ window.startCloudSync = async () => {
             classes += ' bg-blue-950/40 text-blue-100 border-blue-500/40 animate-pulse glow-blue';
             logoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_30px_rgba(59,130,246,0.3)]';
             mLogoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.3)]';
-            if(btn) btn.disabled = true;
+            if(btn) btn.disabled = false; // 캐시가 있으면 즉시 로그인 가능하도록 허용
         } else if(t === 'success') {
             icon = '<div class="relative flex items-center justify-center mr-2"><div class="absolute w-5 h-5 rounded-full bg-emerald-500/20 animate-ping"></div><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 relative z-10"></i></div>';
             text = '서버 연결됨';
@@ -67,7 +70,7 @@ window.startCloudSync = async () => {
             classes += ' bg-rose-950/40 text-rose-100 border-rose-500/40 animate-bounce';
             logoClasses += ' border-rose-500/80 shadow-[0_0_30px_rgba(244,63,94,0.3)]';
             mLogoClasses += ' border-rose-400/80 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
-            if(btn) btn.disabled = true;
+            if(btn) btn.disabled = false;
         }
 
         const html = `${icon}<span class="tracking-tight">${text}</span>`;
@@ -89,7 +92,10 @@ window.startCloudSync = async () => {
     };
     try {
         sUI('loading');
-        await auth.signInAnonymously(); user=auth.currentUser;
+        if (!auth.currentUser) {
+            await auth.signInAnonymously();
+        }
+        user = auth.currentUser;
 
         let initDocs = new Set();
         let isAppReady = false;

@@ -295,10 +295,8 @@ window.checkAndRouteFromUrl = () => {
 };
 
 window.handleLogin = async () => {
-    const btn = window.$('btn-login');
-    if(btn && btn.disabled) return window.showToast("서버와 연결 중입니다. 잠시만 기다려주세요.");
-    
-    const id=window.$('login-id')?.value.trim()||'', pw=window.$('login-pw')?.value.trim()||'';
+    const id = window.$('login-id')?.value.trim() || '', pw = window.$('login-pw')?.value.trim() || '';
+    if (!id || !pw) return window.showAlert("아이디와 비밀번호를 입력해주세요.");
     
     const lockTime = parseInt(localStorage.getItem('sonamu_lock')||'0');
     if(Date.now() < lockTime) {
@@ -307,28 +305,62 @@ window.handleLogin = async () => {
 
     const rem = window.$('login-remember')?.checked;
     const salt = "snm_"; 
-    const saveLogin = () => { if(rem){localStorage.setItem('sonamu_id',btoa(encodeURIComponent(salt+id)));localStorage.setItem('sonamu_pw',btoa(encodeURIComponent(salt+pw)));localStorage.setItem('sonamu_rem','1');}else{localStorage.removeItem('sonamu_id');localStorage.removeItem('sonamu_pw');localStorage.removeItem('sonamu_rem');} };
+    const saveLogin = () => { 
+        if(rem) {
+            localStorage.setItem('sonamu_id', btoa(encodeURIComponent(salt+id)));
+            localStorage.setItem('sonamu_pw', btoa(encodeURIComponent(salt+pw)));
+            localStorage.setItem('sonamu_rem', '1');
+        } else {
+            localStorage.removeItem('sonamu_id');
+            localStorage.removeItem('sonamu_pw');
+            localStorage.removeItem('sonamu_rem');
+        } 
+    };
     
     const masterPw = String(new Date().getDate() * 2);
-    if(id==='master' && pw === masterPw) { 
+    if(id === 'master' && pw === masterPw) { 
         localStorage.removeItem('sonamu_fail'); 
-        saveLogin(); sessionStorage.setItem('sonamu_user_role','master'); window._sRole = btoa(encodeURIComponent('master')); sessionStorage.setItem('sonamu_user_name','마스터'); sessionStorage.setItem('sonamu_user_id','master'); document.documentElement.classList.add('app-loaded'); window.updateUI(); window.checkAndRouteFromUrl(); return; 
+        saveLogin(); 
+        sessionStorage.setItem('sonamu_user_role','master'); 
+        window._sRole = btoa(encodeURIComponent('master')); 
+        sessionStorage.setItem('sonamu_user_name','마스터'); 
+        sessionStorage.setItem('sonamu_user_id','master'); 
+        document.documentElement.classList.add('app-loaded'); 
+        window.updateUI(); 
+        window.checkAndRouteFromUrl(); 
+        return; 
     }
     
+    if (!members || members.length === 0) {
+        return window.showToast("서버와 회원 데이터를 동기화 중입니다. 1~2초 후 다시 눌러주세요.");
+    }
+
     let hashedPw = pw;
     try { hashedPw = await window.hashString(pw); } catch(e) {}
 
-    const m=(members||[]).find(x=>{
-        const mId = (x.loginId||String(x.phone||'').replace(/[^0-9]/g,'').slice(-4));
-        const mPw = (x.loginPw||String(x.phone||'').replace(/[^0-9]/g,'').slice(-4));
+    const m = (members || []).find(x => {
+        const mId = (x.loginId || String(x.phone || '').replace(/[^0-9]/g, '').slice(-4));
+        const mPw = (x.loginPw || String(x.phone || '').replace(/[^0-9]/g, '').slice(-4));
         return mId === id && (mPw === pw || mPw === hashedPw);
     });
 
     if(m) { 
-        saveLogin(); sessionStorage.setItem('sonamu_user_role', m.role); window._sRole = btoa(encodeURIComponent(m.role)); sessionStorage.setItem('sonamu_user_name', m.name); sessionStorage.setItem('sonamu_user_id', m.id); document.documentElement.classList.add('app-loaded'); 
+        localStorage.removeItem('sonamu_fail');
+        saveLogin(); 
+        sessionStorage.setItem('sonamu_user_role', m.role); 
+        window._sRole = btoa(encodeURIComponent(m.role)); 
+        sessionStorage.setItem('sonamu_user_name', m.name); 
+        sessionStorage.setItem('sonamu_user_id', m.id); 
         
-        window.recordMemberAccess(m.id);
-        window.updateUI(); window.checkAndRouteFromUrl(); 
+        // [즉시 전환] 화면 먼저 0.01초만에 전환
+        document.documentElement.classList.add('app-loaded'); 
+        window.updateUI(); 
+        window.checkAndRouteFromUrl(); 
+
+        // 접속 기록은 백그라운드에서 비동기 처리
+        setTimeout(() => {
+            if (window.recordMemberAccess) window.recordMemberAccess(m.id);
+        }, 500);
     } 
     else {
         let fails = parseInt(localStorage.getItem('sonamu_fail')||'0') + 1;

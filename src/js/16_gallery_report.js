@@ -625,9 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let cy=new Date().getFullYear(), cm=new Date().getMonth()+1;
     currentLedgerMonthStr=`${cy}-${String(cm).padStart(2,'0')}`;
     
-    // 클라우드 데이터 동기화 개시
-    window.startCloudSync();
-    
     // [스마트폰 뒤로가기 종료 방지 및 모달/탭 네비게이션 처리 로직]
     let isAppExiting = false;
     window.addEventListener('popstate', function(e) {
