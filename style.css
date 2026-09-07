@@ -55,20 +55,160 @@
         .ticker-text { display: inline-block; padding-left: 100%; animation: ticker 15s linear infinite; }
         @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
         
-        /* [테마] 다크모드 전역 스타일 오버라이드 */
+        /* [테마 1] 라이트(화이트) 모드 전용 스타일 강화 (선명하고 또렷한 가독성) */
+        html:not(.dark) { color-scheme: light; }
+        html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
+        html:not(.dark) #main-app { background-color: #f8fafc; color: #0f172a; }
+        html:not(.dark) main { background-color: #f8fafc; }
+        html:not(.dark) input, 
+        html:not(.dark) select, 
+        html:not(.dark) textarea { 
+            background-color: #ffffff !important; 
+            color: #0f172a !important; 
+            border-color: #cbd5e1 !important; 
+        }
+        html:not(.dark) input::placeholder, 
+        html:not(.dark) textarea::placeholder { 
+            color: #94a3b8 !important; 
+        }
+        html:not(.dark) option { 
+            background-color: #ffffff !important; 
+            color: #0f172a !important; 
+        }
+        html:not(.dark) .bg-white { 
+            background-color: #ffffff !important; 
+            color: #0f172a !important; 
+        }
+        html:not(.dark) #dialog-content,
+        html:not(.dark) .modal-content,
+        html:not(.dark) .modal-content-container {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
+        html:not(.dark) table { color: #0f172a !important; }
+        html:not(.dark) th { 
+            background-color: #f8fafc !important; 
+            color: #334155 !important; 
+            border-color: #e2e8f0 !important; 
+        }
+        html:not(.dark) td { 
+            border-color: #f1f5f9 !important; 
+            color: #1e293b !important; 
+        }
+
+        /* [테마 2] 다크모드 전역 스타일 및 텍스트 가독성 완벽 오버라이드 (삼성 갤럭시/안드로이드 크롬 최적화) */
         html.dark { color-scheme: dark; }
-        html.dark body { background-color: #020617; color: #f1f5f9; }
-        html.dark .bg-white { background-color: #1e293b !important; border-color: rgba(255,255,255,0.05) !important; color: #f1f5f9 !important; }
-        html.dark .bg-slate-50, html.dark main { background-color: #0f172a !important; }
-        html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 { color: #f1f5f9 !important; }
-        html.dark .text-slate-500, html.dark .text-slate-400 { color: #94a3b8 !important; }
-        html.dark input, html.dark select, html.dark textarea { background-color: #1e293b !important; color: #f1f5f9 !important; border-color: #334155 !important; }
-        html.dark nav { background-color: rgba(30, 41, 59, 0.9) !important; border-bottom-color: #334155 !important; }
+        html.dark body { background-color: #020617 !important; color: #f8fafc !important; }
+        html.dark #main-app { background-color: #020617 !important; color: #f8fafc !important; }
+        html.dark main { background-color: #0b1329 !important; color: #f8fafc !important; }
+
+        /* 카드 및 컨테이너 배경 및 기본 텍스트 */
+        html.dark .bg-white { background-color: #1e293b !important; border-color: rgba(255,255,255,0.08) !important; color: #f8fafc !important; }
+        html.dark .bg-slate-50, html.dark .bg-gray-50, html.dark .bg-zinc-50 { background-color: #0f172a !important; color: #f8fafc !important; }
+        html.dark .bg-slate-100, html.dark .bg-gray-100, html.dark .bg-zinc-100 { background-color: #1e293b !important; color: #f8fafc !important; }
+        html.dark .bg-slate-200, html.dark .bg-gray-200 { background-color: #334155 !important; color: #f8fafc !important; }
+
+        /* 어두운 텍스트 클래스를 다크모드에서 밝고 선명한 텍스트로 강제 치환 */
+        html.dark .text-black,
+        html.dark .text-slate-950,
+        html.dark .text-slate-900, 
+        html.dark .text-slate-800, 
+        html.dark .text-slate-700,
+        html.dark .text-gray-900,
+        html.dark .text-gray-800,
+        html.dark .text-gray-700,
+        html.dark .text-zinc-900,
+        html.dark .text-zinc-800,
+        html.dark .text-neutral-900,
+        html.dark .text-neutral-800 { 
+            color: #f8fafc !important; 
+        }
+
+        /* 보조 텍스트 색상 (은회색 톤 가독성 보장) */
+        html.dark .text-slate-600,
+        html.dark .text-gray-600,
+        html.dark .text-zinc-600 {
+            color: #cbd5e1 !important;
+        }
+        html.dark .text-slate-500, 
+        html.dark .text-slate-400,
+        html.dark .text-gray-500,
+        html.dark .text-gray-400 { 
+            color: #94a3b8 !important; 
+        }
+
+        /* 폼 요소 (Input, Select, Textarea, Option) 완벽 가시성 보장 */
+        html.dark input, 
+        html.dark select, 
+        html.dark textarea { 
+            background-color: #1e293b !important; 
+            color: #ffffff !important; 
+            border-color: #475569 !important; 
+        }
+        html.dark input::placeholder, 
+        html.dark textarea::placeholder { 
+            color: #64748b !important; 
+        }
+        html.dark option { 
+            background-color: #1e293b !important; 
+            color: #ffffff !important; 
+        }
+
+        /* 내비게이션 및 탭 */
+        html.dark nav { background-color: rgba(30, 41, 59, 0.95) !important; border-bottom-color: #334155 !important; }
         html.dark .active-tab { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important; color: #ffffff !important; }
-        html.dark .sticky-col { background-color: #1e293b !important; border-right-color: #334155 !important; }
+        html.dark .sticky-col { background-color: #1e293b !important; border-right-color: #334155 !important; color: #f8fafc !important; }
         html.dark .border-slate-100, html.dark .border-slate-200, html.dark .border-slate-300 { border-color: #334155 !important; }
-        html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: #334155 !important; color: #f1f5f9 !important; }
-        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-2xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important; }
+        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-2xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important; }
+
+        /* 테이블 (Table), th, td 가시성 확보 */
+        html.dark table { color: #f8fafc !important; }
+        html.dark th { 
+            background-color: #1e293b !important; 
+            color: #93c5fd !important; 
+            border-color: #334155 !important; 
+        }
+        html.dark td { 
+            border-color: #334155 !important; 
+            color: #f1f5f9 !important; 
+        }
+        html.dark tr:hover td { 
+            background-color: rgba(51, 65, 85, 0.5) !important; 
+        }
+
+        /* 모달 팝업 및 다이얼로그 가시성 보장 */
+        html.dark #dialog-content,
+        html.dark .modal-content,
+        html.dark .modal-content-container,
+        html.dark [id$="-modal"] .bg-white,
+        html.dark [id$="-view"] .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        html.dark #dialog-content p,
+        html.dark .modal-content p,
+        html.dark .modal-content-container p {
+            color: #e2e8f0 !important;
+        }
+
+        /* 컬러 배경 박스 (알림창, 뱃지, 투표 상태창 등) 다크모드 텍스트 밝기 자동 보정 */
+        html.dark .bg-blue-50, html.dark .bg-blue-50\/50 { background-color: rgba(30, 58, 138, 0.3) !important; color: #93c5fd !important; border-color: rgba(59, 130, 246, 0.4) !important; }
+        html.dark .text-blue-900, html.dark .text-blue-800, html.dark .text-blue-700, html.dark .text-blue-600 { color: #93c5fd !important; }
+        html.dark .bg-indigo-50, html.dark .bg-indigo-50\/50 { background-color: rgba(49, 46, 129, 0.3) !important; color: #a5b4fc !important; border-color: rgba(99, 102, 241, 0.4) !important; }
+        html.dark .text-indigo-900, html.dark .text-indigo-800, html.dark .text-indigo-700, html.dark .text-indigo-600 { color: #a5b4fc !important; }
+        html.dark .bg-emerald-50, html.dark .bg-emerald-50\/50 { background-color: rgba(6, 78, 59, 0.3) !important; color: #6ee7b7 !important; border-color: rgba(16, 185, 129, 0.4) !important; }
+        html.dark .text-emerald-900, html.dark .text-emerald-800, html.dark .text-emerald-700, html.dark .text-emerald-600 { color: #6ee7b7 !important; }
+        html.dark .bg-amber-50, html.dark .bg-amber-50\/50 { background-color: rgba(120, 53, 15, 0.3) !important; color: #fcd34d !important; border-color: rgba(245, 158, 11, 0.4) !important; }
+        html.dark .text-amber-900, html.dark .text-amber-800, html.dark .text-amber-700, html.dark .text-amber-600 { color: #fcd34d !important; }
+        html.dark .bg-rose-50, html.dark .bg-red-50, html.dark .bg-rose-50\/50, html.dark .bg-red-50\/50 { background-color: rgba(136, 19, 55, 0.3) !important; color: #fda4af !important; border-color: rgba(244, 63, 94, 0.4) !important; }
+        html.dark .text-rose-900, html.dark .text-red-900, html.dark .text-rose-800, html.dark .text-red-800, html.dark .text-rose-700, html.dark .text-red-700, html.dark .text-rose-600, html.dark .text-red-600 { color: #fda4af !important; }
+        html.dark .bg-purple-50, html.dark .bg-purple-50\/50 { background-color: rgba(88, 28, 135, 0.3) !important; color: #d8b4fe !important; border-color: rgba(168, 85, 247, 0.4) !important; }
+        html.dark .text-purple-900, html.dark .text-purple-800, html.dark .text-purple-700, html.dark .text-purple-600 { color: #d8b4fe !important; }
+        
+        /* 갤러리 및 마키 컴포넌트 */
+        html.dark .gallery-marquee-container { background: #1e293b !important; border-color: #334155 !important; }
+        html.dark .gallery-marquee-container span { color: #f8fafc !important; }
 
         /* 인쇄 시 표 잘림 방지 */
         @media print { 
