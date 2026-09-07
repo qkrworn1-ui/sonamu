@@ -246,6 +246,9 @@ window.startCloudSync = async () => {
                 luckMileageCount = typeof d.luckMileageCount === 'number' ? d.luckMileageCount : 2;
                 accessLog = d.accessLog || {};
                 
+                // 로컬 스토리지에 캐시 백업 (다음 접속 시 즉각 로드용)
+                try { localStorage.setItem('sonamu_cached_members', JSON.stringify(members)); } catch(e) {}
+                
                 // Ensure all members have up-to-date scores using the integrated engine
                 let needsScoreSync = false;
                 members.forEach(m => {

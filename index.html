@@ -15,6 +15,10 @@
             }
             window.location.href = window.location.pathname; 
         }
+        // [초고속 진입] 세션이 남아있을 경우 화면 깜빡임과 대기 없이 즉각 대시보드 표시
+        if (sessionStorage.getItem('sonamu_user_id')) {
+            document.documentElement.classList.add('app-loaded');
+        }
     </script>
 
     <meta name="apple-mobile-web-app-capable" content="yes">

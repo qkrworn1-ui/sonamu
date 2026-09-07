@@ -23,6 +23,12 @@ let dbSizes = { members: 0, finance: 0, sports: 0, board: 0, gallery: 0 };
 let currentLedgerMonthStr="", members=[], transactions=[], teamEvents=[], calendarEvents=[], posts=[], specialDues=[], deletedMembers=[], deletedTransactions=[], reportNotes={}, galleryPhotos=[], mileageStartDate = "2024-01-01";
 let luckyWinners = {}; let luckMileageAmount = 10; let luckMileageCount = 2; let accessLog = {};
 
+// [초고속 로그인] 로컬 스토리지에 캐시된 회원 정보가 있으면 0.0001초 만에 즉시 메모리에 적재
+try {
+    const cachedM = localStorage.getItem('sonamu_cached_members');
+    if (cachedM) members = JSON.parse(cachedM);
+} catch(e) {}
+
 // [스코프 보정] 외부 스크립트(dashboard-charts.js 등) 접근을 위해 window 객체에 연결
 window.updateGlobalRefs = () => {
     window.members = members;
