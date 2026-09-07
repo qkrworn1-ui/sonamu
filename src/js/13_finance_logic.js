@@ -537,6 +537,8 @@ window.renderMemberList = () => {
     const sList = window.getSortedMembers(filteredList);
     
     const isMobile = window.innerWidth <= 640;
+    const isDark = document.documentElement.classList.contains('dark');
+    const nameStyle = isDark ? 'color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;' : 'color: #0f172a !important; -webkit-text-fill-color: #0f172a !important;';
     const thead = window.$('member-thead');
     if (isTrash) {
         thead.innerHTML = `<tr><th colspan="7" class="p-2 sm:p-3 bg-red-50 dark:bg-red-950/40 text-red-500 font-black text-[11px] sm:text-sm">삭제된 회원 <button onclick="window.emptyTrash('member')" class="ml-2 bg-red-600 text-white px-2 py-1 rounded text-[10px] sm:text-xs btn-touch shadow-sm">완전 비우기</button></th></tr>`;
@@ -550,7 +552,7 @@ window.renderMemberList = () => {
         const displayNo = m.backNo ? String(m.backNo).padStart(2, '0') : '00';
         const backNoHtml = `<span class="text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded mr-1.5 font-black whitespace-nowrap inline-block text-center min-w-[34px] sm:min-w-[42px] tracking-tighter">No.${displayNo}</span>`;
         if(isTrash) {
-            return `<tr class="bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40"><td class="p-1.5 sm:p-3 text-center text-slate-500 dark:text-slate-400 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 dark:text-slate-100 text-left flex items-center text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}${window.escapeHtml(m.name)} <span class="text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600 dark:text-slate-300">${window.escapeHtml(m.role)}</span></td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
+            return `<tr class="bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40"><td class="p-1.5 sm:p-3 text-center text-slate-500 dark:text-slate-400 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 dark:text-slate-100 text-left flex items-center text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span> <span class="text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600 dark:text-slate-300">${window.escapeHtml(m.role)}</span></td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
         }
         const rp = m.role==='파트너';
         const color = roleColors[m.role] || '#334155';
@@ -560,7 +562,7 @@ window.renderMemberList = () => {
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-1.5">
                             <span class="text-[10px] font-black text-slate-400">#${i+1}</span>
-                            <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}<span class="member-name">${window.escapeHtml(m.name)}</span></div>
+                            <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span></div>
                             <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                         </div>
                         <div class="text-[10px] font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/50 shadow-sm">${window.escapeHtml(m.phone||'-')}</div>
@@ -584,7 +586,7 @@ window.renderMemberList = () => {
             <td class="p-1 sm:p-3 text-center text-slate-400 font-black text-[10px] sm:text-xs whitespace-nowrap">${i+1}</td>
             <td class="p-1 py-2 sm:p-3 text-left">
                 <div class="flex items-center gap-1">
-                    <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}<span class="member-name">${window.escapeHtml(m.name)}</span></div>
+                    <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span></div>
                     <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm whitespace-nowrap leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                 </div>
                 <div class="text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 mt-1 font-black md:hidden">${window.escapeHtml(m.phone||'-')}</div>

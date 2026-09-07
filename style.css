@@ -136,6 +136,7 @@
         html.dark #positions-member-grids .text-slate-800,
         html.dark #positions-member-grids .text-slate-900 {
             color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
         }
 
         /* 보조 텍스트 색상 (은회색 톤 가독성 보장) */
