@@ -88,7 +88,7 @@ window.renderActivities = () => {
             </td>
             <td class="p-4">
                 <div class="flex flex-col">
-                    <span class="text-sm font-black text-black dark:text-slate-100 group-hover:text-indigo-600 transition-colors uppercase tracking-tight font-black">${window.escapeHtml(m.name)}</span>
+                    <span class="member-name text-sm font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors uppercase tracking-tight">${window.escapeHtml(m.name)}</span>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="text-[10px] font-black text-slate-700 dark:text-slate-400 uppercase tracking-widest">${m.role}</span>
                         ${m.lastLogin ? `<span class="text-[9px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-100/50" title="최근 접속일">🕒 ${m.lastLogin.substring(5)}</span>` : `<span class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-200" title="최근 접속일">🕒 기록없음</span>`}

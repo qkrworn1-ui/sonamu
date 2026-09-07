@@ -124,6 +124,20 @@
             color: #f8fafc !important; 
         }
 
+        /* [회원명부 및 마일리지 명단] 회원명(이름) 다크모드 순백색 강제 지정 */
+        .member-name { color: #0f172a; }
+        html.dark .member-name,
+        html.dark #member-list-body td,
+        html.dark #member-list-body div,
+        html.dark #member-list-body span.font-black,
+        html.dark #activities-list-body td,
+        html.dark #activities-list-body .font-black,
+        html.dark #positions-member-grids .font-black,
+        html.dark #positions-member-grids .text-slate-800,
+        html.dark #positions-member-grids .text-slate-900 {
+            color: #ffffff !important;
+        }
+
         /* 보조 텍스트 색상 (은회색 톤 가독성 보장) */
         html.dark .text-slate-600,
         html.dark .text-gray-600,

@@ -560,7 +560,7 @@ window.renderMemberList = () => {
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-1.5">
                             <span class="text-[10px] font-black text-slate-400">#${i+1}</span>
-                            <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}${window.escapeHtml(m.name)}</div>
+                            <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}<span class="member-name">${window.escapeHtml(m.name)}</span></div>
                             <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                         </div>
                         <div class="text-[10px] font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/50 shadow-sm">${window.escapeHtml(m.phone||'-')}</div>
@@ -584,7 +584,7 @@ window.renderMemberList = () => {
             <td class="p-1 sm:p-3 text-center text-slate-400 font-black text-[10px] sm:text-xs whitespace-nowrap">${i+1}</td>
             <td class="p-1 py-2 sm:p-3 text-left">
                 <div class="flex items-center gap-1">
-                    <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}${window.escapeHtml(m.name)}</div>
+                    <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}<span class="member-name">${window.escapeHtml(m.name)}</span></div>
                     <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm whitespace-nowrap leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                 </div>
                 <div class="text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 mt-1 font-black md:hidden">${window.escapeHtml(m.phone||'-')}</div>
