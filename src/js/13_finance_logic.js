@@ -539,33 +539,33 @@ window.renderMemberList = () => {
     const isMobile = window.innerWidth <= 640;
     const thead = window.$('member-thead');
     if (isTrash) {
-        thead.innerHTML = `<tr><th colspan="7" class="p-2 sm:p-3 bg-red-50 text-red-500 font-black text-[11px] sm:text-sm">삭제된 회원 <button onclick="window.emptyTrash('member')" class="ml-2 bg-red-600 text-white px-2 py-1 rounded text-[10px] sm:text-xs btn-touch shadow-sm">완전 비우기</button></th></tr>`;
+        thead.innerHTML = `<tr><th colspan="7" class="p-2 sm:p-3 bg-red-50 dark:bg-red-950/40 text-red-500 font-black text-[11px] sm:text-sm">삭제된 회원 <button onclick="window.emptyTrash('member')" class="ml-2 bg-red-600 text-white px-2 py-1 rounded text-[10px] sm:text-xs btn-touch shadow-sm">완전 비우기</button></th></tr>`;
     } else if (isMobile) {
-        thead.innerHTML = `<tr><th class="p-3 bg-slate-800 text-white text-[11px] font-black tracking-widest uppercase">명단 (세로보기 최적화)</th></tr>`;
+        thead.innerHTML = `<tr><th class="p-3 bg-slate-800 dark:bg-slate-950 text-white text-[11px] font-black tracking-widest uppercase">명단 (세로보기 최적화)</th></tr>`;
     } else {
-        thead.innerHTML = `<tr><th class="p-1 sm:p-3 border-b border-slate-700 text-[10px] sm:text-xs whitespace-nowrap">No</th><th class="p-1 sm:p-3 border-b border-slate-700 text-left text-[10px] sm:text-xs whitespace-nowrap">회원정보</th><th class="p-1 sm:p-3 border-b border-slate-700 hidden md:table-cell text-[10px] sm:text-xs whitespace-nowrap">연락처</th><th class="p-1 sm:p-3 border-b border-slate-700 hidden lg:table-cell text-[10px] sm:text-xs whitespace-nowrap">가입일</th><th class="p-1 sm:p-3 border-b border-slate-700 text-[10px] sm:text-xs whitespace-nowrap">포지션</th>${window.isFullAdmin()?`<th class="p-1 sm:p-3 border-b border-slate-700 text-right text-[10px] sm:text-xs whitespace-nowrap">관리</th>`:''}</tr>`;
+        thead.innerHTML = `<tr><th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 text-[10px] sm:text-xs whitespace-nowrap">No</th><th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 text-left text-[10px] sm:text-xs whitespace-nowrap">회원정보</th><th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 hidden md:table-cell text-[10px] sm:text-xs whitespace-nowrap">연락처</th><th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 hidden lg:table-cell text-[10px] sm:text-xs whitespace-nowrap">가입일</th><th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 text-[10px] sm:text-xs whitespace-nowrap">포지션</th>${window.isFullAdmin()?`<th class="p-1 sm:p-3 border-b border-slate-700 dark:border-slate-800 text-right text-[10px] sm:text-xs whitespace-nowrap">관리</th>`:''}</tr>`;
     }
 
     window.setHtml('member-list-body', sList.length ? sList.map((m,i) => {
         const displayNo = m.backNo ? String(m.backNo).padStart(2, '0') : '00';
-        const backNoHtml = `<span class="text-[9px] sm:text-[10px] text-slate-500 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded mr-1 font-bold whitespace-nowrap inline-block text-center min-w-[34px] sm:min-w-[42px] tracking-tighter">No.${displayNo}</span>`;
+        const backNoHtml = `<span class="text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded mr-1.5 font-black whitespace-nowrap inline-block text-center min-w-[34px] sm:min-w-[42px] tracking-tighter">No.${displayNo}</span>`;
         if(isTrash) {
-            return `<tr class="bg-red-50 border-b border-red-100"><td class="p-1.5 sm:p-3 text-center text-slate-500 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 text-left flex items-center text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}${window.escapeHtml(m.name)} <span class="text-[9px] bg-slate-200 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600">${window.escapeHtml(m.role)}</span></td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
+            return `<tr class="bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40"><td class="p-1.5 sm:p-3 text-center text-slate-500 dark:text-slate-400 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 dark:text-slate-100 text-left flex items-center text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}${window.escapeHtml(m.name)} <span class="text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600 dark:text-slate-300">${window.escapeHtml(m.role)}</span></td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
         }
         const rp = m.role==='파트너';
         const color = roleColors[m.role] || '#334155';
         if (isMobile) {
-            return `<tr class="bg-white border-b hover:bg-slate-50 transition-colors">
+            return `<tr class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="p-4 flex flex-col gap-3">
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-1.5">
                             <span class="text-[10px] font-black text-slate-400">#${i+1}</span>
-                            <div class="font-black text-black text-sm flex items-center font-black">${backNoHtml}${window.escapeHtml(m.name)}</div>
-                            <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
+                            <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}${window.escapeHtml(m.name)}</div>
+                            <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                         </div>
-                        <div class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100 shadow-sm">${window.escapeHtml(m.phone||'-')}</div>
+                        <div class="text-[10px] font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/50 shadow-sm">${window.escapeHtml(m.phone||'-')}</div>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] font-bold text-slate-500">
+                    <div class="flex items-center gap-4 text-[10px] font-bold text-slate-500 dark:text-slate-400">
                         <div class="flex items-center gap-1"><i data-lucide="volleyball" class="w-3 h-3 text-slate-400"></i> ${m.position || '미지정'}</div>
                         <div class="flex items-center gap-1">
                             <i data-lucide="award" class="w-3 h-3 text-slate-400"></i> 
@@ -573,36 +573,36 @@ window.renderMemberList = () => {
                         </div>
                         <div class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i> ${m.joinDate || '가입일 미상'}</div>
                     </div>
-                    ${window.isFullAdmin() ? `<div class="flex gap-1.5 justify-end pt-2 mt-1 border-t border-slate-100">
-                        <button onclick="window.editMember('${m.id}')" class="flex-1 max-w-[80px] bg-slate-100 text-slate-600 py-2.5 rounded-xl text-[11px] font-black btn-touch shadow-sm">수정</button>
-                        <button onclick="window.deleteMember('${m.id}')" class="flex-1 max-w-[80px] bg-rose-50 text-rose-500 border border-rose-100 py-2.5 rounded-xl text-[11px] font-black btn-touch shadow-sm">삭제</button>
+                    ${window.isFullAdmin() ? `<div class="flex gap-1.5 justify-end pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
+                        <button onclick="window.editMember('${m.id}')" class="flex-1 max-w-[80px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl text-[11px] font-black btn-touch shadow-sm">수정</button>
+                        <button onclick="window.deleteMember('${m.id}')" class="flex-1 max-w-[80px] bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 py-2.5 rounded-xl text-[11px] font-black btn-touch shadow-sm">삭제</button>
                     </div>` : ''}
                 </td>
             </tr>`;
         }
-        return `<tr class="bg-white border-b hover:bg-slate-50 transition-colors">
+        return `<tr class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
             <td class="p-1 sm:p-3 text-center text-slate-400 font-black text-[10px] sm:text-xs whitespace-nowrap">${i+1}</td>
             <td class="p-1 py-2 sm:p-3 text-left">
                 <div class="flex items-center gap-1">
-                    <div class="font-black text-black text-[11px] sm:text-sm flex items-center whitespace-nowrap font-black">${backNoHtml}${window.escapeHtml(m.name)}</div>
+                    <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}${window.escapeHtml(m.name)}</div>
                     <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm whitespace-nowrap leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
                 </div>
-                <div class="text-[10px] sm:text-[11px] text-slate-800 mt-1 font-black md:hidden">${window.escapeHtml(m.phone||'-')}</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 mt-1 font-black md:hidden">${window.escapeHtml(m.phone||'-')}</div>
             </td>
-            <td class="p-1 sm:p-3 text-center text-[10px] sm:text-xs font-black text-slate-800 hidden md:table-cell whitespace-nowrap">${window.escapeHtml(m.phone||'-')}</td>
-            <td class="p-1 sm:p-3 text-center text-[10px] sm:text-xs font-black text-slate-800 hidden lg:table-cell whitespace-nowrap">${window.escapeHtml(m.joinDate||'-')}</td>
+            <td class="p-1 sm:p-3 text-center text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200 hidden md:table-cell whitespace-nowrap">${window.escapeHtml(m.phone||'-')}</td>
+            <td class="p-1 sm:p-3 text-center text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200 hidden lg:table-cell whitespace-nowrap">${window.escapeHtml(m.joinDate||'-')}</td>
             <td class="p-1 sm:p-3 text-center whitespace-nowrap">
                 <div class="flex flex-col gap-1 items-center justify-center">
-                    ${m.position ? `<span class="text-[9px] sm:text-[10px] font-black border border-slate-300 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md text-slate-600 bg-slate-50 shadow-sm inline-block">${window.escapeHtml(m.position)}</span>` : '-'}
+                    ${m.position ? `<span class="text-[9px] sm:text-[10px] font-black border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 shadow-sm inline-block">${window.escapeHtml(m.position)}</span>` : '-'}
                     ${m.division ? `<span class="text-[9px] sm:text-[10px] font-black border px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md inline-block ${window.getDivisionBadgeClass(m.division)}">${window.escapeHtml(m.division)}</span>` : ''}
                 </div>
             </td>
             ${window.isFullAdmin() ? `<td class="p-1 sm:p-3 text-right whitespace-nowrap">
-                <button onclick="window.editMember('${m.id}')" class="bg-slate-100 text-slate-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-[9px] sm:text-[10px] font-black hover:bg-slate-200 transition-colors mr-0.5 btn-touch shadow-sm">수정</button>
-                <button onclick="window.deleteMember('${m.id}')" class="bg-red-50 text-red-500 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-[9px] sm:text-[10px] font-black hover:bg-red-100 transition-colors btn-touch border border-red-100 shadow-sm">삭제</button>
+                <button onclick="window.editMember('${m.id}')" class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-[9px] sm:text-[10px] font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors mr-0.5 btn-touch shadow-sm border border-slate-200 dark:border-slate-700">수정</button>
+                <button onclick="window.deleteMember('${m.id}')" class="bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400 px-2 py-1 sm:px-3 sm:py-1.5 rounded text-[9px] sm:text-[10px] font-black hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors btn-touch border border-red-100 dark:border-red-900/50 shadow-sm">삭제</button>
             </td>` : ''}
         </tr>`;
-    }).join('') : `<tr><td colspan="7" class="p-10 sm:p-16 text-center text-slate-400 font-black border-2 border-dashed border-slate-200 bg-slate-50 rounded-xl text-[11px] sm:text-sm">등록된 회원이 없습니다.</td></tr>`);
+    }).join('') : `<tr><td colspan="7" class="p-10 sm:p-16 text-center text-slate-400 font-black border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 rounded-xl text-[11px] sm:text-sm">등록된 회원이 없습니다.</td></tr>`);
 };
 
 window.showAdminForm = () => { 
