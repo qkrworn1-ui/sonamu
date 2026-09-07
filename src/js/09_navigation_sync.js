@@ -90,20 +90,6 @@ window.startCloudSync = async () => {
     try {
         sUI('loading');
         await auth.signInAnonymously(); user=auth.currentUser;
-        
-        try {
-            const legacySnap = await docMainLegacy.get();
-            if(legacySnap.exists && !legacySnap.data().migrated && legacySnap.data().members) {
-                const d = legacySnap.data();
-                const batch = db.batch();
-                batch.set(docMembers, { members: d.members||[], deletedMembers: d.deletedMembers||[], updatedAt: new Date().toISOString() });
-                batch.set(docFinance, { transactions: d.transactions||[], deletedTransactions: d.deletedTransactions||[], specialDues: d.specialDues||[], reportNotes: d.reportNotes||{}, updatedAt: new Date().toISOString() });
-                batch.set(docSports, { teamEvents: d.teamEvents||[], updatedAt: new Date().toISOString() });
-                batch.set(docBoard, { posts: d.posts||[], updatedAt: new Date().toISOString() });
-                batch.set(docMainLegacy, { migrated: true, updatedAt: new Date().toISOString() });
-                await batch.commit();
-            }
-        } catch (migErr) { console.warn("마이그레이션 건너뜀:", migErr); }
 
         let initDocs = new Set();
         let isAppReady = false;
@@ -115,7 +101,9 @@ window.startCloudSync = async () => {
             }
             
             initDocs.add(docName);
-            if(initDocs.size === 5) {
+            // [속도 최적화] 필수 코어 4대 도큐먼트(members, finance, sports, board) 준비 시 즉시 앱 오픈! (갤러리는 백그라운드)
+            const isCoreReady = initDocs.has('members') && initDocs.has('finance') && initDocs.has('sports') && initDocs.has('board');
+            if(isCoreReady) {
                 isAppReady = true;
                 sUI('success');
                 window.updateUI();
@@ -128,10 +116,10 @@ window.startCloudSync = async () => {
                     creditText.innerText = `서버 연결됨 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')})`;
                 }
                 
-                // [무결성 강화] 행운 마일리지 자동 추첨 실행 (접속 기록 업데이트 전 실행 권장)
+                // [무결성 강화] 행운 마일리지 자동 추첨 실행
                 setTimeout(() => { window.checkAndDrawLuckMileage(); }, 3000);
 
-                // [무결성 강화] 접속 즉시 기록 (추첨 로직이 어제 데이터를 먼저 보도록 약간 지연)
+                // [무결성 강화] 접속 기록
                 const sid = sessionStorage.getItem('sonamu_user_id');
                 setTimeout(() => {
                     if(sid && sid !== 'master') window.recordMemberAccess(sid);

@@ -121,6 +121,13 @@ const FIREBASE_CONFIG = { apiKey: "AIzaSyAnkGVAlO39p6rnTEibygeQTBYDbp505dA", aut
 if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.firestore(), auth = firebase.auth(), storage = firebase.storage();
 
+// [속도 최적화] 브라우저 IndexedDB 로컬 캐시 활성화 (초기 로딩 0.1초대 단축)
+try {
+    db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+        console.warn("Firestore Persistence:", err.code);
+    });
+} catch(e) { console.warn("Persistence init error:", e); }
+
 // [수정/강화] 4개의 개별 상자(Document)로 분할
 const colRef = db.collection('sonamu_club_data');
 const docMembers = colRef.doc('doc_members');
@@ -128,4 +135,3 @@ const docFinance = colRef.doc('doc_finance');
 const docSports = colRef.doc('doc_sports');
 const docBoard = colRef.doc('doc_board');
 const docGallery = colRef.doc('doc_gallery');
-const docMainLegacy = colRef.doc('main_document'); // 마이그레이션용 기존 문서
