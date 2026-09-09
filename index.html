@@ -8,12 +8,17 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('clear-cache')) {
+            if ('caches' in window) {
+                caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+            }
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(rs => {
                     for(let r of rs) r.unregister();
                 });
             }
-            window.location.href = window.location.pathname; 
+            setTimeout(() => {
+                window.location.href = window.location.pathname;
+            }, 300);
         }
         // [초고속 진입] 세션이 남아있을 경우 화면 깜빡임과 대기 없이 즉각 대시보드 표시
         if (sessionStorage.getItem('sonamu_user_id')) {
@@ -44,8 +49,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=108"></script>
-    <link rel="stylesheet" href="style.css?v=108">
+    <script src="firebase-config.js?v=109"></script>
+    <link rel="stylesheet" href="style.css?v=109">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -203,7 +208,7 @@
 
                         <!-- 제목 (PC/모바일 공통이지만 반응형 텍스트 크기 조절) -->
                         <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tighter mb-1">
-                            소나무 족구단 <span id="login-app-version" class="text-[9px] font-bold text-blue-300/80 align-top opacity-60"></span>
+                            소나무 족구단 <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 새로고침" class="cursor-pointer text-[10px] font-bold text-blue-300/90 align-top hover:underline"></span>
                         </h2>
                         <p class="hidden md:block text-[11px] text-slate-500 font-bold mt-1.5">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="md:hidden h-1 w-12 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full mt-3 opacity-50"></div>
@@ -266,7 +271,7 @@
                         <div class="flex flex-col">
                             <div class="flex items-center gap-2">
                                 <h1 class="text-sm sm:text-base font-black tracking-tight uppercase text-premium-blue">Sonamu Club</h1>
-                                <span id="main-app-version" class="text-[8px] font-bold text-blue-300/40 px-1.5 py-0.5 bg-white/5 rounded-full"></span>
+                                <span id="main-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 새로고침" class="cursor-pointer hover:bg-white/20 text-[9px] font-bold text-blue-300/80 px-2 py-0.5 bg-white/10 rounded-full transition-all"></span>
                             </div>
                             <div class="flex items-center gap-2 mt-0.5">
                                 <i data-lucide="user" class="w-2.5 h-2.5 text-slate-500"></i>
@@ -1392,24 +1397,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=108"></script>
-<script src="src/js/02_env_version.js?v=108"></script>
-<script src="src/js/03_init_utils.js?v=108"></script>
-<script src="src/js/04_scope_adjust.js?v=108"></script>
-<script src="src/js/05_mileage_engine.js?v=108"></script>
-<script src="src/js/06_common_ui_utils.js?v=108"></script>
-<script src="src/js/07_firebase_init.js?v=108"></script>
-<script src="src/js/08_auth_logic.js?v=108"></script>
-<script src="src/js/09_navigation_sync.js?v=108"></script>
-<script src="src/js/10_dashboard_logic.js?v=108"></script>
-<script src="src/js/11_vote_logic.js?v=108"></script>
-<script src="src/js/12_team_mgmt.js?v=108"></script>
-<script src="src/js/13_finance_logic.js?v=108"></script>
-<script src="src/js/14_member_mgmt.js?v=108"></script>
-<script src="src/js/15_board_logic.js?v=108"></script>
-<script src="src/js/16_gallery_report.js?v=108"></script>
-<script src="src/js/17_calendar_logic.js?v=108"></script>
-<script src="src/js/18_member_positions.js?v=108"></script>
+<script src="src/js/01_kakao_optimization.js?v=109"></script>
+<script src="src/js/02_env_version.js?v=109"></script>
+<script src="src/js/03_init_utils.js?v=109"></script>
+<script src="src/js/04_scope_adjust.js?v=109"></script>
+<script src="src/js/05_mileage_engine.js?v=109"></script>
+<script src="src/js/06_common_ui_utils.js?v=109"></script>
+<script src="src/js/07_firebase_init.js?v=109"></script>
+<script src="src/js/08_auth_logic.js?v=109"></script>
+<script src="src/js/09_navigation_sync.js?v=109"></script>
+<script src="src/js/10_dashboard_logic.js?v=109"></script>
+<script src="src/js/11_vote_logic.js?v=109"></script>
+<script src="src/js/12_team_mgmt.js?v=109"></script>
+<script src="src/js/13_finance_logic.js?v=109"></script>
+<script src="src/js/14_member_mgmt.js?v=109"></script>
+<script src="src/js/15_board_logic.js?v=109"></script>
+<script src="src/js/16_gallery_report.js?v=109"></script>
+<script src="src/js/17_calendar_logic.js?v=109"></script>
+<script src="src/js/18_member_positions.js?v=109"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">

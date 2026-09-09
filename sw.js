@@ -1,29 +1,29 @@
-const CACHE_NAME = 'sonamu-pwa-v108';
+const CACHE_NAME = 'sonamu-pwa-v109';
 const ASSETS = [
   './',
-  './index.html',
-  './style.css',
-  './dashboard-charts.js',
-  './firebase-config.js',
+  './index.html?v=109',
+  './style.css?v=109',
+  './dashboard-charts.js?v=109',
+  './firebase-config.js?v=109',
   './manifest.json',
-  './src/js/01_kakao_optimization.js',
-  './src/js/02_env_version.js',
-  './src/js/03_init_utils.js',
-  './src/js/04_scope_adjust.js',
-  './src/js/05_mileage_engine.js',
-  './src/js/06_common_ui_utils.js',
-  './src/js/07_firebase_init.js',
-  './src/js/08_auth_logic.js',
-  './src/js/09_navigation_sync.js',
-  './src/js/10_dashboard_logic.js',
-  './src/js/11_vote_logic.js',
-  './src/js/12_team_mgmt.js',
-  './src/js/13_finance_logic.js',
-  './src/js/14_member_mgmt.js',
-  './src/js/15_board_logic.js',
-  './src/js/16_gallery_report.js',
-  './src/js/17_calendar_logic.js',
-  './src/js/18_member_positions.js'
+  './src/js/01_kakao_optimization.js?v=109',
+  './src/js/02_env_version.js?v=109',
+  './src/js/03_init_utils.js?v=109',
+  './src/js/04_scope_adjust.js?v=109',
+  './src/js/05_mileage_engine.js?v=109',
+  './src/js/06_common_ui_utils.js?v=109',
+  './src/js/07_firebase_init.js?v=109',
+  './src/js/08_auth_logic.js?v=109',
+  './src/js/09_navigation_sync.js?v=109',
+  './src/js/10_dashboard_logic.js?v=109',
+  './src/js/11_vote_logic.js?v=109',
+  './src/js/12_team_mgmt.js?v=109',
+  './src/js/13_finance_logic.js?v=109',
+  './src/js/14_member_mgmt.js?v=109',
+  './src/js/15_board_logic.js?v=109',
+  './src/js/16_gallery_report.js?v=109',
+  './src/js/17_calendar_logic.js?v=109',
+  './src/js/18_member_positions.js?v=109'
 ];
 
 self.addEventListener('install', (event) => {
@@ -47,8 +47,9 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// [초고속 전략: Stale-While-Revalidate]
-// 캐시가 있으면 0.001초 만에 즉시 화면을 띄우고, 백그라운드에서 최신 버전으로 조용히 업데이트
+// [네트워크 우선 전략 (Network-First)]
+// 온라인 상태일 때는 항상 서버에서 최신 코드를 즉각 받아와 즉시 화면에 반영합니다.
+// 오프라인 상태일 때만 캐시된 파일로 안전하게 폴백합니다.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -58,19 +59,16 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => cachedResponse);
-
-      // 캐시가 있으면 캐시를 즉시 반환, 없으면 네트워크 응답 반환
-      return cachedResponse || fetchPromise;
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+      }
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request);
     })
   );
 });

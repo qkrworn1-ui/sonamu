@@ -127,13 +127,36 @@ window.updateUI = () => {
     const activeId = activeEl && activeEl.id ? activeEl.id : null;
     const activeOnInput = activeEl && activeEl.tagName === 'INPUT' && activeEl.getAttribute('oninput') ? activeEl.getAttribute('oninput') : null;
 
-    // 버전 정보 표시
+    // 버전 정보 표시 및 강제 업데이트 핸들러
+    window.forceAppUpdate = async () => {
+        if(confirm(`[버전 정보]\n현재 버전: ${APP_VERSION}\n최종 수정: ${LAST_UPDATED}\n\n최신 코드로 캐시를 완전히 초기화하고 새로고침하시겠습니까?`)) {
+            if ('caches' in window) {
+                try {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                } catch(e) {}
+            }
+            if ('serviceWorker' in navigator) {
+                try {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for (let r of regs) await r.unregister();
+                } catch(e) {}
+            }
+            window.location.href = window.location.pathname + '?clear-cache=' + Date.now();
+        }
+    };
+
     const vL = window.$('login-app-version'), vM = window.$('main-app-version');
-    if(vL) vL.innerText = APP_VERSION;
+    if(vL) {
+        vL.innerText = APP_VERSION;
+        vL.title = `최종 수정: ${LAST_UPDATED}`;
+        vL.onclick = window.forceAppUpdate;
+        vL.style.cursor = 'pointer';
+    }
     if(vM) {
         vM.innerText = APP_VERSION;
         vM.title = `최종 수정: ${LAST_UPDATED}`;
-        vM.onclick = () => { if(confirm('최신 코드로 앱을 새로고침하시겠습니까?')) location.reload(true); };
+        vM.onclick = window.forceAppUpdate;
         vM.style.cursor = 'pointer';
     }
 
