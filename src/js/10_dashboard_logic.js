@@ -826,6 +826,27 @@ window.addExternalTeamToVote = async (teamId, teamName, count, status = 'attend'
             const targetE = evts.find(x => x.id === teamId);
             if (!targetE) throw "일정을 찾을 수 없습니다.";
 
+            const td = window.getTodayString();
+            if (targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && targetDate && targetDate >= td) {
+                if (!targetE.pastVotes) targetE.pastVotes = {};
+                if (!targetE.pastVDates) targetE.pastVDates = {};
+                const oldVotes = {};
+                const oldVDates = {};
+                Object.keys(targetE.votes || {}).forEach(k => {
+                    if (targetE.vDate && targetE.vDate[k] !== targetDate) {
+                        oldVotes[k] = targetE.votes[k];
+                        oldVDates[k] = targetE.vDate[k];
+                        delete targetE.votes[k];
+                        delete targetE.vDate[k];
+                    }
+                });
+                if (Object.keys(oldVotes).length > 0) {
+                    targetE.pastVotes[targetE.date] = oldVotes;
+                    targetE.pastVDates[targetE.date] = oldVDates;
+                }
+                targetE.date = targetDate;
+            }
+
             if (!targetE.votes) targetE.votes = {};
             if (!targetE.vDate) targetE.vDate = {};
             if (!targetE.guestNames) targetE.guestNames = {};
