@@ -313,33 +313,58 @@ window.startCloudSync = async () => {
                 let needsPurgeSettlement = false;
                 let updatedMembers = [...(members || [])];
 
-                // 1. [자동 롤오버] 날짜가 지난 반복 일정 처리
+                // 1. [자동 롤오버] 날짜가 지난 반복 일정 처리 (기존 투표 유실 방지 및 다회차 투표 완벽 보존)
                 evts.forEach(e => {
                     if (e.repeatMode && e.repeatMode !== 'none' && e.date && e.date < td) {
                         const nxt = window.getNextRecurringDate(e);
                         if (nxt && nxt >= td && e.date !== nxt) {
+                            const pastVotes = {};
+                            const pastVDates = {};
+                            const upcomingVotes = {};
+                            const upcomingVDates = {};
+                            const upcomingProxy = {};
+
+                            if (e.votes) {
+                                Object.keys(e.votes).forEach(uid => {
+                                    const vDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : e.date;
+                                    if (vDate === nxt) {
+                                        // 이번 회차(새 일정 nxt)에 미리 투표한 내역은 보존!
+                                        upcomingVotes[uid] = e.votes[uid];
+                                        upcomingVDates[uid] = nxt;
+                                        if (e.proxyVotes && e.proxyVotes[uid]) upcomingProxy[uid] = e.proxyVotes[uid];
+                                    } else {
+                                        // 이전 회차(지나간 날짜 e.date)에 투표된 내역은 과거 기록으로 분류!
+                                        pastVotes[uid] = e.votes[uid];
+                                        pastVDates[uid] = vDate;
+                                    }
+                                });
+                            }
+
                             if (!e.pastVotes) e.pastVotes = {};
                             if (!e.pastVDates) e.pastVDates = {};
-                            e.pastVotes[e.date] = e.votes || {};
-                            e.pastVDates[e.date] = e.vDate || {};
+                            e.pastVotes[e.date] = pastVotes;
+                            e.pastVDates[e.date] = pastVDates;
 
-                            // 기존 회차를 'isFinished' 스냅샷으로 복제하여 7일간 보관
+                            // 기존 회차를 'isFinished' 스냅샷으로 복제하여 보관
                             const finishedSnapshot = {
                                 ...JSON.parse(JSON.stringify(e)),
                                 id: e.id + '_' + e.date,
                                 originalId: e.id,
+                                date: e.date,
                                 isFinished: true,
                                 repeatMode: 'none', // 스냅샷은 반복 안 함
+                                votes: pastVotes,
+                                vDate: pastVDates,
                                 pastVotes: null, 
                                 pastVDates: null
                             };
                             evts.push(finishedSnapshot);
 
-                            // 원본 일정은 다음 날짜로 갱신
+                            // 원본 일정은 다음 날짜(nxt)로 갱신하고, 미리 투표된 내역(upcomingVotes)을 온전히 유지!
                             e.date = nxt;
-                            e.votes = {};
-                            e.vDate = {};
-                            e.proxyVotes = {};
+                            e.votes = upcomingVotes;
+                            e.vDate = upcomingVDates;
+                            e.proxyVotes = upcomingProxy;
                             e.bracketMatches = [];
                             if (e.teams) e.teams.forEach(t => { ['spiker','setter','leftDef','rightDef','sub1','sub2'].forEach(p => t[p] = ''); });
                             needsRollover = true;

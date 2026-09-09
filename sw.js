@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sonamu-pwa-v107';
+const CACHE_NAME = 'sonamu-pwa-v108';
 const ASSETS = [
   './',
   './index.html',

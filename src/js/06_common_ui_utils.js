@@ -596,13 +596,15 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                     } else {
                         const mergedItem = { ...serverItem, ...localItem };
                         deepFields.forEach(field => {
-                            if (localItem[field] && serverItem[field] && typeof localItem[field] === 'object') {
-                                // 배열인 경우 전체 교체, 객체인 경우 병합
-                                if (Array.isArray(localItem[field])) {
-                                    mergedItem[field] = localItem[field];
-                                } else {
-                                    mergedItem[field] = { ...serverItem[field], ...localItem[field] };
-                                }
+                            const sVal = serverItem[field];
+                            const lVal = localItem[field];
+                            if (sVal && typeof sVal === 'object' && !Array.isArray(sVal)) {
+                                // 객체인 경우(votes, vDate, pastVotes, pastVDates 등) 서버의 최신 데이터를 바탕으로 로컬 변경사항 병합
+                                mergedItem[field] = { ...sVal, ...(lVal || {}) };
+                            } else if (lVal !== undefined) {
+                                mergedItem[field] = lVal;
+                            } else if (sVal !== undefined) {
+                                mergedItem[field] = sVal;
                             }
                         });
                         merged.push(mergedItem);

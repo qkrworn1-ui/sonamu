@@ -995,8 +995,33 @@ window.castVoteTeam = async (t, eid, vDate) => {
             if(targetE) {
                 if(!targetE.votes) targetE.votes={}; 
                 if(!targetE.vDate) targetE.vDate={};
+                
+                const td = window.getTodayString();
+                const nxtDate = (vDate && vDate !== 'undefined') ? vDate : window.getNextRecurringDate(targetE);
+                
+                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
+                if (targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) {
+                    if (!targetE.pastVotes) targetE.pastVotes = {};
+                    if (!targetE.pastVDates) targetE.pastVDates = {};
+                    const oldVotes = {};
+                    const oldVDates = {};
+                    Object.keys(targetE.votes).forEach(k => {
+                        if (targetE.vDate[k] !== nxtDate) {
+                            oldVotes[k] = targetE.votes[k];
+                            oldVDates[k] = targetE.vDate[k];
+                            delete targetE.votes[k];
+                            delete targetE.vDate[k];
+                        }
+                    });
+                    if (Object.keys(oldVotes).length > 0) {
+                        targetE.pastVotes[targetE.date] = oldVotes;
+                        targetE.pastVDates[targetE.date] = oldVDates;
+                    }
+                    targetE.date = nxtDate;
+                }
+
                 targetE.votes[uid] = t; 
-                targetE.vDate[uid] = (vDate && vDate !== 'undefined') ? vDate : window.getNextRecurringDate(targetE);
+                targetE.vDate[uid] = nxtDate;
                 if(targetE.proxyVotes) delete targetE.proxyVotes[uid];
 
                 // [마일리지 누락 수정] 종료된 복사본이라면 부모의 pastVotes에도 투표 내역 동기화
@@ -1022,13 +1047,16 @@ window.castVoteTeam = async (t, eid, vDate) => {
             }
         });
         if (updatedEvts) window.teamEvents = updatedEvts;
-        if (typeof window.loadData === 'function') await window.loadData();
         window.showToast("투표 완료");
         window.updateDashboard();
         if (typeof window.renderActivities === 'function') window.renderActivities();
         if (typeof window.renderVote === 'function') window.renderVote();
-    } catch(e) { console.error("Vote Error:", e); window.showAlert("오류 발생. 다시 시도해주세요."); }
-    window.isSavingData = false; 
+    } catch(e) { 
+        console.error("Vote Error:", e); 
+        window.showAlert("투표 처리 중 오류가 발생했습니다. 다시 시도해주세요."); 
+    } finally {
+        window.isSavingData = false; 
+    }
 };
 
 window.castVoteForTeam = async (u, t, eid) => { 
@@ -1050,10 +1078,34 @@ window.castVoteForTeam = async (u, t, eid) => {
                 if(!targetE.vDate) targetE.vDate={};
                 if(!targetE.proxyVotes) targetE.proxyVotes={};
 
+                const td = window.getTodayString();
+                const nxtDate = window.getNextRecurringDate(targetE);
+
+                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
+                if (targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) {
+                    if (!targetE.pastVotes) targetE.pastVotes = {};
+                    if (!targetE.pastVDates) targetE.pastVDates = {};
+                    const oldVotes = {};
+                    const oldVDates = {};
+                    Object.keys(targetE.votes).forEach(k => {
+                        if (targetE.vDate[k] !== nxtDate) {
+                            oldVotes[k] = targetE.votes[k];
+                            oldVDates[k] = targetE.vDate[k];
+                            delete targetE.votes[k];
+                            delete targetE.vDate[k];
+                        }
+                    });
+                    if (Object.keys(oldVotes).length > 0) {
+                        targetE.pastVotes[targetE.date] = oldVotes;
+                        targetE.pastVDates[targetE.date] = oldVDates;
+                    }
+                    targetE.date = nxtDate;
+                }
+
                 if(!t) { delete targetE.votes[u]; delete targetE.vDate[u]; delete targetE.proxyVotes[u]; } 
                 else { 
                     targetE.votes[u] = t; 
-                    targetE.vDate[u] = window.getNextRecurringDate(targetE); 
+                    targetE.vDate[u] = nxtDate; 
                     if(t === 'pending') { delete targetE.proxyVotes[u]; } else { targetE.proxyVotes[u] = sessionStorage.getItem('sonamu_user_name') || '관리자'; }
                 }
 
@@ -1088,8 +1140,12 @@ window.castVoteForTeam = async (u, t, eid) => {
         window.showToast("대리 투표 완료");
         window.updateDashboard();
         window.renderActivities();
-    } catch(e) { console.error("Admin Vote Error:", e); }
-    window.isSavingData = false; 
+    } catch(e) {
+        console.error("Proxy Vote Error:", e);
+        window.showAlert("대리 투표 처리 중 오류가 발생했습니다.");
+    } finally {
+        window.isSavingData = false;
+    }
 };
 
 window.renderVoteEvent = () => {
