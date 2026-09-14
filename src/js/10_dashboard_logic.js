@@ -248,12 +248,15 @@ window.updateDashboard = () => {
         let needsVoteTeam = false;
         const uidTeam = sessionStorage.getItem('sonamu_user_id');
         if (uidTeam && uidTeam !== 'master') {
-            const v = vTeam.votes && vTeam.votes[uidTeam];
-            const vd = vTeam.vDate && vTeam.vDate[uidTeam];
+            let v = vTeam.votes && vTeam.votes[uidTeam];
+            if (!v && vTeam.pastVotes && vTeam.pastVotes[vTeam.dDate] && vTeam.pastVotes[vTeam.dDate][uidTeam]) {
+                v = vTeam.pastVotes[vTeam.dDate][uidTeam];
+            }
+            const vd = (vTeam.vDate && vTeam.vDate[uidTeam]) ? vTeam.vDate[uidTeam] : (vTeam.dDate || vTeam.date);
             
             if (!v || v === 'pending' || v === '미정') {
                 needsVoteTeam = true;
-            } else if (vd && vd !== vTeam.dDate) {
+            } else if (vd && vd !== (vTeam.dDate || vTeam.date)) {
                 needsVoteTeam = true;
             }
         }
@@ -544,8 +547,9 @@ window.renderVoteTeam = () => {
         else { btnAddExt.classList.remove('flex'); btnAddExt.classList.add('hidden'); }
     }
 
-    let myV = e.votes[uid]||null;
-    if (e.vDate && e.vDate[uid] && e.vDate[uid] !== targetDate) myV = null;
+    let myV = e.votes[uid] || (e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][uid]) || null;
+    const myVDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : targetDate;
+    if (myVDate !== targetDate) myV = null;
 
     let att=[], lat=[], abs=[], pen=[], nov=[];
     let attCnt=0, latCnt=0, absCnt=0, penCnt=0, novCnt=0;
@@ -563,7 +567,10 @@ window.renderVoteTeam = () => {
     allM.forEach(m => {
         if (!m || !m.name) return;
         let v = e.votes[m.id];
-        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : (e.dDate || e.date);
+        if (!v && e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
+            v = e.pastVotes[targetDate][m.id];
+        }
+        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : targetDate;
         if (vDate !== targetDate) v = null;
         
         const isExt = String(m.id).startsWith('ext_team_') || String(m.name).includes('[외부팀]');
@@ -711,7 +718,10 @@ window.shareKakaoVoteTeam = async () => {
     allM.forEach(m => {
         if (!m || !m.name) return;
         let v = e.votes && e.votes[m.id];
-        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : e.date;
+        if (!v && e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
+            v = e.pastVotes[targetDate][m.id];
+        }
+        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : targetDate;
         if (vDate !== targetDate) v = null;
         
         const isExt = String(m.id).startsWith('ext_team_') || String(m.name).includes('[외부팀]');
@@ -1031,18 +1041,30 @@ window.castVoteTeam = async (t, eid, vDate) => {
                     const oldVotes = {};
                     const oldVDates = {};
                     Object.keys(targetE.votes).forEach(k => {
-                        if (targetE.vDate[k] !== nxtDate) {
+                        const itemVDate = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
+                        if (itemVDate !== nxtDate) {
                             oldVotes[k] = targetE.votes[k];
-                            oldVDates[k] = targetE.vDate[k];
+                            oldVDates[k] = itemVDate;
                             delete targetE.votes[k];
-                            delete targetE.vDate[k];
+                            if (targetE.vDate) delete targetE.vDate[k];
                         }
                     });
                     if (Object.keys(oldVotes).length > 0) {
                         targetE.pastVotes[targetE.date] = oldVotes;
                         targetE.pastVDates[targetE.date] = oldVDates;
                     }
+                    if (targetE.pastVotes[nxtDate]) {
+                        Object.assign(targetE.votes, targetE.pastVotes[nxtDate]);
+                        if (targetE.pastVDates && targetE.pastVDates[nxtDate]) Object.assign(targetE.vDate, targetE.pastVDates[nxtDate]);
+                        delete targetE.pastVotes[nxtDate];
+                        if (targetE.pastVDates) delete targetE.pastVDates[nxtDate];
+                    }
                     targetE.date = nxtDate;
+                } else if (!targetE.isFinished && (targetE.date >= td || targetE.date === td)) {
+                    if (targetE.pastVotes && targetE.pastVotes[targetE.date]) {
+                        Object.assign(targetE.votes, targetE.pastVotes[targetE.date]);
+                        if (targetE.pastVDates && targetE.pastVDates[targetE.date]) Object.assign(targetE.vDate, targetE.pastVDates[targetE.date]);
+                    }
                 }
 
                 targetE.votes[uid] = t; 
@@ -1113,18 +1135,30 @@ window.castVoteForTeam = async (u, t, eid) => {
                     const oldVotes = {};
                     const oldVDates = {};
                     Object.keys(targetE.votes).forEach(k => {
-                        if (targetE.vDate[k] !== nxtDate) {
+                        const itemVDate = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
+                        if (itemVDate !== nxtDate) {
                             oldVotes[k] = targetE.votes[k];
-                            oldVDates[k] = targetE.vDate[k];
+                            oldVDates[k] = itemVDate;
                             delete targetE.votes[k];
-                            delete targetE.vDate[k];
+                            if (targetE.vDate) delete targetE.vDate[k];
                         }
                     });
                     if (Object.keys(oldVotes).length > 0) {
                         targetE.pastVotes[targetE.date] = oldVotes;
                         targetE.pastVDates[targetE.date] = oldVDates;
                     }
+                    if (targetE.pastVotes[nxtDate]) {
+                        Object.assign(targetE.votes, targetE.pastVotes[nxtDate]);
+                        if (targetE.pastVDates && targetE.pastVDates[nxtDate]) Object.assign(targetE.vDate, targetE.pastVDates[nxtDate]);
+                        delete targetE.pastVotes[nxtDate];
+                        if (targetE.pastVDates) delete targetE.pastVDates[nxtDate];
+                    }
                     targetE.date = nxtDate;
+                } else if (!targetE.isFinished && (targetE.date >= td || targetE.date === td)) {
+                    if (targetE.pastVotes && targetE.pastVotes[targetE.date]) {
+                        Object.assign(targetE.votes, targetE.pastVotes[targetE.date]);
+                        if (targetE.pastVDates && targetE.pastVDates[targetE.date]) Object.assign(targetE.vDate, targetE.pastVDates[targetE.date]);
+                    }
                 }
 
                 if(!t) { delete targetE.votes[u]; delete targetE.vDate[u]; delete targetE.proxyVotes[u]; } 

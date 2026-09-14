@@ -289,7 +289,7 @@ window.startCloudSync = async () => {
                 let needsPurgeSettlement = false;
                 let updatedMembers = [...(members || [])];
 
-                // 1. [자동 롤오버] 날짜가 지난 반복 일정 처리 (기존 투표 유실 방지 및 다회차 투표 완벽 보존)
+                // 1. [자동 롤오버 & 투표 복구] 날짜가 지난 반복 일정 처리 및 유실 투표 자동 복원
                 evts.forEach(e => {
                     if (e.repeatMode && e.repeatMode !== 'none' && e.date && e.date < td) {
                         const nxt = window.getNextRecurringDate(e);
@@ -302,7 +302,7 @@ window.startCloudSync = async () => {
 
                             if (e.votes) {
                                 Object.keys(e.votes).forEach(uid => {
-                                    const vDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : e.date;
+                                    const vDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : nxt;
                                     if (vDate === nxt) {
                                         // 이번 회차(새 일정 nxt)에 미리 투표한 내역은 보존!
                                         upcomingVotes[uid] = e.votes[uid];
@@ -318,23 +318,35 @@ window.startCloudSync = async () => {
 
                             if (!e.pastVotes) e.pastVotes = {};
                             if (!e.pastVDates) e.pastVDates = {};
-                            e.pastVotes[e.date] = pastVotes;
-                            e.pastVDates[e.date] = pastVDates;
+                            if (Object.keys(pastVotes).length > 0) {
+                                e.pastVotes[e.date] = pastVotes;
+                                e.pastVDates[e.date] = pastVDates;
+                            }
+
+                            // 만약 이미 pastVotes[nxt]에 이번 회차 투표가 보관되어 있었다면 upcomingVotes로 복원
+                            if (e.pastVotes[nxt]) {
+                                Object.assign(upcomingVotes, e.pastVotes[nxt]);
+                                if (e.pastVDates && e.pastVDates[nxt]) Object.assign(upcomingVDates, e.pastVDates[nxt]);
+                                delete e.pastVotes[nxt];
+                                if (e.pastVDates) delete e.pastVDates[nxt];
+                            }
 
                             // 기존 회차를 'isFinished' 스냅샷으로 복제하여 보관
-                            const finishedSnapshot = {
-                                ...JSON.parse(JSON.stringify(e)),
-                                id: e.id + '_' + e.date,
-                                originalId: e.id,
-                                date: e.date,
-                                isFinished: true,
-                                repeatMode: 'none', // 스냅샷은 반복 안 함
-                                votes: pastVotes,
-                                vDate: pastVDates,
-                                pastVotes: null, 
-                                pastVDates: null
-                            };
-                            evts.push(finishedSnapshot);
+                            if (Object.keys(pastVotes).length > 0) {
+                                const finishedSnapshot = {
+                                    ...JSON.parse(JSON.stringify(e)),
+                                    id: e.id + '_' + e.date,
+                                    originalId: e.id,
+                                    date: e.date,
+                                    isFinished: true,
+                                    repeatMode: 'none', // 스냅샷은 반복 안 함
+                                    votes: pastVotes,
+                                    vDate: pastVDates,
+                                    pastVotes: null, 
+                                    pastVDates: null
+                                };
+                                evts.push(finishedSnapshot);
+                            }
 
                             // 원본 일정은 다음 날짜(nxt)로 갱신하고, 미리 투표된 내역(upcomingVotes)을 온전히 유지!
                             e.date = nxt;
@@ -344,6 +356,20 @@ window.startCloudSync = async () => {
                             e.bracketMatches = [];
                             if (e.teams) e.teams.forEach(t => { ['spiker','setter','leftDef','rightDef','sub1','sub2'].forEach(p => t[p] = ''); });
                             needsRollover = true;
+                        }
+                    } else if (!e.isFinished && (e.date >= td || e.date === td)) {
+                        // [자동 복원] 오늘자 또는 활성 일정의 투표가 pastVotes에 묶여있다면 즉시 복원
+                        if (e.pastVotes && e.pastVotes[e.date]) {
+                            if (!e.votes) e.votes = {};
+                            if (!e.vDate) e.vDate = {};
+                            Object.assign(e.votes, e.pastVotes[e.date]);
+                            if (e.pastVDates && e.pastVDates[e.date]) Object.assign(e.vDate, e.pastVDates[e.date]);
+                        }
+                        if (e.pastVotes && e.pastVotes[td] && e.date === td) {
+                            if (!e.votes) e.votes = {};
+                            if (!e.vDate) e.vDate = {};
+                            Object.assign(e.votes, e.pastVotes[td]);
+                            if (e.pastVDates && e.pastVDates[td]) Object.assign(e.vDate, e.pastVDates[td]);
                         }
                     }
                 });

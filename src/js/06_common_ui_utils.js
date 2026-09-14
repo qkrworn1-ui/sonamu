@@ -635,6 +635,10 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                         merged.push(localItem);
                     } else {
                         const mergedItem = { ...serverItem, ...localItem };
+                        // 서버의 날짜가 로컬 캐시 날짜보다 최신(미래)인 경우 롤오버된 최신 서버 날짜 유지
+                        if (serverItem.date && localItem.date && serverItem.date > localItem.date) {
+                            mergedItem.date = serverItem.date;
+                        }
                         deepFields.forEach(field => {
                             const sVal = serverItem[field];
                             const lVal = localItem[field];
