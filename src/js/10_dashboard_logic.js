@@ -1087,6 +1087,7 @@ window.castVoteTeam = async (t, eid, vDate) => {
                 const mD = docM.data(); const membersList = mD.members || [];
                 const targetM = membersList.find(x => x.id === uid);
                 if(targetM) {
+                    targetM.lastLogin = td;
                     const bD = docB.data();
                     targetM.score = window.getMemberCalculatedScore(targetM, evts, bD.posts || []);
                     tx.update(docMembers, { members: membersList, updatedAt: new Date().toISOString() });
@@ -1580,6 +1581,7 @@ window.castVoteEvent = async (t, eid) => {
             const mD = docM.data(); const membersList = mD.members || [];
             const targetM = membersList.find(x => x.id === uid);
             if(targetM) {
+                targetM.lastLogin = window.getTodayString();
                 const sD = docS.exists ? docS.data() : { teamEvents: [] };
                 targetM.score = window.getMemberCalculatedScore(targetM, sD.teamEvents || [], postsList);
                 tx.update(docMembers, { members: membersList, updatedAt: new Date().toISOString() });
@@ -2028,6 +2030,7 @@ window.castVoteAnon = async (t, eid) => {
             const mD = docM.data(); const membersList = mD.members || [];
             const targetM = membersList.find(x => x.id === uid);
             if(targetM) {
+                targetM.lastLogin = window.getTodayString();
                 const sD = docS.exists ? docS.data() : { teamEvents: [] };
                 targetM.score = window.getMemberCalculatedScore(targetM, sD.teamEvents || [], postsList);
                 tx.update(docMembers, { members: membersList, updatedAt: new Date().toISOString() });

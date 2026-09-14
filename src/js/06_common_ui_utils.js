@@ -184,7 +184,17 @@ window.updateUI = () => {
     const uid = sessionStorage.getItem('sonamu_user_id');
     window.setText('header-account-name', `${sessionStorage.getItem('sonamu_user_name')||'방문객'} (${r==='master'?'마스터':r||'일반'})`);
     
-    const td=window.getTodayString(), vs=(members||[]).filter(m=>m.lastLogin===td).map(m=>{
+    const td = window.getTodayString();
+    const vs = (members || []).filter(m => {
+        if (!m || !m.name) return false;
+        if (m.lastLogin === td) return true;
+        if (typeof accessLog !== 'undefined' && accessLog && accessLog[m.id] && Array.isArray(accessLog[m.id]) && accessLog[m.id].includes(td)) return true;
+        const hasTeamVoteToday = (teamEvents || []).some(e => (e.vDate && e.vDate[m.id] === td) || (e.votes && e.votes[m.id] && (e.dDate === td || e.date === td)));
+        if (hasTeamVoteToday) return true;
+        const hasPostVoteToday = (posts || []).some(p => p.vDate && p.vDate[m.id] && p.vDate[m.id].startsWith(td.substring(0, 7)) && p.date === td);
+        if (hasPostVoteToday) return true;
+        return false;
+    }).map(m => {
         let suffix = '';
         if(m.role === '파트너') suffix = '(파)';
         else if(m.role === '준회원') suffix = '(준)';
@@ -638,6 +648,14 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                         // 서버의 날짜가 로컬 캐시 날짜보다 최신(미래)인 경우 롤오버된 최신 서버 날짜 유지
                         if (serverItem.date && localItem.date && serverItem.date > localItem.date) {
                             mergedItem.date = serverItem.date;
+                        }
+                        // 최근 접속일(lastLogin)의 최신값 보존 (로컬 빈값이나 과거 날짜로 덮어쓰기 방지)
+                        if (serverItem.lastLogin || localItem.lastLogin) {
+                            if (serverItem.lastLogin && localItem.lastLogin) {
+                                mergedItem.lastLogin = serverItem.lastLogin > localItem.lastLogin ? serverItem.lastLogin : localItem.lastLogin;
+                            } else {
+                                mergedItem.lastLogin = serverItem.lastLogin || localItem.lastLogin;
+                            }
                         }
                         deepFields.forEach(field => {
                             const sVal = serverItem[field];

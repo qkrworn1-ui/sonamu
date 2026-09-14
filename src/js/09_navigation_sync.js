@@ -127,11 +127,11 @@ window.startCloudSync = async () => {
                 // [무결성 강화] 행운 마일리지 자동 추첨 실행
                 setTimeout(() => { window.checkAndDrawLuckMileage(); }, 3000);
 
-                // [무결성 강화] 접속 기록
+                // [무결성 강화] 접속 기록 (즉시 기록)
                 const sid = sessionStorage.getItem('sonamu_user_id');
                 setTimeout(() => {
                     if(sid && sid !== 'master') window.recordMemberAccess(sid);
-                }, 6000);
+                }, 300);
 
                 // 테마 아이콘 동기화
                 const isDark = document.documentElement.classList.contains('dark');
@@ -377,8 +377,8 @@ window.startCloudSync = async () => {
                 teamEvents = evts;
                 try { localStorage.setItem('sonamu_cached_sports', JSON.stringify(teamEvents)); } catch(e) {}
 
-                // DB 업데이트 (조용히 처리 - Quiet Mode)
-                if ((needsRollover || needsPurgeSettlement) && user) {
+                // DB 업데이트 (관리자 권한 시에만 조용히 처리하여 일반 유저 접속 시 동시 쓰기 경합 방지)
+                if ((needsRollover || needsPurgeSettlement) && user && window.isNoticeAdmin()) {
                     if (needsPurgeSettlement) {
                         members = updatedMembers;
                         await window.saveData('members', false); // No prompt
