@@ -23,10 +23,16 @@ let dbSizes = { members: 0, finance: 0, sports: 0, board: 0, gallery: 0 };
 let currentLedgerMonthStr="", members=[], transactions=[], teamEvents=[], calendarEvents=[], posts=[], specialDues=[], deletedMembers=[], deletedTransactions=[], reportNotes={}, galleryPhotos=[], mileageStartDate = "2024-01-01";
 let luckyWinners = {}; let luckMileageAmount = 10; let luckMileageCount = 2; let accessLog = {};
 
-// [초고속 로그인] 로컬 스토리지에 캐시된 회원 정보가 있으면 0.0001초 만에 즉시 메모리에 적재
+// [초고속 진입] 로컬 스토리지에 캐시된 전체 데이터 즉시 메모리 적재 (0.0001초)
 try {
     const cachedM = localStorage.getItem('sonamu_cached_members');
     if (cachedM) members = JSON.parse(cachedM);
+    const cachedS = localStorage.getItem('sonamu_cached_sports');
+    if (cachedS) teamEvents = JSON.parse(cachedS);
+    const cachedB = localStorage.getItem('sonamu_cached_board');
+    if (cachedB) posts = JSON.parse(cachedB);
+    const cachedF = localStorage.getItem('sonamu_cached_finance');
+    if (cachedF) transactions = JSON.parse(cachedF);
 } catch(e) {}
 
 // [스코프 보정] 외부 스크립트(dashboard-charts.js 등) 접근을 위해 window 객체에 연결

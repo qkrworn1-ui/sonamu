@@ -107,13 +107,15 @@ window.startCloudSync = async () => {
             }
             
             initDocs.add(docName);
-            // [속도 최적화] 필수 코어 4대 도큐먼트(members, finance, sports, board) 준비 시 즉시 앱 오픈! (갤러리는 백그라운드)
-            const isCoreReady = initDocs.has('members') && initDocs.has('finance') && initDocs.has('sports') && initDocs.has('board');
+            // [속도 최적화] 필수 코어 members 및 sports 준비 시 0.05초 만에 초고속 앱 오픈!
+            const isCoreReady = initDocs.has('members') && initDocs.has('sports');
+            const loginBtn = window.$('btn-login'); 
+            if(loginBtn && (initDocs.has('members') || members.length > 0)) loginBtn.disabled = false;
+            
             if(isCoreReady) {
                 isAppReady = true;
                 sUI('success');
                 window.updateUI();
-                const loginBtn = window.$('btn-login'); if(loginBtn) loginBtn.disabled = false;
                 
                 // [동기화 피드백] 최신 동기화 시간 표시
                 const creditText = window.$('ai-credit-text');
@@ -147,99 +149,65 @@ window.startCloudSync = async () => {
                         if (!sessionStorage.getItem('sonamu_user_role') && typeof window.handleLogin === 'function') {
                             window.handleLogin();
                         }
-                    }, 80);
+                    }, 50);
                 }
 
-                setTimeout(() => {
-                    db.runTransaction(async tx => {
-                        const snapM = await tx.get(docMembers);
-                        const snapF = await tx.get(docFinance);
-                        const snapS = await tx.get(docSports);
-                        
-                        let dM = snapM.exists ? snapM.data() : {members:[]};
-                        let dF = snapF.exists ? snapF.data() : {transactions:[], specialDues:[]};
-                        let dS = snapS.exists ? snapS.data() : {teamEvents:[]};
-                        
-                        let modM = false, modF = false, modS = false;
-                        const td = window.getTodayString();
-                        const currentYm = td.substring(0, 7);
-                        const currentY = td.substring(0, 4);
+                // [관리자 전용] 데이터 구조 자동 최적화
+                if (window.isNoticeAdmin()) {
+                    setTimeout(() => {
+                        db.runTransaction(async tx => {
+                            const snapM = await tx.get(docMembers);
+                            const snapF = await tx.get(docFinance);
+                            const snapS = await tx.get(docSports);
+                            
+                            let dM = snapM.exists ? snapM.data() : {members:[]};
+                            let dF = snapF.exists ? snapF.data() : {transactions:[], specialDues:[]};
+                            let dS = snapS.exists ? snapS.data() : {teamEvents:[]};
+                            
+                            let modM = false, modF = false, modS = false;
+                            const td = window.getTodayString();
 
-                        // [마일리지 시스템 통합] 총 마일리지 체제 확립 (모든 이월 및 정산 로직 제거됨)
-                        if (dM.members?.length > 0) {
-                            dM.members.forEach(m => {
-                                // [마이그레이션] 임시/가입대기/신입 관련 등급 -> 준회원으로 통일
-                                if (['임시', '가입대기', '가입대기자', '신입', '신입회원'].includes(m.role)) {
-                                    m.role = '준회원';
-                                    modM = true;
-                                }
-                                if (m.role === '파트너') return;
-                                // 불필요한 레거시 필드 정리
-                                if (m.scoreYear !== undefined) delete m.scoreYear;
-                                if (m.lastResetY !== undefined) delete m.lastResetY;
-                            });
-                            if (dM.lastResetYm !== undefined) delete dM.lastResetYm;
-                            if (dM.lastResetY !== undefined) delete dM.lastResetY;
-                            if (dM.mileageStartDate !== undefined) delete dM.mileageStartDate; 
-                            modM = true;
-                        }
-
-                        (dF.specialDues||[]).forEach(sd=>{
-                            if(!sd.date) { sd.date=td; modF=true; }
-                            (sd.paids||[]).forEach(tn=>{
-                                const txId='tx_'+sd.id+'_'+tn;
-                                const existingTx = (dF.transactions||[]).find(t=>t.id===txId);
-                                if(!existingTx){
-                                    if(!dF.transactions) dF.transactions = [];
-                                    dF.transactions.push({id:txId,category:'income',name:tn,type:'[특별청구] '+sd.title,amount:parseInt(sd.amount)||0,date:sd.date||td,months:null});
-                                    modF=true;
-                                } else if (existingTx.amount !== (parseInt(sd.amount)||0) || existingTx.type !== '[특별청구] ' + sd.title) {
-                                    existingTx.amount = parseInt(sd.amount)||0;
-                                    existingTx.type = '[특별청구] ' + sd.title;
-                                    modF=true;
-                                }
-                            });
-                        });
-
-                        const mid = sessionStorage.getItem('sonamu_user_id');
-                        if(mid && mid !== 'master') {
-                            // recordMemberAccess가 즉시 처리하므로 여기서는 중복 트랜잭션 방출만 제거
-                        }
-
-                        const ts = new Date().toISOString();
-                        if(modM) { dM.updatedAt = ts; tx.update(docMembers, { members: dM.members, updatedAt: ts }); }
-                        if(modF) { dF.updatedAt = ts; tx.update(docFinance, { transactions: dF.transactions, specialDues: dF.specialDues, updatedAt: ts }); }
-                        if(modS) { dS.updatedAt = ts; tx.update(docSports, { teamEvents: dS.teamEvents, luckyWinners: dS.luckyWinners, updatedAt: ts }); }
-                    }).catch(e => console.warn("Background Sync TX failed"));
-                }, 2000);
-
-                // [추가] 실시간 정합성 보장을 위한 로그인 사용자 점수 자동 무결성 검증
-                setTimeout(async () => {
-                    const sid = sessionStorage.getItem('sonamu_user_id');
-                    if(sid && sid !== 'master') {
-                        try {
-                            await db.runTransaction(async tx => {
-                                const snapM = await tx.get(docMembers);
-                                const snapS = await tx.get(docSports);
-                                const snapB = await tx.get(docBoard);
-                                if (!snapM.exists || !snapS.exists || !snapB.exists) return;
-
-                                const mD = snapM.data(); const sD = snapS.data(); const bD = snapB.data();
-                                const mList = mD.members || [];
-                                const targetM = mList.find(x => x.id === sid);
-                                if(targetM) {
-                                    const calc = window.calculateMemberPoints(targetM, sD.teamEvents, bD.posts);
-                                    if(Math.abs((targetM.score || 0) - calc) > 0.1) {
-                                        targetM.score = calc;
-                                        tx.update(docMembers, { members: mList, updatedAt: new Date().toISOString() });
-                                        console.log("Verified & Synced Total Score for:", sid);
+                            // [마일리지 시스템 통합] 총 마일리지 체제 확립
+                            if (dM.members?.length > 0) {
+                                dM.members.forEach(m => {
+                                    if (['임시', '가입대기', '가입대기자', '신입', '신입회원'].includes(m.role)) {
+                                        m.role = '준회원';
+                                        modM = true;
                                     }
-                                }
-                            });
-                        } catch(e) { console.warn("Silent Sync failed", e); }
-                    }
-                }, 8000);
+                                    if (m.role === '파트너') return;
+                                    if (m.scoreYear !== undefined) delete m.scoreYear;
+                                    if (m.lastResetY !== undefined) delete m.lastResetY;
+                                });
+                                if (dM.lastResetYm !== undefined) delete dM.lastResetYm;
+                                if (dM.lastResetY !== undefined) delete dM.lastResetY;
+                                if (dM.mileageStartDate !== undefined) delete dM.mileageStartDate; 
+                                modM = true;
+                            }
 
+                            (dF.specialDues||[]).forEach(sd=>{
+                                if(!sd.date) { sd.date=td; modF=true; }
+                                (sd.paids||[]).forEach(tn=>{
+                                    const txId='tx_'+sd.id+'_'+tn;
+                                    const existingTx = (dF.transactions||[]).find(t=>t.id===txId);
+                                    if(!existingTx){
+                                        if(!dF.transactions) dF.transactions = [];
+                                        dF.transactions.push({id:txId,category:'income',name:tn,type:'[특별청구] '+sd.title,amount:parseInt(sd.amount)||0,date:sd.date||td,months:null});
+                                        modF=true;
+                                    } else if (existingTx.amount !== (parseInt(sd.amount)||0) || existingTx.type !== '[특별청구] ' + sd.title) {
+                                        existingTx.amount = parseInt(sd.amount)||0;
+                                        existingTx.type = '[특별청구] ' + sd.title;
+                                        modF=true;
+                                    }
+                                });
+                            });
+
+                            const ts = new Date().toISOString();
+                            if(modM) { dM.updatedAt = ts; tx.update(docMembers, { members: dM.members, updatedAt: ts }); }
+                            if(modF) { dF.updatedAt = ts; tx.update(docFinance, { transactions: dF.transactions, specialDues: dF.specialDues, updatedAt: ts }); }
+                            if(modS) { dS.updatedAt = ts; tx.update(docSports, { teamEvents: dS.teamEvents, luckyWinners: dS.luckyWinners, updatedAt: ts }); }
+                        }).catch(e => console.warn("Background Sync TX failed"));
+                    }, 4000);
+                }
             }
         };
 
@@ -296,6 +264,7 @@ window.startCloudSync = async () => {
                 specialDues=d.specialDues||[]; 
                 reportNotes=d.reportNotes||{}; 
                 dbSizes.finance=new Blob([JSON.stringify(d)]).size; 
+                try { localStorage.setItem('sonamu_cached_finance', JSON.stringify(transactions)); } catch(e) {}
             } else { 
                 transactions=[]; deletedTransactions=[]; specialDues=[]; reportNotes={}; dbSizes.finance=0; 
             } 
@@ -379,10 +348,8 @@ window.startCloudSync = async () => {
                     }
                 });
 
-                // 2. [Data Cleanup] 보존 정책 강화: 7일 지난 일정 삭제 로직 제거
-                // (실시간 마일리지 집계 체계에서 데이터 삭제는 점수 하락을 의미하므로 무기한 보존)
                 teamEvents = evts;
-
+                try { localStorage.setItem('sonamu_cached_sports', JSON.stringify(teamEvents)); } catch(e) {}
 
                 // DB 업데이트 (조용히 처리 - Quiet Mode)
                 if ((needsRollover || needsPurgeSettlement) && user) {
@@ -404,22 +371,8 @@ window.startCloudSync = async () => {
                 let ptsArray = d.posts || [];
                 dbSizes.board = new Blob([JSON.stringify(snap.data())]).size;
 
-                const td = window.getTodayString();
-                const purgeDate = new Date(); 
-                purgeDate.setDate(purgeDate.getDate() - 7);
-                const purgeDateStr = new Date(purgeDate.getTime() - purgeDate.getTimezoneOffset()*60000).toISOString().substring(0,10);
-
-                let needsPurgeSettlement = false;
-                let updatedMembers = [...(members || [])];
-
-                // [Data Cleanup] 보존 정책 강화: 7일 지난 투표 삭제 로직 제거
                 posts = ptsArray;
-
-                if (needsPurgeSettlement && user) {
-                    members = updatedMembers;
-                    await window.saveData('members', false);
-                    await window.saveData('board', false);
-                }
+                try { localStorage.setItem('sonamu_cached_board', JSON.stringify(posts)); } catch(e) {}
             } else {
                 posts = []; dbSizes.board = 0;
             }

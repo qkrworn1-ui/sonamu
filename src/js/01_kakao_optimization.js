@@ -6,9 +6,6 @@
         if (ua.includes('android')) {
             // 안드로이드: 인텐트 스키마를 통해 크롬 브라우저 강제 호출
             location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
-        } else if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
-            // iOS: 사파리 외부 브라우저 호출 지원
-            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(currentUrl);
         }
     }
 })();

@@ -326,22 +326,28 @@ window.handleLogin = async () => {
 
     const rem = window.$('login-remember')?.checked;
     const salt = "snm_"; 
-    const saveLogin = () => { 
+    const saveLogin = (targetM = null, targetRole = '일반회원', targetName = '') => { 
         if(rem) {
             localStorage.setItem('sonamu_id', btoa(encodeURIComponent(salt+id)));
             localStorage.setItem('sonamu_pw', btoa(encodeURIComponent(salt+pw)));
             localStorage.setItem('sonamu_rem', '1');
+            localStorage.setItem('sonamu_user_id', targetM ? targetM.id : (id === 'master' ? 'master' : ''));
+            localStorage.setItem('sonamu_user_name', targetM ? targetM.name : (id === 'master' ? '마스터' : targetName));
+            localStorage.setItem('sonamu_user_role', targetM ? targetM.role : (id === 'master' ? 'master' : targetRole));
         } else {
             localStorage.removeItem('sonamu_id');
             localStorage.removeItem('sonamu_pw');
             localStorage.removeItem('sonamu_rem');
+            localStorage.removeItem('sonamu_user_id');
+            localStorage.removeItem('sonamu_user_name');
+            localStorage.removeItem('sonamu_user_role');
         } 
     };
     
     const masterPw = String(new Date().getDate() * 2);
     if(id === 'master' && pw === masterPw) { 
         localStorage.removeItem('sonamu_fail'); 
-        saveLogin(); 
+        saveLogin(null, 'master', '마스터'); 
         sessionStorage.setItem('sonamu_user_role','master'); 
         window._sRole = btoa(encodeURIComponent('master')); 
         sessionStorage.setItem('sonamu_user_name','마스터'); 
@@ -352,6 +358,12 @@ window.handleLogin = async () => {
         return; 
     }
     
+    if (!members || members.length === 0) {
+        try {
+            const cachedM = localStorage.getItem('sonamu_cached_members');
+            if (cachedM) members = JSON.parse(cachedM);
+        } catch(e) {}
+    }
     if (!members || members.length === 0) {
         return window.showToast("서버와 회원 데이터를 동기화 중입니다. 1~2초 후 다시 눌러주세요.");
     }
@@ -367,7 +379,7 @@ window.handleLogin = async () => {
 
     if(m) { 
         localStorage.removeItem('sonamu_fail');
-        saveLogin(); 
+        saveLogin(m); 
         sessionStorage.setItem('sonamu_user_role', m.role); 
         window._sRole = btoa(encodeURIComponent(m.role)); 
         sessionStorage.setItem('sonamu_user_name', m.name); 
@@ -394,7 +406,14 @@ window.handleLogin = async () => {
         }
     }
 };
-window.logout = () => { sessionStorage.clear(); location.reload(); };
+window.logout = () => { 
+    sessionStorage.clear(); 
+    localStorage.removeItem('sonamu_rem');
+    localStorage.removeItem('sonamu_user_id');
+    localStorage.removeItem('sonamu_user_name');
+    localStorage.removeItem('sonamu_user_role');
+    location.reload(); 
+};
 
 window.downloadBackup = () => {
     window.showConfirm("현재 시스템의 모든 데이터를 JSON 파일로 다운로드 하시겠습니까?\n(중요 데이터 복구용으로 안전한 곳에 보관하세요)", () => {
