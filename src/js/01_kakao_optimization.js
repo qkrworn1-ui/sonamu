@@ -1,4 +1,4 @@
-// --- [0. 환경별 최적화 - 카카오톡 강제 전환] ---
+// --- [0. 환경별 최적화 - 카카오톡 브라우저 최적화 및 외부 브라우저 전환] ---
 (function() {
     const ua = navigator.userAgent.toLowerCase();
     if (ua.includes('kakaotalk')) {
@@ -6,6 +6,9 @@
         if (ua.includes('android')) {
             // 안드로이드: 인텐트 스키마를 통해 크롬 브라우저 강제 호출
             location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+        } else if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) {
+            // iOS: 사파리 외부 브라우저 호출 지원
+            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(currentUrl);
         }
     }
 })();

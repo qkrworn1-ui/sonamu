@@ -286,34 +286,32 @@ window.updateUI = () => {
 
 window._hasRouted = false;
 window.checkAndRouteFromUrl = () => {
-    if (window._hasRouted) return;
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     const teamId = params.get('teamId');
     const eventId = params.get('eventId');
 
     if (tab) {
-        window._hasRouted = true;
+        if (teamId) window.currentVoteTeamId = teamId;
+        if (eventId) window.currentVotePostId = eventId;
         window.showTab(tab, true);
-        history.replaceState({ tab: tab }, null, "?tab=" + tab);
         if (tab === 'vote') {
             if (teamId) {
+                window.currentVoteTeamId = teamId;
                 window.switchVoteTab('team');
-                setTimeout(() => {
-                    const sel = window.$('vote-team-select');
-                    if (sel) { sel.value = teamId; window.changeVoteTeam(); }
-                }, 50);
+                const sel = window.$('vote-team-select');
+                if (sel) sel.value = teamId;
+                if (typeof window.renderVoteTeam === 'function') window.renderVoteTeam();
             } else if (eventId) {
+                window.currentVotePostId = eventId;
                 window.switchVoteTab('event');
-                setTimeout(() => {
-                    const sel = window.$('vote-event-select');
-                    if (sel) { sel.value = eventId; window.changeVoteEvent(); }
-                }, 50);
+                const sel = window.$('vote-event-select');
+                if (sel) sel.value = eventId;
+                if (typeof window.renderVoteEvent === 'function') window.renderVoteEvent();
             }
         }
     } else {
-        window._hasRouted = true;
-        history.replaceState({ tab: 'dashboard' }, null, "?tab=dashboard");
+        window.showTab('dashboard', true);
     }
 };
 
@@ -622,12 +620,20 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                             const sVal = serverItem[field];
                             const lVal = localItem[field];
                             if (sVal && typeof sVal === 'object' && !Array.isArray(sVal)) {
-                                // 객체인 경우(votes, vDate, pastVotes, pastVDates 등) 서버의 최신 데이터를 바탕으로 로컬 변경사항 병합
-                                mergedItem[field] = { ...sVal, ...(lVal || {}) };
-                            } else if (lVal !== undefined) {
-                                mergedItem[field] = lVal;
+                                // [중요] 투표/게스트 내역은 실시간 서버 상태(sVal)가 항상 최우선! (로컬의 오래된 캐시로 서버 투표가 덮어씌워지는 현상 방지)
+                                mergedItem[field] = { ...(lVal || {}) };
+                                // 서버의 최신 키-값들을 우선 반영
+                                Object.keys(sVal).forEach(k => {
+                                    if (sVal[k] && typeof sVal[k] === 'object' && !Array.isArray(sVal[k])) {
+                                        mergedItem[field][k] = { ...((lVal && lVal[k]) || {}), ...sVal[k] };
+                                    } else {
+                                        mergedItem[field][k] = sVal[k];
+                                    }
+                                });
                             } else if (sVal !== undefined) {
                                 mergedItem[field] = sVal;
+                            } else if (lVal !== undefined) {
+                                mergedItem[field] = lVal;
                             }
                         });
                         merged.push(mergedItem);

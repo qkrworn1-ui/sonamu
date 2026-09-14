@@ -999,6 +999,10 @@ window.saveVoteTeamEdit = async () => {
 window.castVoteTeam = async (t, eid, vDate) => { 
     if(window.isSavingData) return; window.isSavingData = true; 
     const uid = sessionStorage.getItem('sonamu_user_id');
+    if(!uid || uid === 'null') {
+        window.isSavingData = false;
+        return window.showAlert("로그인이 필요한 서비스입니다.\n먼저 로그인 후 투표해주세요.");
+    }
     if(uid === 'master') { window.isSavingData = false; return window.showAlert("마스터 계정은 투표할 수 없습니다."); } 
     
     if (eid) window.currentVoteTeamId = eid;
@@ -1497,6 +1501,10 @@ window.changeVoteEvent = () => { currentVotePostId=window.$('vote-event-select')
 window.castVoteEvent = async (t, eid) => { 
     if(window.isSavingData) return; window.isSavingData = true;
     const uid = sessionStorage.getItem('sonamu_user_id');
+    if(!uid || uid === 'null') {
+        window.isSavingData = false;
+        return window.showAlert("로그인이 필요한 서비스입니다.\n먼저 로그인 후 투표해주세요.");
+    }
     if(uid === 'master') { window.isSavingData = false; return window.showAlert("마스터 계정은 투표할 수 없습니다."); }
     
     const cid = eid || currentVotePostId;
@@ -1945,6 +1953,10 @@ window.changeVoteAnon = () => { currentVoteAnonId=window.$('vote-anon-select').v
 window.castVoteAnon = async (t, eid) => { 
     if(window.isSavingData) return; window.isSavingData = true; 
     const uid = sessionStorage.getItem('sonamu_user_id');
+    if(!uid || uid === 'null') {
+        window.isSavingData = false;
+        return window.showAlert("로그인이 필요한 서비스입니다.\n먼저 로그인 후 투표해주세요.");
+    }
     if(uid === 'master') { window.isSavingData = false; return window.showAlert("마스터 계정은 투표할 수 없습니다."); } 
     
     const cid = eid || currentVoteAnonId;
