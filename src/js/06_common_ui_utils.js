@@ -189,10 +189,6 @@ window.updateUI = () => {
         if (!m || !m.name) return false;
         if (m.lastLogin === td) return true;
         if (typeof accessLog !== 'undefined' && accessLog && accessLog[m.id] && Array.isArray(accessLog[m.id]) && accessLog[m.id].includes(td)) return true;
-        const hasTeamVoteToday = (teamEvents || []).some(e => (e.vDate && e.vDate[m.id] === td) || (e.votes && e.votes[m.id] && (e.dDate === td || e.date === td)));
-        if (hasTeamVoteToday) return true;
-        const hasPostVoteToday = (posts || []).some(p => p.vDate && p.vDate[m.id] && p.vDate[m.id].startsWith(td.substring(0, 7)) && p.date === td);
-        if (hasPostVoteToday) return true;
         return false;
     }).map(m => {
         let suffix = '';
