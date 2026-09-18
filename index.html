@@ -48,6 +48,7 @@
     <!-- 바탕화면 앱 아이콘 및 PWA(웹앱) 설치 지원 -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='50' fill='%231e3a8a'/%3E%3Cpath d='M100 100v2a30 30 0 0 1-11 58H50a30 30 0 0 1-10-58v-2a30 30 0 0 1 60 0Z' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M70 160v60M130 190v30M120 190h83a10 10 0 0 0 7-17l-30-33h3a10 10 0 0 0 7-17l-30-33h2a10 10 0 0 0 8-17l-40-43-14 15' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='50' fill='%231e3a8a'/%3E%3Cpath d='M100 100v2a30 30 0 0 1-11 58H50a30 30 0 0 1-10-58v-2a30 30 0 0 1 60 0Z' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M70 160v60M130 190v30M120 190h83a10 10 0 0 0 7-17l-30-33h3a10 10 0 0 0 7-17l-30-33h2a10 10 0 0 0 8-17l-40-43-14 15' fill='none' stroke='%2393c5fd' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preload" as="image" href="assets/images/hero_login.jpg">
     <link rel="manifest" href="manifest.json">
     
     <title>소나무 족구단 통합 관리 시스템</title>
@@ -62,8 +63,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=114"></script>
-    <link rel="stylesheet" href="style.css?v=114">
+    <script src="firebase-config.js?v=116"></script>
+    <link rel="stylesheet" href="style.css?v=116">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -141,126 +142,172 @@
 
 
 
-    <div id="login-overlay" class="fixed inset-0 z-[1000] overflow-hidden bg-[#020617] flex">
+    <div id="login-overlay" class="fixed inset-0 z-[1000] overflow-y-auto bg-[#020617] flex items-center justify-center">
         <!-- [배경] 세련된 애니메이션 블롭 장식 -->
-        <div class="login-blob animate-blob top-[-10%] left-[-10%]"></div>
-        <div class="login-blob animate-blob bottom-[-10%] right-[-10%]" style="animation-delay: -5s; background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, transparent 70%);"></div>
+        <div class="login-blob animate-blob top-[-10%] left-[-10%] opacity-40"></div>
+        <div class="login-blob animate-blob bottom-[-10%] right-[-10%] opacity-40" style="animation-delay: -5s; background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, transparent 70%);"></div>
 
-        <div class="w-full h-full flex flex-col md:flex-row relative z-10">
-            <!-- [PC 전용 좌측 브랜딩 영역] -->
-            <div class="hidden md:flex md:w-[45%] lg:w-[50%] h-full flex-col justify-between p-16 bg-gradient-to-br from-slate-900/60 via-indigo-950/40 to-slate-900/60 border-r border-white/5 relative overflow-hidden backdrop-blur-xl">
-                <!-- 상단 로고/이름 -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                        <i data-lucide="trees" class="w-6 h-6 text-white animate-pulse"></i>
+        <div class="w-full h-full min-h-screen flex flex-col md:flex-row relative z-10">
+            <!-- [PC/태블릿 전용 좌측 히어로 비주얼 & 브랜딩 영역 (Option 3 Stadium Showcase)] -->
+            <div class="hidden md:flex md:w-[52%] lg:w-[56%] xl:w-[60%] h-full min-h-screen flex-col justify-between p-10 lg:p-14 relative overflow-hidden border-r border-white/10 bg-slate-950">
+                <!-- 히어로 배경 이미지 + 스타디움 조명 오버레이 그라데이션 -->
+                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105" style="background-image: url('assets/images/hero_login.jpg'); background-position: center 25%;"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-[#020617]/85 via-transparent to-[#020617]/90"></div>
+                <div class="absolute inset-0 bg-cyan-950/20 mix-blend-overlay"></div>
+
+                <!-- 상단 엠블럼 뱃지 및 상태 태그 -->
+                <div class="relative z-10 flex items-center justify-between">
+                    <div class="flex items-center gap-3.5 bg-black/50 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-cyan-500/30 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/40">
+                            <i data-lucide="trees" class="w-6 h-6 text-white animate-pulse"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-cyan-400 tracking-widest uppercase">Official Club App</span>
+                            <span class="text-sm font-black text-white tracking-wide leading-none mt-0.5">SONAMU JOKGU TEAM</span>
+                        </div>
                     </div>
-                    <div class="flex flex-col">
-                        <span class="text-xs font-black text-blue-400 tracking-widest uppercase">Official Application</span>
-                        <span class="text-sm font-black text-white leading-none mt-0.5">SONAMU JOKGU</span>
+
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[11px] font-black text-emerald-400 backdrop-blur-md shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>실시간 운영 중</span>
                     </div>
                 </div>
 
-                <!-- 중앙 홍보 메시지 및 일러스트 대용 장식 -->
-                <div class="my-auto space-y-8 pr-8">
-                    <div class="space-y-4">
-                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[10px] font-black text-blue-400 uppercase tracking-wider">
+                <!-- 중앙/하단 히어로 헤드라인 & 클럽 하이라이트 -->
+                <div class="relative z-10 space-y-6 max-w-xl pb-4">
+                    <div class="space-y-3">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-[11px] font-black text-cyan-300 uppercase tracking-widest backdrop-blur-md">
+                            <span>⚡ ASTONISH THE WORLD</span>
+                            <span class="w-1 h-1 rounded-full bg-cyan-400"></span>
                             <span>Since 2024</span>
-                            <span class="w-1 h-1 rounded-full bg-blue-500"></span>
-                            <span>Active Club</span>
                         </div>
-                        <h1 class="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
-                            건강한 신체, <br>
-                            화합하는 우리, <br>
-                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-emerald-400">열정의 소나무족구단</span>
+                        <h1 class="text-4xl lg:text-5xl xl:text-6xl font-black text-white tracking-tight leading-[1.15] drop-shadow-lg">
+                            열정과 승리의 역사, <br>
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-400">
+                                구리시 명문 소나무족구단
+                            </span>
                         </h1>
-                        <p class="text-slate-400 text-sm font-bold leading-relaxed max-w-md pt-2">
-                            구리시 최고의 명문 족구단, 소나무족구단 통합 관리 시스템에 오신 것을 환영합니다. 회원 및 회계, 경기 대진 관리를 더욱 간편하게 수행할 수 있습니다.
+                        <p class="text-slate-300 text-sm lg:text-base font-bold leading-relaxed pt-1 drop-shadow">
+                            회원 중심의 스마트한 클럽 운영, 실시간 운동 투표 및 투명한 회계 결산 시스템입니다.
                         </p>
                     </div>
 
                     <!-- 클럽 하이라이트 지표 카드 (Glassmorphism) -->
-                    <div class="grid grid-cols-3 gap-4 pt-4">
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
-                            <span class="text-[10px] font-black text-slate-400">🏆 대회 성적</span>
-                            <span class="text-xs lg:text-sm font-black text-white">우승 다수</span>
+                    <div class="grid grid-cols-3 gap-3.5 pt-2">
+                        <div class="bg-black/50 border border-white/15 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-xl hover:border-cyan-400/40 transition-all">
+                            <span class="text-[11px] font-black text-amber-400 flex items-center gap-1">🏆 대회 성적</span>
+                            <span class="text-sm lg:text-base font-black text-white">우승 다수</span>
+                            <span class="text-[10px] text-slate-400 font-bold">협회장기 등</span>
                         </div>
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
-                            <span class="text-[10px] font-black text-slate-400">👥 활동 인원</span>
-                            <span class="text-xs lg:text-sm font-black text-white">50+ 명</span>
+                        <div class="bg-black/50 border border-white/15 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-xl hover:border-emerald-400/40 transition-all">
+                            <span class="text-[11px] font-black text-emerald-400 flex items-center gap-1">👥 활동 인원</span>
+                            <span class="text-sm lg:text-base font-black text-white">50+ 명</span>
+                            <span class="text-[10px] text-slate-400 font-bold">열정 정회원</span>
                         </div>
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-sm">
-                            <span class="text-[10px] font-black text-slate-400">⚡ 정기 운동</span>
-                            <span class="text-xs lg:text-sm font-black text-white">매주 토/일</span>
+                        <div class="bg-black/50 border border-white/15 rounded-2xl p-4 flex flex-col gap-1 backdrop-blur-md shadow-xl hover:border-blue-400/40 transition-all">
+                            <span class="text-[11px] font-black text-cyan-400 flex items-center gap-1">⚡ 정기 운동</span>
+                            <span class="text-sm lg:text-base font-black text-white">매주 토/일</span>
+                            <span class="text-[10px] text-slate-400 font-bold">정기 교류전</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- 하단 구리시 마크 문구 -->
-                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                    Guri City Jokgu Association &bull; Sonamu Club
+                    <!-- 하단 서브 정보 -->
+                    <div class="flex items-center justify-between pt-2 text-[11px] font-bold text-slate-400 border-t border-white/10">
+                        <span>Guri City Jokgu Association &bull; Sonamu Club</span>
+                        <span>Designed for Champions</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- [우측/모바일 로그인 카드 영역] -->
-            <div class="w-full md:w-[55%] lg:w-[50%] h-full flex items-center justify-center p-6 md:p-12 relative overflow-y-auto">
-                <div class="glass-card rounded-[2.5rem] w-full max-w-[380px] p-6 sm:p-10 flex flex-col items-center animate-fadeIn shadow-2xl relative">
-                    <!-- [공통 헤더 영역 - 반응형 대응] -->
-                    <div class="text-center mb-8 flex flex-col items-center">
-                        <!-- 모바일용 로고 (PC에서는 숨김) -->
-                        <div class="relative mb-6 md:hidden">
-                            <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shadow-2xl relative overflow-hidden group">
-                                <i data-lucide="trees" class="w-10 h-10 text-blue-400 animate-sway relative z-10 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]"></i>
-                            </div>
-                            <div class="absolute -bottom-1 -right-1 bg-blue-600 text-[7px] font-black px-1 py-0.5 rounded shadow-lg text-white">OFFICIAL</div>
+            <!-- [우측/모바일 통합 로그인 영역 (Option 3 Dynamic Stadium Curve)] -->
+            <div class="w-full md:w-[48%] lg:w-[44%] xl:w-[40%] h-full min-h-screen flex flex-col justify-center items-center p-0 sm:p-6 md:p-10 relative overflow-y-auto">
+                
+                <!-- [모바일 전용 상단 대형 히어로 비주얼 & 스타디움 네온 커브] -->
+                <div class="w-full md:hidden relative flex flex-col items-center pt-8 pb-10 px-5 overflow-hidden stadium-neon-arc">
+                    <!-- 상단 대형 히어로 배경 이미지 -->
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('assets/images/hero_login.jpg'); background-position: center 20%;"></div>
+                    <!-- 상단 비네팅 & 스타디움 조명 오버레이 -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/40 to-black/60"></div>
+                    <div class="absolute inset-0 bg-cyan-950/20 mix-blend-overlay"></div>
+
+                    <!-- 상단 엠블럼 뱃지 & 버전 태그 -->
+                    <div class="w-full flex items-center justify-between relative z-10 mb-20">
+                        <!-- 좌측 소나무 공식 엠블럼 크레스트 -->
+                        <div class="stadium-crest-badge px-3 py-2 flex flex-col items-center justify-center">
+                            <i data-lucide="trees" class="w-5 h-5 text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]"></i>
+                            <span class="text-[8px] font-black text-cyan-200 tracking-wider mt-0.5 uppercase">SONAMU</span>
                         </div>
 
-                        <!-- PC용 로고 아이콘 (모바일에서는 숨김) -->
-                        <div class="hidden md:flex w-12 h-12 bg-blue-500/10 border border-blue-400/20 rounded-full items-center justify-center text-blue-400 mb-3 shadow-inner">
-                            <i data-lucide="lock" class="w-6 h-6 animate-pulse"></i>
-                        </div>
-
-                        <!-- 제목 (PC/모바일 공통이지만 반응형 텍스트 크기 조절) -->
-                        <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tighter mb-1">
-                            소나무 족구단 <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 새로고침" class="cursor-pointer text-[10px] font-bold text-blue-300/90 align-top hover:underline"></span>
-                        </h2>
-                        <p class="hidden md:block text-[11px] text-slate-500 font-bold mt-1.5">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
-                        <div class="md:hidden h-1 w-12 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto rounded-full mt-3 opacity-50"></div>
+                        <!-- 우측 버전 칩 -->
+                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md"></span>
                     </div>
 
-                    <!-- 입력 폼 -->
-                    <div class="w-full space-y-3.5 sm:space-y-4">
-                        <div class="login-input-group">
-                            <i data-lucide="user" class="login-input-icon w-4 h-4 sm:w-5 sm:h-5"></i>
-                            <input type="text" id="login-id" placeholder="휴대폰 뒷자리 또는 ID" class="login-input w-full p-3.5 sm:p-4 rounded-2xl text-white placeholder-slate-500 text-sm outline-none transition-all border border-white/5 bg-black/20 focus:bg-black/40">
+                    <!-- 중앙 타이틀 -->
+                    <div class="relative z-10 text-center space-y-1 mt-4">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-cyan-400/30 text-[10px] font-black text-cyan-300 tracking-wider uppercase backdrop-blur-md mb-1 shadow-lg">
+                            <span>⚡ ASTONISH THE WORLD</span>
                         </div>
-                        <div class="login-input-group">
-                            <i data-lucide="lock" class="login-input-icon w-4 h-4 sm:w-5 sm:h-5"></i>
-                            <input type="password" id="login-pw" placeholder="비밀번호" class="login-input w-full p-3.5 sm:p-4 rounded-2xl text-white placeholder-slate-500 text-sm outline-none transition-all border border-white/5 bg-black/20 focus:bg-black/40" onkeydown="if(event.key==='Enter') window.handleLogin()">
+                        <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            소나무 족구단
+                        </h2>
+                        <p class="text-[11px] text-slate-300 font-bold drop-shadow">회원 인증 후 통합 서비스를 이용하세요.</p>
+                    </div>
+                </div>
+
+                <!-- [로그인 폼 카드] -->
+                <div class="glass-card rounded-[2.5rem] w-full max-w-[420px] p-6 sm:p-9 flex flex-col items-center animate-fadeIn shadow-2xl relative z-20 my-auto -mt-4 sm:mt-auto border-t border-cyan-500/30 sm:border-white/10">
+                    
+                    <!-- [PC 전용 로고 헤더 (모바일에서는 숨김)] -->
+                    <div class="hidden md:flex flex-col items-center mb-6">
+                        <div class="stadium-crest-badge px-4 py-3 flex flex-col items-center justify-center mb-3">
+                            <i data-lucide="trees" class="w-7 h-7 text-cyan-300 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]"></i>
+                            <span class="text-[9px] font-black text-cyan-200 tracking-widest mt-1 uppercase">SONAMU JOKGU</span>
                         </div>
-                        
-                        <div class="flex items-center justify-between px-1 mb-1 sm:mb-2">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" id="login-remember" class="w-4 h-4 accent-blue-500 bg-black/40 border-slate-700/50 rounded transition-all">
-                                <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 group-hover:text-slate-300 transition-colors">로그인 정보 기억하기</span>
+                        <div class="flex items-center justify-center gap-2 mb-1">
+                            <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.8.7</span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
+                        <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
+                    </div>
+
+                    <!-- 로그인 입력 폼 -->
+                    <div class="w-full space-y-4">
+                        <div class="login-input-group">
+                            <i data-lucide="user" class="login-input-icon w-5 h-5"></i>
+                            <input type="text" id="login-id" placeholder="휴대폰 뒷자리 또는 ID" autocomplete="username" class="login-input w-full py-4 pr-4 rounded-2xl text-white placeholder-slate-500 text-sm sm:text-base font-bold outline-none transition-all border border-white/10 bg-slate-950/70 focus:bg-slate-950/95 shadow-inner">
+                        </div>
+
+                        <div class="login-input-group">
+                            <i data-lucide="lock" class="login-input-icon w-5 h-5"></i>
+                            <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password" class="login-input w-full py-4 pr-4 rounded-2xl text-white placeholder-slate-500 text-sm sm:text-base font-bold outline-none transition-all border border-white/10 bg-slate-950/70 focus:bg-slate-950/95 shadow-inner" onkeydown="if(event.key==='Enter') window.handleLogin()">
+                        </div>
+
+                        <div class="flex items-center justify-between px-1 pt-1">
+                            <label class="flex items-center gap-2.5 cursor-pointer group select-none">
+                                <input type="checkbox" id="login-remember" class="w-4 h-4 accent-cyan-500 bg-slate-900 border-slate-700 rounded transition-all cursor-pointer">
+                                <span class="text-xs font-bold text-slate-400 group-hover:text-slate-200 transition-colors">로그인 정보 기억하기</span>
                             </label>
                         </div>
 
-                        <button id="btn-login" onclick="window.handleLogin()" class="login-btn-premium w-full py-3.5 sm:py-4 rounded-2xl text-white font-black text-base sm:text-lg tracking-widest uppercase disabled:opacity-40 disabled:cursor-not-allowed transform active:scale-[0.98]">
-                            Login
+                        <button id="btn-login" onclick="window.handleLogin()" class="login-btn-premium w-full py-4 rounded-2xl text-white font-black text-base sm:text-lg tracking-wider uppercase disabled:opacity-40 disabled:cursor-not-allowed transform active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 mt-2">
+                            <span>LOGIN</span>
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <!-- [PWA 전용] 설치 유도 버튼 -->
-                    <div id="pwa-install-container" class="hidden w-full mt-6">
-                        <button onclick="window.installPWA()" class="w-full py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-black flex items-center justify-center gap-2 hover:bg-emerald-500/20 transition-all btn-touch">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i> 홈 화면에 앱 설치
+                    <!-- [PWA 전용] 홈 화면 설치 버튼 -->
+                    <div id="pwa-install-container" class="hidden w-full mt-5">
+                        <button onclick="window.installPWA()" class="w-full py-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black flex items-center justify-center gap-2 hover:bg-emerald-500/25 transition-all btn-touch shadow-sm">
+                            <i data-lucide="download" class="w-4 h-4"></i> 홈 화면에 바로가기 앱 설치
                         </button>
                     </div>
 
                     <!-- [푸터] -->
-                    <div class="mt-10 text-center">
-                        <p class="text-[9px] text-slate-500 font-bold tracking-[0.2em] uppercase opacity-60">
-                            &copy; 2026 Sonamu AI Management 
+                    <div class="mt-8 text-center border-t border-white/5 pt-4 w-full">
+                        <p class="text-[10px] text-slate-500 font-bold tracking-wider uppercase">
+                            &copy; 2026 SONAMU JOKGU CLUB &bull; ALL RIGHTS RESERVED
                         </p>
                     </div>
                 </div>
@@ -1410,24 +1457,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=114"></script>
-<script src="src/js/02_env_version.js?v=114"></script>
-<script src="src/js/03_init_utils.js?v=114"></script>
-<script src="src/js/04_scope_adjust.js?v=114"></script>
-<script src="src/js/05_mileage_engine.js?v=114"></script>
-<script src="src/js/06_common_ui_utils.js?v=114"></script>
-<script src="src/js/07_firebase_init.js?v=114"></script>
-<script src="src/js/08_auth_logic.js?v=114"></script>
-<script src="src/js/09_navigation_sync.js?v=114"></script>
-<script src="src/js/10_dashboard_logic.js?v=114"></script>
-<script src="src/js/11_vote_logic.js?v=114"></script>
-<script src="src/js/12_team_mgmt.js?v=114"></script>
-<script src="src/js/13_finance_logic.js?v=114"></script>
-<script src="src/js/14_member_mgmt.js?v=114"></script>
-<script src="src/js/15_board_logic.js?v=114"></script>
-<script src="src/js/16_gallery_report.js?v=114"></script>
-<script src="src/js/17_calendar_logic.js?v=114"></script>
-<script src="src/js/18_member_positions.js?v=114"></script>
+<script src="src/js/01_kakao_optimization.js?v=116"></script>
+<script src="src/js/02_env_version.js?v=116"></script>
+<script src="src/js/03_init_utils.js?v=116"></script>
+<script src="src/js/04_scope_adjust.js?v=116"></script>
+<script src="src/js/05_mileage_engine.js?v=116"></script>
+<script src="src/js/06_common_ui_utils.js?v=116"></script>
+<script src="src/js/07_firebase_init.js?v=116"></script>
+<script src="src/js/08_auth_logic.js?v=116"></script>
+<script src="src/js/09_navigation_sync.js?v=116"></script>
+<script src="src/js/10_dashboard_logic.js?v=116"></script>
+<script src="src/js/11_vote_logic.js?v=116"></script>
+<script src="src/js/12_team_mgmt.js?v=116"></script>
+<script src="src/js/13_finance_logic.js?v=116"></script>
+<script src="src/js/14_member_mgmt.js?v=116"></script>
+<script src="src/js/15_board_logic.js?v=116"></script>
+<script src="src/js/16_gallery_report.js?v=116"></script>
+<script src="src/js/17_calendar_logic.js?v=116"></script>
+<script src="src/js/18_member_positions.js?v=116"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">

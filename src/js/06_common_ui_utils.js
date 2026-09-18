@@ -146,19 +146,15 @@ window.updateUI = () => {
         }
     };
 
-    const vL = window.$('login-app-version'), vM = window.$('main-app-version');
-    if(vL) {
-        vL.innerText = APP_VERSION;
-        vL.title = `최종 수정: ${LAST_UPDATED}`;
-        vL.onclick = window.forceAppUpdate;
-        vL.style.cursor = 'pointer';
-    }
-    if(vM) {
-        vM.innerText = APP_VERSION;
-        vM.title = `최종 수정: ${LAST_UPDATED}`;
-        vM.onclick = window.forceAppUpdate;
-        vM.style.cursor = 'pointer';
-    }
+    const vL = window.$('login-app-version'), vL_pc = window.$('login-app-version-pc'), vM = window.$('main-app-version');
+    [vL, vL_pc, vM].forEach(el => {
+        if (el) {
+            el.innerText = APP_VERSION;
+            el.title = `최종 수정: ${LAST_UPDATED}`;
+            el.onclick = window.forceAppUpdate;
+            el.style.cursor = 'pointer';
+        }
+    });
 
     const r=sessionStorage.getItem('sonamu_user_role'); document.body.className='antialiased text-slate-900';
     if(r) {
