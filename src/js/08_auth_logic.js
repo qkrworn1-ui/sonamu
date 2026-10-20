@@ -22,6 +22,7 @@ window.handleRestoreUpload = (input) => {
                     if (data.deletedTransactions) deletedTransactions = data.deletedTransactions;
                     if (data.specialDues) specialDues = data.specialDues;
                     if (data.reportNotes) reportNotes = data.reportNotes;
+                    if (data.reportAgendas) reportAgendas = data.reportAgendas;
                     if (data.teamEvents) teamEvents = data.teamEvents;
                     if (data.matchHistory) matchHistory = data.matchHistory;
                     if (data.luckyWinners) luckyWinners = data.luckyWinners;

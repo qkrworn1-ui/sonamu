@@ -263,10 +263,11 @@ window.startCloudSync = async () => {
                 deletedTransactions=d.deletedTransactions||[]; 
                 specialDues=d.specialDues||[]; 
                 reportNotes=d.reportNotes||{}; 
+                reportAgendas=d.reportAgendas||{}; 
                 dbSizes.finance=new Blob([JSON.stringify(d)]).size; 
                 try { localStorage.setItem('sonamu_cached_finance', JSON.stringify(transactions)); } catch(e) {}
             } else { 
-                transactions=[]; deletedTransactions=[]; specialDues=[]; reportNotes={}; dbSizes.finance=0; 
+                transactions=[]; deletedTransactions=[]; specialDues=[]; reportNotes={}; reportAgendas={}; dbSizes.finance=0; 
             } 
             checkInitComplete('finance'); 
             if(document.documentElement.classList.contains('app-loaded')) window.updateUI(); 
@@ -526,6 +527,7 @@ window.cleanupOldData = () => {
 
         // 6. 회계 결산 메모 정리 (3년 이상)
         for(let key in reportNotes) { if(key.substring(0,4) < yr) delete reportNotes[key]; }
+        for(let key in reportAgendas) { if(key.substring(0,4) < yr) delete reportAgendas[key]; }
 
         // 업데이트된 멤버별 score 재계산 (데이터가 사라진 후의 총점 유지 확인)
         (members || []).forEach(m => {

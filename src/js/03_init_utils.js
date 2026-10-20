@@ -20,7 +20,7 @@ window.escapeHtml = (str) => {
 };
 
 let dbSizes = { members: 0, finance: 0, sports: 0, board: 0, gallery: 0 };
-let currentLedgerMonthStr="", members=[], transactions=[], teamEvents=[], calendarEvents=[], posts=[], specialDues=[], deletedMembers=[], deletedTransactions=[], reportNotes={}, galleryPhotos=[], mileageStartDate = "2024-01-01";
+let currentLedgerMonthStr="", members=[], transactions=[], teamEvents=[], calendarEvents=[], posts=[], specialDues=[], deletedMembers=[], deletedTransactions=[], reportNotes={}, reportAgendas={}, galleryPhotos=[], mileageStartDate = "2024-01-01";
 let luckyWinners = {}; let luckMileageAmount = 10; let luckMileageCount = 2; let accessLog = {};
 
 // [초고속 진입] 로컬 스토리지에 캐시된 전체 데이터 즉시 메모리 적재 (0.0001초)

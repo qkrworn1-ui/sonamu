@@ -443,7 +443,7 @@ window.downloadBackup = () => {
         try {
             const backupData = { 
                 doc_members: { members, deletedMembers },
-                doc_finance: { transactions, deletedTransactions, specialDues, reportNotes },
+                doc_finance: { transactions, deletedTransactions, specialDues, reportNotes, reportAgendas: (typeof reportAgendas !== 'undefined' ? reportAgendas : {}) },
                 doc_sports: { teamEvents },
                 doc_board: { posts },
                 doc_gallery: { galleryPhotos: galleryPhotos||[] },
@@ -743,6 +743,7 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                     deletedTransactions: deletedTransactions || curD.deletedTransactions || [], 
                     specialDues: mergeData(specialDues, curD.specialDues, ['paids']),
                     reportNotes: { ...(curD.reportNotes || {}), ...(reportNotes || {}) },
+                    reportAgendas: { ...(curD.reportAgendas || {}), ...(typeof reportAgendas !== 'undefined' ? reportAgendas : {}) },
                     updatedAt: ts 
                 };
                 tx.set(docFinance, updateD, { merge: true });

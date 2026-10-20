@@ -1354,7 +1354,7 @@ window.renderReport = () => {
             <h3 class="text-sm md:text-base font-black text-slate-800 flex items-center gap-2"><div class="bg-slate-100 p-1.5 rounded-lg print:hidden"><i data-lucide="edit-3" class="w-4 h-4 text-slate-600"></i></div> 결산 비고 및 전달사항</h3>
             <button class="print:hidden text-[10px] md:text-xs bg-slate-800 text-white px-4 py-2 rounded-lg font-black shadow-sm btn-touch flex items-center gap-1" onclick="window.saveReportNote('${targetPeriod}')"><i data-lucide="save" class="w-3 h-3"></i> 메모 저장</button>
         </div>
-        <textarea id="report-note-input" class="w-full border-2 border-slate-100 p-4 rounded-xl text-xs md:text-sm font-bold text-slate-700 outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors print:hidden resize-none min-h-[100px]" placeholder="해당 결산 기간(${targetPeriod}${isYearly?'년':'월'})에 대한 추가 설명, 이월금 상세 내역이나 전달사항을 입력하세요. (우측 상단 '메모 저장' 버튼을 눌러야 반영됩니다)">${reportNotes[targetPeriod] || ''}</textarea>
+        <textarea id="report-note-input" class="w-full border-2 border-slate-100 p-4 rounded-xl text-xs md:text-sm font-bold text-slate-700 outline-none focus:border-blue-400 focus:bg-blue-50 transition-colors print:hidden resize-none min-h-[100px]" placeholder="해당 결산 기간(${targetPeriod}${isYearly?'년':'월'})에 대한 추가 설명, 이월금 상세 내역이나 전달사항을 입력하세요. (우측 상단 '메모 저장' 버튼을 눌러야 반영됩니다)">${window.escapeHtml(reportNotes[targetPeriod] || '')}</textarea>
         <div class="hidden print:block text-xs text-slate-700 whitespace-pre-wrap font-bold bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[60px] mb-4">${window.escapeHtml(reportNotes[targetPeriod] || '특별한 전달사항이 없습니다.')}</div>`;
 
     if (isYearly) {
@@ -1378,6 +1378,36 @@ window.renderReport = () => {
     
     ih += `</div>`;
 
+    ih += `<div class="mt-6 md:mt-8 bg-white p-5 rounded-[1.5rem] border border-amber-200/80 shadow-sm print:border-none print:shadow-none print:p-0 print:mt-6">
+        <div class="flex justify-between items-center mb-3 print:mb-2">
+            <h3 class="text-sm md:text-base font-black text-amber-900 flex items-center gap-2"><div class="bg-amber-100 p-1.5 rounded-lg print:hidden"><i data-lucide="clipboard-list" class="w-4 h-4 text-amber-700"></i></div> ${isYearly?'당해':'당월'} 중요안건</h3>
+            <button class="print:hidden text-[10px] md:text-xs bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-black shadow-sm btn-touch flex items-center gap-1" onclick="window.saveReportAgenda('${targetPeriod}')"><i data-lucide="save" class="w-3 h-3"></i> 안건 저장</button>
+        </div>
+        <textarea id="report-agenda-input" class="w-full border-2 border-slate-100 p-4 rounded-xl text-xs md:text-sm font-bold text-slate-700 outline-none focus:border-amber-400 focus:bg-amber-50/20 transition-colors print:hidden resize-none min-h-[100px]" placeholder="해당 결산 기간(${targetPeriod}${isYearly?'년':'월'})의 정기총회 의결사항, 규정 개정, 대회/행사 계획 등 클럽의 중요 안건을 입력하세요. (우측 '안건 저장' 버튼을 누르면 저장됩니다)">${window.escapeHtml((typeof reportAgendas !== 'undefined' && reportAgendas[targetPeriod]) || '')}</textarea>
+        <div class="hidden print:block text-xs text-slate-700 whitespace-pre-wrap font-bold bg-amber-50/50 p-4 rounded-xl border border-amber-200 min-h-[60px] mb-4">${window.escapeHtml((typeof reportAgendas !== 'undefined' && reportAgendas[targetPeriod]) || '등록된 중요안건이 없습니다.')}</div>`;
+
+    if (isYearly) {
+        const curAgendas = typeof reportAgendas !== 'undefined' ? reportAgendas : {};
+        const monthsWithAgendas = Object.keys(curAgendas)
+            .filter(k => k.startsWith(targetPeriod + '-') && curAgendas[k] && curAgendas[k].trim())
+            .sort();
+        if (monthsWithAgendas.length > 0) {
+            ih += `<div class="mt-4 pt-4 border-t-2 border-dashed border-slate-100">
+                <h4 class="text-xs font-black text-amber-800 mb-3 flex items-center gap-1.5"><i data-lucide="history" class="w-3 h-3 text-amber-600"></i> 월별 중요안건 모아보기</h4>
+                <div class="space-y-2">`;
+            monthsWithAgendas.forEach(k => {
+                const monthNum = parseInt(k.substring(5, 7));
+                ih += `<div class="bg-amber-50/40 rounded-xl p-3 border border-amber-100 flex flex-col sm:flex-row sm:items-start gap-2 print:border-none print:p-1 print:bg-white print:mb-2">
+                    <div class="text-[10px] font-black text-white bg-amber-600 px-2 py-0.5 rounded-lg whitespace-nowrap self-start print:text-amber-900 print:bg-transparent print:border print:border-amber-300">${monthNum}월</div>
+                    <div class="text-[11px] sm:text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-bold break-all sm:break-words break-keep w-full overflow-hidden">${window.escapeHtml(curAgendas[k])}</div>
+                </div>`;
+            });
+            ih += `</div></div>`;
+        }
+    }
+    
+    ih += `</div>`;
+
     rb.innerHTML = ih;
     if(window.lucide) window.lucide.createIcons();
 };
@@ -1386,9 +1416,27 @@ window.saveReportNote = async (period) => {
     if(window.isSavingData) return;
     window.isSavingData = true;
     const note = window.$('report-note-input')?.value.trim() || '';
+    const agenda = window.$('report-agenda-input')?.value.trim() || '';
     if(typeof reportNotes === 'undefined') window.reportNotes = {};
+    if(typeof reportAgendas === 'undefined') window.reportAgendas = {};
     reportNotes[period] = note;
+    reportAgendas[period] = agenda;
     window.showToast("결산 비고가 안전하게 저장되었습니다.");
+    window.renderReport();
+    await window.saveData('finance');
+    window.isSavingData = false;
+};
+
+window.saveReportAgenda = async (period) => {
+    if(window.isSavingData) return;
+    window.isSavingData = true;
+    const note = window.$('report-note-input')?.value.trim() || '';
+    const agenda = window.$('report-agenda-input')?.value.trim() || '';
+    if(typeof reportNotes === 'undefined') window.reportNotes = {};
+    if(typeof reportAgendas === 'undefined') window.reportAgendas = {};
+    reportNotes[period] = note;
+    reportAgendas[period] = agenda;
+    window.showToast("중요안건이 안전하게 저장되었습니다.");
     window.renderReport();
     await window.saveData('finance');
     window.isSavingData = false;
@@ -1455,6 +1503,8 @@ window.shareReport = async () => {
     const pBal = pi - pe;
     const cBal = pBal + ci - ce;
     const notes = (typeof reportNotes !== 'undefined' && reportNotes[targetPeriod]) || "특별한 전달사항이 없습니다.";
+    const agendas = (typeof reportAgendas !== 'undefined' && reportAgendas[targetPeriod]) || "";
+    const agendaSection = agendas ? `\n\n📌 중요안건:\n${agendas}` : '';
     
     // 2. 앱 접속 경로 링크 생성
     const baseUrl = window.location.origin + window.location.pathname;
@@ -1476,7 +1526,7 @@ window.shareReport = async () => {
 🏦 현재 통장 잔액: ${cBal.toLocaleString()}원
 
 📝 전달사항:
-${notes}
+${notes}${agendaSection}
 
 ------------------------------
 ※ 자세한 내역은 아래 링크를 통해 클럽 프로그램에 접속하셔서 [회계/결산] 메뉴의 '결산 보고'를 확인해 주시기 바랍니다.
