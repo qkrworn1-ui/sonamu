@@ -631,14 +631,17 @@
         .news-container { background-color: var(--paper-bg); color: var(--paper-text); overflow-x: hidden; }
         .news-card { 
             background: #ffffff; 
-            border: 1px solid var(--news-border); 
-            border-radius: 1px; /* 신문 특유의 각진 느낌 */
-            padding: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.9); 
+            border-radius: 1.5rem; /* 모던 둥근 카드 */
+            padding: 1.5rem;
             position: relative;
-            transition: all 0.2s ease;
-            overflow: hidden; /* 영역 이탈 방지 */
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
         }
-        .news-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--paper-divider); opacity: 0.5; }
+        .news-card:hover {
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+        }
         
         .news-hero {
             border-top: 3px solid var(--paper-text);

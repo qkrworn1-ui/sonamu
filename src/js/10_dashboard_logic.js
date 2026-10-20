@@ -1,3 +1,28 @@
+
+window.copyClubAccount = () => {
+    if (window.copyToClipboard) {
+        window.copyToClipboard('3333328844095');
+    }
+    if (window.showToast) {
+        window.showToast('카카오뱅크 3333-32-8844095 계좌가 복사되었습니다!');
+    }
+};
+
+window.scrollToNextWorkout = () => {
+    const el = window.$('workout-highlight-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.goToTeamVoteTab = () => {
+    window.showTab('vote');
+    if (window.switchVoteTab) window.switchVoteTab('team');
+};
+
+window.toggleDashboardUnvotedDrawer = () => {
+    const el = window.$('dashboard-unvoted-drawer');
+    if (el) el.classList.toggle('hidden');
+};
+
 // --- [5. 탭: 대시보드] ---
 window.updateDashboardBirthdays = () => {
     const el = window.$('dashboard-birthdays');
@@ -244,6 +269,178 @@ window.updateDashboard = () => {
     
     // [수정] 모든 일정을 다 보여주는 대신, 가장 가까운 하나의 일정만 체크하여 표시합니다.
     const vTeam = teamPosts.find(e => (e.dDate || e.date) >= td);
+
+    // [신규] 상단 웰컴 바 개인화 이름 & 등급 갱신
+    const curUid = sessionStorage.getItem('sonamu_user_id');
+    const curRole = sessionStorage.getItem('sonamu_user_role') || '정회원';
+    const curUser = (members || []).find(m => m.id === curUid) || { name: sessionStorage.getItem('sonamu_user_name') || '회원', role: curRole };
+    if (window.$('dashboard-user-name')) window.$('dashboard-user-name').innerText = curUser.name || '회원';
+    if (window.$('dashboard-user-role')) window.$('dashboard-user-role').innerText = curUser.role || curRole;
+
+    if (vTeam) {
+        const nextDateStr = vTeam.dDate || vTeam.date || '';
+        let dDayText = '일정 예정';
+        if (nextDateStr) {
+            const nextD = new Date(nextDateStr + 'T00:00:00');
+            const todayD = new Date(td + 'T00:00:00');
+            const diffDays = Math.round((nextD - todayD) / (1000 * 60 * 60 * 24));
+            const dayOfWeek = window.getDayOfWeek ? window.getDayOfWeek(nextDateStr) : '';
+            if (diffDays === 0) dDayText = 'D-Day (오늘!)';
+            else if (diffDays === 1) dDayText = 'D-1 (내일)';
+            else if (diffDays > 1) dDayText = `D-${diffDays} (${dayOfWeek}요일)`;
+            else dDayText = `종료됨 (${dayOfWeek}요일)`;
+        }
+        if (window.$('dashboard-next-dday')) window.$('dashboard-next-dday').innerText = dDayText;
+        if (window.$('dashboard-next-title')) window.$('dashboard-next-title').innerText = vTeam.title || `${nextDateStr} 정기 운동`;
+        if (window.$('dashboard-next-location')) window.$('dashboard-next-location').innerText = vTeam.location || '관악 제2체육공원 족구전용구장';
+
+        // 투표 현황 및 미참여자 집계
+        const curVotes = (vTeam.pastVotes && vTeam.pastVotes[nextDateStr]) ? vTeam.pastVotes[nextDateStr] : (vTeam.votes || {});
+        let attendCount = 0, lateCount = 0, absentCount = 0;
+        const unvotedList = [];
+        const targetMembers = (members || []).filter(m => m.role !== '파트너' && m.role !== '초청선수');
+        
+        targetMembers.forEach(m => {
+            const v = curVotes[m.id];
+            const vClean = v ? String(v).replace('_p', '') : '';
+            if (['참석', 'attend'].includes(vClean)) attendCount++;
+            else if (['늦참', 'late', '지각'].includes(vClean)) lateCount++;
+            else if (['불참', 'absent'].includes(vClean)) absentCount++;
+            else unvotedList.push(m.name);
+        });
+
+        if (window.$('dashboard-count-attend')) window.$('dashboard-count-attend').innerText = `${attendCount}명`;
+        if (window.$('dashboard-count-late')) window.$('dashboard-count-late').innerText = `${lateCount}명`;
+        if (window.$('dashboard-count-absent')) window.$('dashboard-count-absent').innerText = `${absentCount}명`;
+        if (window.$('dashboard-count-unvoted')) window.$('dashboard-count-unvoted').innerText = `${unvotedList.length}명`;
+
+        if (window.$('dashboard-unvoted-names-list')) {
+            window.$('dashboard-unvoted-names-list').innerHTML = unvotedList.length > 0
+                ? unvotedList.map(name => `<span class="text-[10px] font-bold bg-slate-900/80 border border-slate-700 px-2 py-0.5 rounded-lg text-slate-300">${window.escapeHtml(name)}</span>`).join('')
+                : '<span class="text-[10px] text-slate-400">모든 회원이 투표를 완료했습니다! 🎉</span>';
+        }
+
+        // 현재 사용자 투표 상태에 따른 인라인 투표 박스 및 상단 뱃지 렌더링
+        let userVote = '';
+        if (curUid) {
+            const rawV = curVotes[curUid];
+            if (rawV) userVote = String(rawV).replace('_p', '');
+        }
+        const isUserUnvoted = !userVote || userVote === 'pending' || userVote === '미정';
+        const inlineBox = window.$('dashboard-inline-vote-box');
+        const headerPill = window.$('dashboard-header-vote-pill');
+
+        if (isUserUnvoted) {
+            if (headerPill) {
+                headerPill.className = "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 text-rose-800 dark:text-rose-300 text-xs font-black shadow-sm self-start sm:self-auto cursor-pointer select-none animate-pulse";
+                headerPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span><span>⚠️ 운동 투표 대기 (미참여)</span>';
+            }
+            if (inlineBox) {
+                inlineBox.innerHTML = `
+                    <div class="bg-rose-500/15 border-2 border-rose-500/40 rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-black text-rose-300 flex items-center gap-1.5">
+                                <span>👉</span> 아직 참석 여부를 투표하지 않으셨습니다!
+                            </span>
+                            <span class="text-[10px] bg-rose-500 text-white font-black px-2 py-0.5 rounded-full">투표 필수</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 font-bold mb-3">
+                            원클릭으로 즉시 선택하세요! (참석 시 마일리지 <span class="text-amber-400 font-black">+4PT</span> 적립)
+                        </p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="window.castVoteTeam('attend', '${vTeam.id}', '${nextDateStr}')" class="bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1 active:scale-95 transition-all">
+                                ✓ 참석 (4PT)
+                            </button>
+                            <button onclick="window.castVoteTeam('late', '${vTeam.id}', '${nextDateStr}')" class="bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1 active:scale-95 transition-all">
+                                ⏱ 늦참 (4PT)
+                            </button>
+                            <button onclick="window.castVoteTeam('absent', '${vTeam.id}', '${nextDateStr}')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-1 active:scale-95 transition-all">
+                                ✕ 불참
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (['참석', 'attend'].includes(userVote)) {
+            if (headerPill) {
+                headerPill.className = "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-black shadow-sm self-start sm:self-auto cursor-pointer select-none";
+                headerPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>✅ 운동 참석 투표 완료 (+4PT)</span>';
+            }
+            if (inlineBox) {
+                inlineBox.innerHTML = `
+                    <div class="bg-emerald-500/15 border border-emerald-400/30 rounded-2xl p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-black shrink-0">✓</div>
+                                <div>
+                                    <div class="text-xs font-black text-emerald-300">${window.escapeHtml(curUser.name)} 회원님: 참석 투표 완료</div>
+                                    <div class="text-[11px] text-slate-400 font-bold mt-0.5">운동 참석 마일리지 <span class="text-emerald-400 font-black">+4 PT</span> 지급 예정</div>
+                                </div>
+                            </div>
+                            <button onclick="window.goToTeamVoteTab()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold border border-slate-700 active:scale-95 transition-all">
+                                투표 변경
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (['늦참', 'late', '지각'].includes(userVote)) {
+            if (headerPill) {
+                headerPill.className = "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 text-xs font-black shadow-sm self-start sm:self-auto cursor-pointer select-none";
+                headerPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>⏱ 운동 늦참 투표 완료 (+4PT)</span>';
+            }
+            if (inlineBox) {
+                inlineBox.innerHTML = `
+                    <div class="bg-amber-500/15 border border-amber-400/30 rounded-2xl p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-black shrink-0">⏱</div>
+                                <div>
+                                    <div class="text-xs font-black text-amber-300">${window.escapeHtml(curUser.name)} 회원님: 늦참 투표 완료</div>
+                                    <div class="text-[11px] text-slate-400 font-bold mt-0.5">운동 참석 마일리지 <span class="text-amber-400 font-black">+4 PT</span> 지급 예정</div>
+                                </div>
+                            </div>
+                            <button onclick="window.goToTeamVoteTab()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold border border-slate-700 active:scale-95 transition-all">
+                                투표 변경
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        } else { // absent
+            if (headerPill) {
+                headerPill.className = "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-black shadow-sm self-start sm:self-auto cursor-pointer select-none";
+                headerPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span><span>🚫 운동 불참 투표 완료</span>';
+            }
+            if (inlineBox) {
+                inlineBox.innerHTML = `
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg font-black shrink-0">✕</div>
+                                <div>
+                                    <div class="text-xs font-black text-slate-300">${window.escapeHtml(curUser.name)} 회원님: 불참 투표 완료</div>
+                                    <div class="text-[11px] text-slate-400 font-semibold mt-0.5">사정이 생기셨나요? 언제든 참석으로 바꾸실 수 있습니다.</div>
+                                </div>
+                            </div>
+                            <button onclick="window.castVoteTeam('attend', '${vTeam.id}', '${nextDateStr}')" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl font-black shadow-sm active:scale-95 transition-all">
+                                참석으로 변경
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    } else {
+        if (window.$('dashboard-next-title')) window.$('dashboard-next-title').innerText = '예정된 다음 운동 일정이 없습니다.';
+        if (window.$('dashboard-next-dday')) window.$('dashboard-next-dday').innerText = '일정 없음';
+        if (window.$('dashboard-inline-vote-box')) window.$('dashboard-inline-vote-box').innerHTML = '';
+        if (window.$('dashboard-header-vote-pill')) {
+            window.$('dashboard-header-vote-pill').className = "inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-black shadow-sm";
+            window.$('dashboard-header-vote-pill').innerHTML = '<span>일정 없음</span>';
+        }
+    }
+
     if(vTeam) {
         let needsVoteTeam = false;
         const uidTeam = sessionStorage.getItem('sonamu_user_id');

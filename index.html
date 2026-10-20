@@ -82,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=120"></script>
-    <link rel="stylesheet" href="style.css?v=120">
+    <script src="firebase-config.js?v=121"></script>
+    <link rel="stylesheet" href="style.css?v=121">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -285,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.1</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.2</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -381,214 +381,341 @@
         </div>
 
         <main class="p-4 sm:p-6 md:p-8 flex-grow pb-32 md:pb-12 relative w-full max-w-7xl mx-auto">
-            <section id="dashboard" class="tab-content active space-y-8 font-black news-container p-4 sm:p-6 md:p-8 rounded-[2.5rem]">
-                <!-- [Newspaper Header] -->
-                <div class="news-hero text-center px-2">
-                    <div class="news-label">The Sonamu Daily</div>
-                    <h1 class="news-title mt-2">소나무 족구단 소식</h1>
-                    <div class="flex justify-center items-center gap-2 sm:gap-4 mt-3 text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest border-t border-slate-200 pt-3 flex-wrap">
-                        <span>Established 2024</span>
-                        <span class="hidden sm:inline w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-                        <span id="news-current-date">2026. 04. 03</span>
-                        <span class="hidden sm:inline w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-                        <span class="whitespace-nowrap">Edition #<span id="main-app-version-news">1.0</span></span>
-                    </div>
-                    
-                    <!-- 대시보드 퀵 버튼 그룹 (사용설명서 & 한마디 쓰기 & 프로그램 공유하기) -->
-                    <div class="flex justify-center gap-3 mt-5 flex-wrap">
-                        <button onclick="window.openUserManualModal()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:brightness-110 text-white font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 btn-touch">
-                            <i data-lucide="book-open" class="w-4 h-4"></i> 프로그램 사용설명서 📖
-                        </button>
-                        <button onclick="window.goToFreeBoard()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 btn-touch">
-                            <i data-lucide="message-square" class="w-4 h-4"></i> 클럽에 한마디 쓰기 💬
-                        </button>
-                        <button onclick="window.shareApp()" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:brightness-110 text-white font-black px-5 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 btn-touch">
-                            <i data-lucide="share-2" class="w-4 h-4"></i> 프로그램 공유하기 🔗
-                        </button>
-                    </div>
-                </div>
+            <section id="dashboard" class="tab-content active space-y-6 font-black p-2 sm:p-4 md:p-6 rounded-[2.5rem]">
 
-
-
-                <!-- [Hall of Fame: Hall of Fame Ticker] -->
-                <div class="bg-slate-950 text-white/90 p-3 flex flex-col gap-1 items-stretch overflow-hidden rounded-sm shadow-xl border-l-[6px] border-l-amber-500 border-r border-y border-white/5">
-                    <div class="flex items-center gap-3 w-full">
-                        <div class="flex items-center gap-1.5 shrink-0 px-2 border-r border-white/10 mr-1">
-                            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400 animate-pulse"></i>
-                            <span class="text-amber-400 text-[10px] font-black uppercase italic tracking-wider">Hall of Fame</span>
+                <!-- [1. 환영 및 개인화 상태 바] -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-sm transition-all">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-2xl shadow-md shadow-emerald-500/20 shrink-0">
+                                🌲
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                                        반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
+                                    </h2>
+                                    <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.2</span></span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+                                    <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
+                                </p>
+                            </div>
                         </div>
-                        <div id="dashboard-podium" class="flex-1 overflow-hidden"></div>
-                    </div>
-                    <div class="px-2 pb-0.5 text-[9px] text-white/40 font-bold flex items-center gap-1">
-                        <i data-lucide="info" class="w-2.5 h-2.5"></i>
-                        선정 기준: 운동 참석(4pt) 및 각종 투표 참여(2pt) 등 누적 마일리지 합계 (정규회원 이상)
+
+                        <!-- 실시간 투표 상태 뱃지 (미투표 시 펄스 경고, 완료 시 안정 뱃지) -->
+                        <div id="dashboard-header-vote-pill" onclick="window.scrollToNextWorkout()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-black shadow-sm self-start sm:self-auto cursor-pointer select-none transition-all">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            <span>운동 투표 확인 중...</span>
+                        </div>
                     </div>
                 </div>
 
-                <div id="pending-vote-task-container" class="hidden news-card border-l-4 border-l-rose-500 bg-rose-50/50 mb-8 animate-newsFadeIn">
+                <!-- [2. 통합 퀵 액션 그리드 (5구 모던 바)] -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <button onclick="window.scrollToNextWorkout()" class="bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
+                        <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            🗳️
+                        </div>
+                        <span class="text-xs font-black">운동 투표하기</span>
+                    </button>
+
+                    <button onclick="window.copyClubAccount()" class="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            💳
+                        </div>
+                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">회비계좌 복사</span>
+                    </button>
+
+                    <button onclick="window.goToFreeBoard()" class="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            💬
+                        </div>
+                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">클럽 한마디</span>
+                    </button>
+
+                    <button onclick="window.shareApp()" class="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
+                        <div class="w-10 h-10 rounded-2xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            🔗
+                        </div>
+                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">프로그램 공유</span>
+                    </button>
+
+                    <button onclick="window.openUserManualModal()" class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                            📖
+                        </div>
+                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">사용설명서</span>
+                    </button>
+                </div>
+
+                <!-- [3. 메인 하이라이트 2단 그리드: 다음 운동 & 공식 회비 계좌] -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="workout-highlight-section">
+                    
+                    <!-- [좌측] 다음 정기 운동 & 투표 현황 카드 -->
+                    <div id="dashboard-next-workout-card" class="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-6 border border-slate-800 shadow-md relative overflow-hidden flex flex-col justify-between">
+                        <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-black tracking-wide flex items-center gap-1.5">
+                                    <span>⚽</span> 다음 정기 운동
+                                </span>
+                                <span id="dashboard-next-dday" class="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20">
+                                    일정 확인 중
+                                </span>
+                            </div>
+
+                            <h3 id="dashboard-next-title" class="text-xl font-black tracking-tight text-white mb-1.5">
+                                정기 운동 일정을 불러오는 중입니다...
+                            </h3>
+                            <p class="text-xs text-slate-400 font-semibold flex items-center gap-1.5 mb-4">
+                                📍 <span id="dashboard-next-location">관악 제2체육공원 족구전용구장</span>
+                            </p>
+
+                            <!-- [핵심] 내 운동 투표 상태별 인라인 배너/투표 박스 -->
+                            <div id="dashboard-inline-vote-box" class="mb-4">
+                                <!-- 10_dashboard_logic.js에서 실시간 렌더링 -->
+                            </div>
+
+                            <!-- 전체 참석/불참/미참여 통계 칩 & 미참여자 명단 열람 -->
+                            <div class="bg-slate-800/60 p-3 rounded-2xl border border-slate-700/50 mb-3 text-center">
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div class="p-1 rounded-xl hover:bg-slate-700/40 transition-colors">
+                                        <span class="text-[10px] text-emerald-400 font-black block">참석</span>
+                                        <span id="dashboard-count-attend" class="text-base font-black text-white">0명</span>
+                                    </div>
+                                    <div class="p-1 rounded-xl hover:bg-slate-700/40 transition-colors">
+                                        <span class="text-[10px] text-amber-400 font-black block">지각</span>
+                                        <span id="dashboard-count-late" class="text-base font-black text-white">0명</span>
+                                    </div>
+                                    <div class="p-1 rounded-xl hover:bg-slate-700/40 transition-colors">
+                                        <span class="text-[10px] text-rose-400 font-black block">불참</span>
+                                        <span id="dashboard-count-absent" class="text-base font-black text-white">0명</span>
+                                    </div>
+                                    <!-- [중요] 미참여 칩 (클릭 시 미참여자 명단 열람) -->
+                                    <div onclick="window.toggleDashboardUnvotedDrawer()" class="p-1 rounded-xl bg-slate-700/50 hover:bg-slate-700 cursor-pointer transition-all border border-slate-600/50" title="클릭하여 미참여자 명단 보기">
+                                        <span class="text-[10px] text-slate-300 font-black flex items-center justify-center gap-0.5">
+                                            <span>미참여</span> <span class="text-[8px] opacity-70">▼</span>
+                                        </span>
+                                        <span id="dashboard-count-unvoted" class="text-base font-black text-amber-400">0명</span>
+                                    </div>
+                                </div>
+
+                                <!-- 클릭 시 펼쳐지는 미참여자 명단 드롭다운 -->
+                                <div id="dashboard-unvoted-drawer" class="hidden mt-3 pt-3 border-t border-slate-700/60 text-left">
+                                    <div class="flex items-center justify-between text-[11px] font-black text-amber-300 mb-2">
+                                        <span>📋 아직 투표하지 않은 회원</span>
+                                        <button onclick="window.toggleDashboardUnvotedDrawer()" class="text-slate-400 hover:text-white text-[10px]">닫기 ✕</button>
+                                    </div>
+                                    <div id="dashboard-unvoted-names-list" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1 custom-scrollbar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="window.goToTeamVoteTab()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl font-black text-xs transition-all border border-slate-700 active:scale-98 flex items-center justify-center gap-2 mt-2">
+                            <span>참석 투표 전체 현황 및 대진표 보기 →</span>
+                        </button>
+                    </div>
+
+                    <!-- [우측] 공식 회비 계좌 & 재정 요약 카드 -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-400 text-[10px] font-black tracking-wide flex items-center gap-1.5">
+                                    <span>💳</span> 클럽 공식 계좌
+                                </span>
+                                <span class="text-[11px] text-slate-400 font-bold">월 회비 납부용</span>
+                            </div>
+
+                            <!-- 계좌 박스 -->
+                            <div class="bg-amber-50/50 dark:bg-slate-800/50 border border-amber-200/70 dark:border-slate-700 rounded-2xl p-4 mb-4">
+                                <div class="text-[11px] font-black text-amber-800 dark:text-amber-400 mb-1">카카오뱅크 (소나무 족구단)</div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-lg font-black text-slate-900 dark:text-white tracking-tight">3333-32-8844095</span>
+                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">예금주: 박재구</span>
+                                </div>
+                            </div>
+
+                            <!-- 미니 지표 -->
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase block mb-0.5">현재 클럽 잔액</span>
+                                    <span id="summary-balance" class="text-base font-black text-indigo-600 dark:text-indigo-400">0원</span>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase block mb-0.5">클럽 정규 회원</span>
+                                    <span id="summary-members" class="text-base font-black text-slate-800 dark:text-slate-200">0명</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div class="bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <span class="text-[9px] font-black text-blue-500 uppercase block">이번 달 수입</span>
+                                    <span id="summary-income" class="text-xs font-black text-blue-600 dark:text-blue-400">0원</span>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <span class="text-[9px] font-black text-rose-500 uppercase block">이번 달 지출</span>
+                                    <span id="summary-expense" class="text-xs font-black text-rose-600 dark:text-rose-400">0원</span>
+                                </div>
+                            </div>
+
+                            <!-- [재정 관리자 전용 DB 보고서] -->
+                            <div class="finance-admin-only mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-black text-blue-600">📊 관리자 시스템 리포트</span>
+                                    <button onclick="window.toggleDbCapacityDetail()" class="text-[9px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1 btn-touch">
+                                        <span id="btn-toggle-db-label">상세 보기</span><i id="icon-toggle-db" data-lucide="chevron-down" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                                <div id="db-capacity-detail" class="hidden">
+                                    <div class="grid grid-cols-2 gap-2 mb-2">
+                                        <div class="bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                            <span class="text-[8px] text-slate-500 font-black">데이터 건강도</span>
+                                            <div id="db-health-status" class="text-xs font-black text-emerald-600">계산 중...</div>
+                                        </div>
+                                        <div class="bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-right">
+                                            <span class="text-[8px] text-slate-500 font-black">가용 일수</span>
+                                            <div id="db-expected-life" class="text-xs font-black text-blue-600">데이터 부족</div>
+                                        </div>
+                                    </div>
+                                    <div id="db-usage-container" class="space-y-2"></div>
+                                    <div class="flex gap-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 items-center justify-between">
+                                        <div class="flex gap-1.5">
+                                            <button onclick="window.downloadBackup()" class="bg-slate-900 text-white px-2.5 py-1.5 rounded-lg text-[9px] font-black btn-touch">Backup</button>
+                                            <button onclick="window.$('restore-file-input').click()" class="master-only bg-white border border-slate-900 text-slate-900 px-2.5 py-1.5 rounded-lg text-[9px] font-black btn-touch">Restore</button>
+                                            <input type="file" id="restore-file-input" accept=".json" class="hidden" onchange="window.handleRestoreUpload(this)">
+                                        </div>
+                                        <div class="flex gap-1.5">
+                                            <button onclick="window.migrateMileageToLedger()" class="master-only text-indigo-600 text-[9px] font-black hover:underline cursor-pointer border border-indigo-200 px-1.5 rounded bg-indigo-50/50">원장화</button>
+                                            <button onclick="window.cleanupOldData()" class="master-only text-rose-600 text-[9px] font-black hover:underline cursor-pointer">Cleanup</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="window.copyClubAccount()" class="w-full py-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-xs transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2 mt-4">
+                            <span>📋 계좌번호 간편 복사하기</span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- [4. 추가 미참여 투표(설문/무기명) 알림함 (존재 시에만 노출)] -->
+                <div id="pending-vote-task-container" class="hidden bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 p-5 rounded-3xl shadow-sm animate-newsFadeIn">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
-                            <div class="bg-rose-500 text-white p-2.5 rounded-2xl shadow-xl ring-4 ring-rose-500/10 animate-pulse"><i data-lucide="bell" class="w-6 h-6"></i></div>
+                            <div class="bg-rose-500 text-white p-2.5 rounded-2xl shadow-md ring-4 ring-rose-500/10 animate-pulse"><i data-lucide="bell" class="w-5 h-5"></i></div>
                             <div>
-                                <h3 class="text-xl font-black text-slate-900 leading-tight">미참여 투표 알림</h3>
-                                <p class="text-[10px] font-black text-rose-600 uppercase tracking-[0.1em]">Action Required: Please participate now</p>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white leading-tight">미참여 투표 안내</h3>
+                                <p class="text-[10px] font-black text-rose-600 dark:text-rose-400">참여가 필요한 추가 설문/안건 투표가 있습니다</p>
                             </div>
                         </div>
-                        <div class="bg-white/80 backdrop-blur px-3 py-1.5 rounded-xl border border-rose-200 shadow-sm flex items-center gap-2">
+                        <div class="bg-white/80 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 shadow-sm flex items-center gap-2">
                              <div class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></div>
-                             <span id="pending-vote-count" class="text-xs font-black text-rose-700">0건</span>
+                             <span id="pending-vote-count" class="text-xs font-black text-rose-700 dark:text-rose-300">0건</span>
                         </div>
                     </div>
-                    <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </div>
 
-                <!-- [Top Story: Admin DB / Active Votes] -->
-                <div class="news-grid">
-                    <div class="finance-admin-only news-card border-l-4 border-l-blue-600">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <div class="news-label text-blue-600">System Report</div>
-                                <h3 class="text-lg font-black tracking-tight">DB/용량 분석 보고서</h3>
-                            </div>
-                            <button onclick="window.toggleDbCapacityDetail()" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 btn-touch">
-                                <span id="btn-toggle-db-label">상세 보기</span><i id="icon-toggle-db" data-lucide="chevron-down" class="w-3 h-3"></i>
-                            </button>
+                <!-- [5. 마일리지 명예의 전당 (Top 3 포디움 & 마키 티커)] -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">👑</span>
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">마일리지 명예의 전당</h3>
+                            <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold">실시간 집계</span>
                         </div>
-                        
-                        <div id="db-capacity-detail" class="hidden">
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div class="bg-slate-50 p-3 border border-slate-200 flex flex-col gap-1">
-                                    <span class="text-[9px] text-slate-500 font-black">데이터 건강도</span>
-                                    <div id="db-health-status" class="text-sm font-black text-emerald-600">계산 중...</div>
-                                </div>
-                                <div class="bg-slate-50 p-3 border border-slate-200 flex flex-col gap-1 text-right">
-                                    <span class="text-[9px] text-slate-500 font-black">가용 일수</span>
-                                    <div id="db-expected-life" class="text-sm font-black text-blue-600">데이터 부족</div>
-                                </div>
+                        <span class="text-[11px] text-slate-400 font-semibold">운동 2pt + 투표 2pt (합계 4pt)</span>
+                    </div>
+
+                    <!-- 포디움 및 마키 렌더링 컨테이너 -->
+                    <div id="dashboard-podium" class="w-full overflow-hidden mb-2"></div>
+                </div>
+
+                <!-- [6. 클럽 소식 2단 그리드: 주요 공지사항 & 예정된 일정] -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- 주요 공지사항 카드 -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span>📢</span> 주요 공지사항
+                                </h3>
+                                <button onclick="window.showTab('board')" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline">전체보기 →</button>
                             </div>
-                            <div id="db-usage-container" class="space-y-4"></div>
-                            <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100 items-center justify-between">
-                                <div class="flex gap-2">
-                                    <button onclick="window.downloadBackup()" class="bg-slate-900 text-white px-3 py-2 rounded-lg text-[10px] font-black btn-touch">Backup</button>
-                                    <button onclick="window.$('restore-file-input').click()" class="master-only bg-white border border-slate-900 text-slate-900 px-3 py-2 rounded-lg text-[10px] font-black btn-touch">Restore</button>
-                                    <input type="file" id="restore-file-input" accept=".json" class="hidden" onchange="window.handleRestoreUpload(this)">
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="window.migrateMileageToLedger()" class="master-only text-indigo-600 text-[10px] font-black hover:underline cursor-pointer mr-2 border border-indigo-200 px-2 rounded bg-indigo-50/50">마일리지 정산(원장화)</button>
-                                    <button onclick="window.cleanupOldData()" class="master-only text-rose-600 text-[10px] font-black hover:underline cursor-pointer">Cleanup (3Yr)</button>
-                                </div>
-                            </div>
+                            <div id="dashboard-notices" class="space-y-3"></div>
                         </div>
                     </div>
 
-                    <div id="hero-vote-container" class="news-card border-l-4 border-l-rose-600">
-                        <div class="news-label text-rose-600">Top Story</div>
-                        <h3 class="text-xl font-black text-slate-800 flex items-center gap-2 mb-4 leading-tight">진행 중인 투표 안내</h3>
-                        <div id="dashboard-vote-status" class="space-y-4"></div>
+                    <!-- 예정된 일정 카드 -->
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span>📅</span> 예정된 일정
+                                </h3>
+                                <button onclick="window.showTab('calendar')" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline">캘린더 →</button>
+                            </div>
+                            <div id="dashboard-upcoming-events" class="space-y-3"></div>
+                        </div>
                     </div>
+
                 </div>
 
-                <!-- [Briefs: Quick Stats] -->
-                <div class="news-divider"></div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border border-slate-200 divide-x divide-slate-200">
-                    <div class="p-4 bg-white flex flex-col items-center">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Members</span>
-                        <div id="summary-members" class="text-lg font-black text-slate-800">0명</div>
+                <!-- [7. 추가 컨텐츠: 생일 멤버, 행운 마일리지 당첨자, 사진 갤러리] -->
+                <div id="dashboard-birthdays" class="bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-3xl p-5 hidden">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-lg">🎂</span>
+                        <h4 class="text-sm font-black text-rose-700 dark:text-rose-300">이번 달 생일 멤버</h4>
                     </div>
-                    <div class="p-4 bg-white flex flex-col items-center">
-                        <span class="text-[9px] font-black text-blue-400 uppercase mb-1">Account Income</span>
-                        <div id="summary-income" class="text-lg font-black text-blue-600">0원</div>
-                    </div>
-                    <div class="p-4 bg-white flex flex-col items-center">
-                        <span class="text-[9px] font-black text-rose-400 uppercase mb-1">Monthly Cost</span>
-                        <div id="summary-expense" class="text-lg font-black text-rose-600">0원</div>
-                    </div>
-                    <div class="p-4 bg-white flex flex-col items-center">
-                        <span class="text-[9px] font-black text-indigo-400 uppercase mb-1">Bank Balance</span>
-                        <div id="summary-balance" class="text-lg font-black text-indigo-600">0원</div>
-                    </div>
+                    <div id="birthday-list" class="flex flex-wrap gap-2.5"></div>
                 </div>
 
+                <div id="dashboard-luck-winners" class="rounded-3xl border border-amber-300 dark:border-amber-800/80 bg-amber-50/60 dark:bg-amber-950/30 p-5 hidden"></div>
 
-
-                <!-- [Local Features Grid] -->
-                <div class="news-divider"></div>
-                <div class="news-grid">
-                    <!-- Announcements -->
-                    <div class="news-card">
-                        <div class="news-label">Public Notices</div>
-                        <h3 class="text-xl font-black mb-4 flex items-center gap-2 border-b-2 border-slate-900 pb-2">공지사항</h3>
-                        <div id="dashboard-notices" class="space-y-4"></div>
-                    </div>
-
-                    <!-- Recent Activity List -->
-                    <div id="dashboard-recent-activity-wrapper" class="partner-hidden">
-                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2 flex justify-between items-center">
-                            최근 활동 기록
-                            <span class="text-[9px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase" id="dashboard-visitors-text">상태 양호</span>
+                <!-- 사진 갤러리 미리보기 -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-sm partner-hidden">
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>📸</span> 최근 활동 사진
                         </h3>
-                        <div id="dashboard-recent-activities" class="space-y-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-bold text-slate-400" id="dashboard-gallery-stats"></span>
+                            <button onclick="window.showTab('gallery')" class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline">갤러리 바로가기 →</button>
+                        </div>
                     </div>
-
-                    <!-- Birthdays -->
-                    <div id="dashboard-birthdays" class="news-card border-2 border-dashed border-rose-200 hidden">
-                        <div class="news-label text-rose-500 border-rose-500">Celebrate!</div>
-                        <h3 class="text-xl font-black mb-4 flex items-center gap-2 text-rose-700">이번 달 생일 멤버</h3>
-                        <div id="birthday-list" class="flex flex-wrap gap-2.5"></div>
+                    <div class="gallery-marquee-container">
+                        <div id="dashboard-gallery-preview" class="gallery-marquee-content"></div>
                     </div>
+                </div>
 
-                    <!-- Gallery Preview -->
-                    <div class="news-card partner-hidden">
-                        <div class="news-label text-purple-600 border-purple-600">Photo Gallery</div>
-                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2 flex justify-between items-center">
-                            최근 활동 사진
-                            <span class="text-[9px] font-black text-slate-400" id="dashboard-gallery-stats">5GB Limit</span>
+                <!-- 최근 활동 기록 -->
+                <div id="dashboard-recent-activity-wrapper" class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-sm partner-hidden">
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>🕒</span> 최근 활동 기록
                         </h3>
-                        <div class="gallery-marquee-container">
-                            <div id="dashboard-gallery-preview" class="gallery-marquee-content"></div>
-                        </div>
+                        <span class="text-[9px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full uppercase" id="dashboard-visitors-text">상태 양호</span>
                     </div>
+                    <div id="dashboard-recent-activities" class="space-y-3 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar"></div>
                 </div>
 
-                <!-- [Luck Winners / Events] -->
-                <div id="dashboard-luck-winners" class="news-card border-2 border-amber-400 bg-amber-50 hidden"></div>
-
-                <div class="news-divider"></div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Bank Account Info -->
-                    <div class="bg-yellow-100 p-6 rounded-sm border-2 border-yellow-300 shadow-news relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 opacity-10 text-yellow-900 rotate-12"><i data-lucide="landmark" style="width: 80px; height: 80px;"></i></div>
-                        <div class="relative z-10">
-                            <div class="news-label text-yellow-800 border-yellow-800">Financial info</div>
-                            <div class="text-[10px] font-black text-yellow-900 mb-1">소나무 족구단 공식 회비 계좌</div>
-                            <div class="font-black text-base sm:text-lg tracking-tight text-slate-900 leading-tight">카카오 <span class="whitespace-nowrap">3333-32-8844095</span> <span class="text-xs font-bold text-slate-600 block sm:inline-block sm:ml-1">소나무_박재구</span></div>
-                            <button onclick="window.copyToClipboard('3333328844095')" class="mt-4 bg-slate-900 text-yellow-400 px-6 py-2.5 rounded-sm text-xs font-black flex items-center gap-2 btn-touch">
-                                <i data-lucide="copy" class="w-4 h-4"></i> 계좌번호 복사하기
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Upcoming Events -->
-                    <div class="news-card">
-                        <div class="news-label">Upcoming Calendar</div>
-                        <h3 class="text-xl font-black mb-4 border-b-2 border-slate-900 pb-2">예정된 일정</h3>
-                        <div id="dashboard-upcoming-events" class="space-y-3"></div>
-                    </div>
+                <!-- 더미용 hero-vote-container (하위 호환성 유지) -->
+                <div id="hero-vote-container" class="hidden">
+                    <div id="dashboard-vote-status" class="hidden"></div>
                 </div>
 
-                <!-- [Newspaper Footer] -->
-                <div class="text-center py-12 border-t border-slate-200 mt-12 bg-slate-50 rounded-b-[2.5rem]">
-                    <div class="news-label">Editorial Contact</div>
-                    <p class="text-[10px] text-slate-400 font-bold max-w-sm mx-auto px-4 mt-2">
-                        본 시스템은 소나무 족구단 회원들의 활동 증진과 원활한 클럽 관리를 위해 AI 기술을 활용하여 제작되었습니다. 정보의 누락이 있는 경우 마스터에게 문의 바랍니다.
-                    </p>
-                    <div class="mt-6 flex justify-center gap-6">
-                        <i data-lucide="instagram" class="w-5 h-5 text-slate-300"></i>
-                        <i data-lucide="facebook" class="w-5 h-5 text-slate-300"></i>
-                        <i data-lucide="send" class="w-5 h-5 text-slate-300"></i>
-                    </div>
+                <!-- [8. 단정한 클럽 푸터] -->
+                <div class="text-center py-8 border-t border-slate-200/80 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                    <p class="font-bold">🌲 소나무 족구단 &bull; 회원 중심의 투명하고 즐거운 클럽 운영</p>
+                    <p class="text-[10px] text-slate-400 mt-1">문의 사항이나 데이터 오류 제보는 운영진 및 마스터에게 전달해 주세요.</p>
                 </div>
+
             </section>
 
 
@@ -1481,24 +1608,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=120"></script>
-<script src="src/js/02_env_version.js?v=120"></script>
-<script src="src/js/03_init_utils.js?v=120"></script>
-<script src="src/js/04_scope_adjust.js?v=120"></script>
-<script src="src/js/05_mileage_engine.js?v=120"></script>
-<script src="src/js/06_common_ui_utils.js?v=120"></script>
-<script src="src/js/07_firebase_init.js?v=120"></script>
-<script src="src/js/08_auth_logic.js?v=120"></script>
-<script src="src/js/09_navigation_sync.js?v=120"></script>
-<script src="src/js/10_dashboard_logic.js?v=120"></script>
-<script src="src/js/11_vote_logic.js?v=120"></script>
-<script src="src/js/12_team_mgmt.js?v=120"></script>
-<script src="src/js/13_finance_logic.js?v=120"></script>
-<script src="src/js/14_member_mgmt.js?v=120"></script>
-<script src="src/js/15_board_logic.js?v=120"></script>
-<script src="src/js/16_gallery_report.js?v=120"></script>
-<script src="src/js/17_calendar_logic.js?v=120"></script>
-<script src="src/js/18_member_positions.js?v=120"></script>
+<script src="src/js/01_kakao_optimization.js?v=121"></script>
+<script src="src/js/02_env_version.js?v=121"></script>
+<script src="src/js/03_init_utils.js?v=121"></script>
+<script src="src/js/04_scope_adjust.js?v=121"></script>
+<script src="src/js/05_mileage_engine.js?v=121"></script>
+<script src="src/js/06_common_ui_utils.js?v=121"></script>
+<script src="src/js/07_firebase_init.js?v=121"></script>
+<script src="src/js/08_auth_logic.js?v=121"></script>
+<script src="src/js/09_navigation_sync.js?v=121"></script>
+<script src="src/js/10_dashboard_logic.js?v=121"></script>
+<script src="src/js/11_vote_logic.js?v=121"></script>
+<script src="src/js/12_team_mgmt.js?v=121"></script>
+<script src="src/js/13_finance_logic.js?v=121"></script>
+<script src="src/js/14_member_mgmt.js?v=121"></script>
+<script src="src/js/15_board_logic.js?v=121"></script>
+<script src="src/js/16_gallery_report.js?v=121"></script>
+<script src="src/js/17_calendar_logic.js?v=121"></script>
+<script src="src/js/18_member_positions.js?v=121"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
