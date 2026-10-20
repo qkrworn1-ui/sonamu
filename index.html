@@ -37,6 +37,25 @@
                 document.documentElement.classList.add('app-loaded');
             }
         } catch(e) {}
+
+        window.toggleLoginPasswordVisibility = function() {
+            const pwInput = document.getElementById('login-pw');
+            const toggleBtn = document.getElementById('login-pw-toggle-btn');
+            if (!pwInput) return;
+            const isPassword = pwInput.type === 'password';
+            pwInput.type = isPassword ? 'text' : 'password';
+            if (toggleBtn) {
+                if (isPassword) {
+                    toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-cyan-400"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+                    toggleBtn.setAttribute('title', '비밀번호 숨기기');
+                    toggleBtn.setAttribute('aria-label', '비밀번호 숨기기');
+                } else {
+                    toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-slate-400"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+                    toggleBtn.setAttribute('title', '비밀번호 표시');
+                    toggleBtn.setAttribute('aria-label', '비밀번호 표시');
+                }
+            }
+        };
     </script>
 
     <meta name="color-scheme" content="light dark">
@@ -63,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=118"></script>
-    <link rel="stylesheet" href="style.css?v=118">
+    <script src="firebase-config.js?v=119"></script>
+    <link rel="stylesheet" href="style.css?v=119">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -266,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.8.7</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.0</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -281,7 +300,10 @@
 
                         <div class="login-input-group">
                             <i data-lucide="lock" class="login-input-icon w-5 h-5"></i>
-                            <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password" class="login-input w-full py-4 pr-4 rounded-2xl text-white placeholder-slate-500 text-sm sm:text-base font-bold outline-none transition-all border border-white/10 bg-slate-950/70 focus:bg-slate-950/95 shadow-inner" onkeydown="if(event.key==='Enter') window.handleLogin()">
+                            <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password" class="login-input w-full py-4 pr-12 rounded-2xl text-white placeholder-slate-400 text-sm sm:text-base font-bold outline-none transition-all border border-white/10 bg-slate-950/70 focus:bg-slate-950/95 shadow-inner" onkeydown="if(event.key==='Enter') window.handleLogin()">
+                            <button type="button" id="login-pw-toggle-btn" onclick="window.toggleLoginPasswordVisibility()" class="login-pw-toggle" aria-label="비밀번호 표시/숨기기" title="비밀번호 표시/숨기기">
+                                <i id="login-pw-eye-icon" data-lucide="eye" class="w-5 h-5"></i>
+                            </button>
                         </div>
 
                         <div class="flex items-center justify-between px-1 pt-1">
@@ -1460,24 +1482,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=118"></script>
-<script src="src/js/02_env_version.js?v=118"></script>
-<script src="src/js/03_init_utils.js?v=118"></script>
-<script src="src/js/04_scope_adjust.js?v=118"></script>
-<script src="src/js/05_mileage_engine.js?v=118"></script>
-<script src="src/js/06_common_ui_utils.js?v=118"></script>
-<script src="src/js/07_firebase_init.js?v=118"></script>
-<script src="src/js/08_auth_logic.js?v=118"></script>
-<script src="src/js/09_navigation_sync.js?v=118"></script>
-<script src="src/js/10_dashboard_logic.js?v=118"></script>
-<script src="src/js/11_vote_logic.js?v=118"></script>
-<script src="src/js/12_team_mgmt.js?v=118"></script>
-<script src="src/js/13_finance_logic.js?v=118"></script>
-<script src="src/js/14_member_mgmt.js?v=118"></script>
-<script src="src/js/15_board_logic.js?v=118"></script>
-<script src="src/js/16_gallery_report.js?v=118"></script>
-<script src="src/js/17_calendar_logic.js?v=118"></script>
-<script src="src/js/18_member_positions.js?v=118"></script>
+<script src="src/js/01_kakao_optimization.js?v=119"></script>
+<script src="src/js/02_env_version.js?v=119"></script>
+<script src="src/js/03_init_utils.js?v=119"></script>
+<script src="src/js/04_scope_adjust.js?v=119"></script>
+<script src="src/js/05_mileage_engine.js?v=119"></script>
+<script src="src/js/06_common_ui_utils.js?v=119"></script>
+<script src="src/js/07_firebase_init.js?v=119"></script>
+<script src="src/js/08_auth_logic.js?v=119"></script>
+<script src="src/js/09_navigation_sync.js?v=119"></script>
+<script src="src/js/10_dashboard_logic.js?v=119"></script>
+<script src="src/js/11_vote_logic.js?v=119"></script>
+<script src="src/js/12_team_mgmt.js?v=119"></script>
+<script src="src/js/13_finance_logic.js?v=119"></script>
+<script src="src/js/14_member_mgmt.js?v=119"></script>
+<script src="src/js/15_board_logic.js?v=119"></script>
+<script src="src/js/16_gallery_report.js?v=119"></script>
+<script src="src/js/17_calendar_logic.js?v=119"></script>
+<script src="src/js/18_member_positions.js?v=119"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
