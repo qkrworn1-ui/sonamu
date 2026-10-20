@@ -1265,7 +1265,8 @@ window.renderReport = () => {
             
             let catInc = {};
             incs.forEach(t => { let cat = t.type || '기타'; if(!catInc[cat]) catInc[cat] = 0; catInc[cat] += Number(t.amount)||0; });
-            let summaryHtml = Object.keys(catInc).map(c => {
+            const cIncKeys = Object.keys(catInc).sort((a,b)=>catInc[b]-catInc[a]);
+            let summaryHtml = cIncKeys.map(c => {
                 let dispC = window.escapeHtml(c);
                 if(c.includes('특별찬조')) dispC = `<span class="text-amber-600">${dispC}</span>`;
                 else if(c.includes('찬조금')) dispC = `<span class="text-emerald-600">${dispC}</span>`;
@@ -1298,7 +1299,7 @@ window.renderReport = () => {
                 }
             });
             
-            ih+=`<tr class="bg-slate-50 border-t border-slate-200"><td colspan="3" class="p-2 sm:p-3 text-center text-[10px] text-slate-500 font-bold leading-relaxed">월간 수입 요약<div class="mt-1.5 flex flex-wrap justify-center gap-1.5">${summaryHtml}</div>${unpaidsHtml ? '<div class="mt-1 flex flex-wrap justify-center">' + unpaidsHtml + '</div>' : ''}</td></tr>`;
+            ih+=`<tr class="bg-slate-50 border-t border-slate-200"><td colspan="3" class="p-2 sm:p-3 text-center text-[10px] text-slate-500 font-bold leading-relaxed">당월 수입 요약<div class="mt-1.5 flex flex-wrap justify-center gap-1.5">${summaryHtml}</div>${unpaidsHtml ? '<div class="mt-1 flex flex-wrap justify-center">' + unpaidsHtml + '</div>' : ''}</td></tr>`;
         }
         else ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당월 수입 내역이 없습니다.</td></tr>`;
     }
@@ -1330,8 +1331,33 @@ window.renderReport = () => {
         });
         else ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당해 지출 내역이 없습니다.</td></tr>`;
     } else {
-        if(exps.length) exps.forEach(t=>{ ih+=`<tr><td class="p-2 sm:p-2.5 text-center text-slate-500 font-bold whitespace-nowrap">${String(t.date).substring(8)}일</td><td class="p-2 sm:p-2.5 font-black text-slate-800 text-left leading-tight">${window.escapeHtml(t.type)} ${t.note?`<span class="text-[9px] text-slate-400 font-normal block mt-0.5 leading-tight break-keep">${window.escapeHtml(t.note)}</span>`:''}</td><td class="p-2 sm:p-2.5 text-right font-black text-red-600 whitespace-nowrap">${(Number(t.amount)||0).toLocaleString()}</td></tr>`; });
-        else ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당월 지출 내역이 없습니다.</td></tr>`;
+        if(exps.length) {
+            exps.forEach(t=>{ ih+=`<tr><td class="p-2 sm:p-2.5 text-center text-slate-500 font-bold whitespace-nowrap">${String(t.date).substring(8)}일</td><td class="p-2 sm:p-2.5 font-black text-slate-800 text-left leading-tight">${window.escapeHtml(t.type)} ${t.note?`<span class="text-[9px] text-slate-400 font-normal block mt-0.5 leading-tight break-keep">${window.escapeHtml(t.note)}</span>`:''}</td><td class="p-2 sm:p-2.5 text-right font-black text-red-600 whitespace-nowrap">${(Number(t.amount)||0).toLocaleString()}</td></tr>`; });
+            
+            let catExp = {};
+            exps.forEach(t => { 
+                let cat = t.type || '기타'; 
+                if(!catExp[cat]) catExp[cat] = 0; 
+                catExp[cat] += Number(t.amount)||0; 
+            });
+            const cExpKeys = Object.keys(catExp).sort((a,b)=>catExp[b]-catExp[a]);
+            let expSummaryHtml = cExpKeys.map(c => {
+                let dispC = window.escapeHtml(c);
+                if(c.includes('식대')) dispC = `<span class="text-orange-600 font-bold">${dispC}</span>`;
+                else if(c.includes('생수') || c.includes('간식')) dispC = `<span class="text-teal-600 font-bold">${dispC}</span>`;
+                else if(c.includes('용품')) dispC = `<span class="text-blue-600 font-black">${dispC}</span>`;
+                else if(c.includes('대회참가비')) dispC = `<span class="text-purple-600 font-black">${dispC}</span>`;
+                else if(c.includes('협회비')) dispC = `<span class="text-indigo-600 font-bold">${dispC}</span>`;
+                else if(c.includes('찬조금')) dispC = `<span class="text-emerald-600 font-bold">${dispC}</span>`;
+                else if(c.includes('경조사비')) dispC = `<span class="text-rose-600 font-black">${dispC}</span>`;
+                else if(c.includes('행사')) dispC = `<span class="text-pink-600 font-black">${dispC}</span>`;
+                return `<span class="whitespace-nowrap bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">${dispC} <span class="text-slate-700 font-black">${catExp[c].toLocaleString()}</span>원</span>`;
+            }).join('');
+            
+            ih+=`<tr class="bg-slate-50 border-t border-slate-200"><td colspan="3" class="p-2 sm:p-3 text-center text-[10px] text-slate-500 font-bold leading-relaxed">당월 지출 요약<div class="mt-1.5 flex flex-wrap justify-center gap-1.5">${expSummaryHtml}</div></td></tr>`;
+        } else {
+            ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당월 지출 내역이 없습니다.</td></tr>`;
+        }
     }
     
     ih+=`<tr class="bg-red-50 border-t-2 border-red-200"><td colspan="2" class="p-2 sm:p-3 text-center font-black text-red-900">${isYearly?'당해':'당월'} 지출 합계</td><td class="p-2 sm:p-3 text-right font-black text-red-700 text-sm sm:text-base whitespace-nowrap">${ce.toLocaleString()}</td></tr></tbody></table></div></div></div>`;
