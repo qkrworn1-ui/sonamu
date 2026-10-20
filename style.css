@@ -817,3 +817,8 @@
         html.dark .fee-dot-before { background: #0f172a; border-color: #334155; }
         html.dark .fee-progress-bar { background: #334155; }
         html.dark .fee-stat-card { border-color: #334155; }
+        
+        /* 년간결산 인쇄 시 세부내역 자동 펼침 출력 */
+        @media print {
+            .yearly-detail-row { display: table-row !important; }
+        }

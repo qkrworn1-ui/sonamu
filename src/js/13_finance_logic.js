@@ -1170,70 +1170,125 @@ window.renderReport = () => {
     }
 
     ih += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8"><div class="space-y-3 md:space-y-4">
-        <h3 class="text-base md:text-lg font-black text-blue-800 border-b-2 border-blue-200 pb-2 flex items-center gap-2"><div class="bg-blue-100 p-1.5 rounded-lg"><i data-lucide="arrow-down-circle" class="w-4 h-4"></i></div> ${isYearly?'당해':'당월'} 수입 내역</h3>
-        <div class="overflow-x-auto nav-scroll"><table class="w-full text-[11px] sm:text-xs border border-slate-200 shadow-sm min-w-[280px]"><thead class="bg-slate-100 text-slate-600"><tr><th class="p-2 sm:p-2.5 border-b font-black whitespace-nowrap">${isYearly?'구분':'일자'}</th><th class="p-2 sm:p-2.5 border-b font-black text-left">${isYearly?'항목':'내역'}</th><th class="p-2 sm:p-2.5 border-b font-black text-right whitespace-nowrap">금액</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+        <div class="flex items-center justify-between border-b-2 border-blue-200 pb-2">
+            <h3 class="text-base md:text-lg font-black text-blue-800 flex items-center gap-2"><div class="bg-blue-100 p-1.5 rounded-lg"><i data-lucide="arrow-down-circle" class="w-4 h-4"></i></div> ${isYearly?'당해':'당월'} 수입 내역</h3>
+            ${isYearly ? `<button type="button" onclick="window.toggleAllYearlyRows('inc')" class="print:hidden text-[10px] md:text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg border border-blue-200 flex items-center gap-1 transition-all"><i data-lucide="chevrons-down" class="w-3.5 h-3.5"></i> <span id="txt-toggle-all-inc">세부내역 전체 펼치기</span></button>` : ''}
+        </div>
+        <div class="overflow-x-auto nav-scroll"><table class="w-full text-[11px] sm:text-xs border border-slate-200 shadow-sm min-w-[280px]"><thead class="bg-slate-100 text-slate-600"><tr><th class="p-2 sm:p-2.5 border-b font-black whitespace-nowrap">${isYearly?'순번':'일자'}</th><th class="p-2 sm:p-2.5 border-b font-black text-left">${isYearly?'항목 (터치 시 세부내역)':'내역'}</th><th class="p-2 sm:p-2.5 border-b font-black text-right whitespace-nowrap">금액</th></tr></thead><tbody class="divide-y divide-slate-100">`;
     
     const incs = (transactions||[]).filter(t=>t.category==='income' && !String(t.type||'').includes('면제') && (isYearly ? String(t.date).substring(0,4)===targetPeriod : String(t.date).substring(0,7)===targetPeriod)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     
     if(isYearly) {
         let catInc = {};
-        let catNotes = {};
+        let catItems = {};
+        let catCounts = {};
+
         incs.forEach(t => { 
             let cat = t.type || '기타'; 
-            if(!catInc[cat]) { catInc[cat] = 0; catNotes[cat] = []; }
+            if(!catInc[cat]) { catInc[cat] = 0; catItems[cat] = []; catCounts[cat] = 0; }
             catInc[cat] += Number(t.amount)||0; 
+            catCounts[cat]++;
+
+            let detail = '';
+            if(t.name && t.name !== '비회원' && t.name !== '시스템') detail += t.name;
             
-            if (cat.includes('특별찬조') || cat.includes('찬조금') || cat === '기타' || cat.includes('식대') || cat.includes('은행이자') || cat.includes('상금/대체입금') || t.note || (t.months && t.months.length) || t.targetYear) {
-                let detail = '';
-                if(t.name && t.name !== '비회원' && t.name !== '시스템') detail += t.name;
-                
-                const txYear = String(t.date||'').substring(0,4);
-                const tYear = t.targetYear ? String(t.targetYear) : txYear;
-                const isDiffYear = tYear && tYear !== targetPeriod;
-                const yearPrefix = isDiffYear ? `[${tYear}년] ` : '';
+            const txDateStr = String(t.date||'');
+            const txYear = txDateStr.substring(0,4);
+            const tYear = t.targetYear ? String(t.targetYear) : txYear;
+            const isDiffYear = tYear && tYear !== targetPeriod;
+            const yearPrefix = isDiffYear ? `[${tYear}년] ` : '';
 
-                if(t.months && Array.isArray(t.months) && t.months.length > 0) detail += ` (${yearPrefix}${t.months.join(',')}월)`;
-                else if(isDiffYear && (cat.includes('회비') || cat.includes('면제'))) detail += ` [${tYear}년도]`;
+            if(t.months && Array.isArray(t.months) && t.months.length > 0) detail += ` (${yearPrefix}${t.months.join(',')}월)`;
+            else if(isDiffYear && (cat.includes('회비') || cat.includes('면제'))) detail += ` [${tYear}년도]`;
 
-                if(t.note && t.note !== '과거 압축') detail += (detail ? ' ['+t.note+']' : t.note);
-                if(detail) catNotes[cat].push(detail + ' ' + (Number(t.amount)||0).toLocaleString());
-            }
+            if(t.note && t.note !== '과거 압축') detail += (detail ? ' ['+t.note+']' : t.note);
+            if(!detail) detail = txDateStr ? txDateStr.substring(5) : '내역';
+
+            catItems[cat].push({
+                date: txDateStr,
+                detail: detail,
+                amount: Number(t.amount)||0
+            });
         });
+
         const cKeys = Object.keys(catInc).sort((a,b)=>catInc[b]-catInc[a]);
-        if(cKeys.length) cKeys.forEach(c => { 
-            let dispC = c;
-            if(c.includes('특별찬조')) dispC = `<span class="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('찬조금')) dispC = `<span class="text-[10px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('[특별청구]')) dispC = `<span class="text-[10px] bg-indigo-100 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('대회참가비')) dispC = `<span class="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('행사참가비')) dispC = `<span class="text-[10px] bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('식대')) dispC = `<span class="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('은행이자')) dispC = `<span class="text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            else if(c.includes('상금/대체입금')) dispC = `<span class="text-[10px] bg-sky-100 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
-            
-            let noteHtml = catNotes[c] && catNotes[c].length ? `<div class="text-[9px] text-slate-400 mt-1 leading-tight font-normal break-keep">${catNotes[c].join('<br>')}</div>` : '';
-            
-            if (c.includes('[특별청구]')) {
-                const titleMatch = c.replace('[특별청구] ', '').trim();
-                const sds = (typeof specialDues !== 'undefined' ? specialDues : []).filter(x => x.title === titleMatch).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-                if (sds.length > 0) {
-                    const sd = sds[0];
-                    const paids = sd.paids || [];
-                    const unpaids = (sd.targets||[]).filter(t => !paids.includes(t));
-                    let statusHtml = '';
-                    if (paids.length > 0) {
-                        statusHtml += `<div class="text-[10px] text-emerald-600 font-bold mt-1.5 bg-emerald-50 inline-block px-1.5 py-0.5 rounded border border-emerald-100 shadow-sm mr-1">납부자: ${paids.join(', ')}</div>`;
+        if(cKeys.length) {
+            cKeys.forEach((c, idx) => { 
+                let dispC = c;
+                if(c.includes('특별찬조')) dispC = `<span class="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('찬조금')) dispC = `<span class="text-[10px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('[특별청구]')) dispC = `<span class="text-[10px] bg-indigo-100 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('대회참가비')) dispC = `<span class="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('행사참가비')) dispC = `<span class="text-[10px] bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('식대')) dispC = `<span class="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('은행이자')) dispC = `<span class="text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('상금/대체입금')) dispC = `<span class="text-[10px] bg-sky-100 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else dispC = `<span class="font-black text-slate-800">${window.escapeHtml(c)}</span>`;
+
+                let statusHtml = '';
+                if (c.includes('[특별청구]')) {
+                    const titleMatch = c.replace('[특별청구] ', '').trim();
+                    const sds = (typeof specialDues !== 'undefined' ? specialDues : []).filter(x => x.title === titleMatch).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+                    if (sds.length > 0) {
+                        const sd = sds[0];
+                        const paids = sd.paids || [];
+                        const unpaids = (sd.targets||[]).filter(t => !paids.includes(t));
+                        if (paids.length > 0) {
+                            statusHtml += `<div class="text-[10px] text-emerald-700 font-bold mt-1.5 bg-emerald-50 p-2 rounded-lg border border-emerald-100 break-keep">납부자 (${paids.length}명): ${paids.join(', ')}</div>`;
+                        }
+                        if (unpaids.length > 0) {
+                            statusHtml += `<div class="text-[10px] text-rose-600 font-bold mt-1 bg-rose-50 p-2 rounded-lg border border-rose-100 break-keep">미납자 (${unpaids.length}명): ${unpaids.join(', ')}</div>`;
+                        }
                     }
-                    if (unpaids.length > 0) {
-                        statusHtml += `<div class="text-[10px] text-rose-500 font-bold mt-1.5 bg-rose-50 inline-block px-1.5 py-0.5 rounded border border-rose-100 shadow-sm">미납자: ${unpaids.join(', ')}</div>`;
-                    }
-                    noteHtml += statusHtml;
                 }
-            }
-            
-            ih+=`<tr><td class="p-2 sm:p-2.5 text-center text-slate-700 font-bold">-</td><td class="p-2 sm:p-2.5 font-black text-slate-800 text-left leading-relaxed">${dispC}${noteHtml}</td><td class="p-2 sm:p-2.5 text-right font-black text-blue-600 whitespace-nowrap">${catInc[c].toLocaleString()}</td></tr>`; 
-        });
-        else ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당해 수입 내역이 없습니다.</td></tr>`;
+
+                const rowId = `yearly-inc-${idx}`;
+                const itemsCount = catCounts[c] || 0;
+                
+                let itemsListHtml = (catItems[c] || []).map(item => `
+                    <div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-b-0 text-[10px] sm:text-[11px]">
+                        <div class="text-slate-700 font-bold leading-tight break-keep pr-2">
+                            ${item.date ? `<span class="text-slate-400 font-normal mr-1">${item.date.substring(5).replace('-','/')}</span>` : ''}
+                            <span>${window.escapeHtml(item.detail)}</span>
+                        </div>
+                        <div class="text-slate-900 font-black whitespace-nowrap text-right">
+                            ${item.amount.toLocaleString()}원
+                        </div>
+                    </div>
+                `).join('');
+
+                ih += `
+                <tr onclick="window.toggleYearlyRow('${rowId}')" class="cursor-pointer hover:bg-blue-50/50 transition-colors select-none">
+                    <td class="p-2 sm:p-2.5 text-center text-slate-400 font-bold whitespace-nowrap text-[11px]">${idx + 1}</td>
+                    <td class="p-2 sm:p-2.5 text-left leading-tight">
+                        <div class="flex items-center justify-between gap-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                ${dispC}
+                                <span class="text-[10px] text-slate-400 font-bold">(${itemsCount}건)</span>
+                            </div>
+                            <span id="arrow-${rowId}" class="print:hidden text-[10px] text-slate-400 font-bold shrink-0 ml-1">▼</span>
+                        </div>
+                    </td>
+                    <td class="p-2 sm:p-2.5 text-right font-black text-blue-600 whitespace-nowrap text-xs sm:text-sm">
+                        ${catInc[c].toLocaleString()}원
+                    </td>
+                </tr>
+                <tr id="detail-${rowId}" class="yearly-detail-row hidden print:table-row bg-slate-50/80 border-t border-slate-100">
+                    <td colspan="3" class="p-2 sm:p-3">
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs space-y-1">
+                            <div class="text-[10px] font-black text-slate-500 mb-1 flex items-center justify-between border-b border-slate-100 pb-1">
+                                <span>${window.escapeHtml(c)} 세부 납부 내역</span>
+                                <span class="text-blue-600 font-bold">총 ${itemsCount}건 / ${catInc[c].toLocaleString()}원</span>
+                            </div>
+                            ${itemsListHtml}
+                            ${statusHtml}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        } else {
+            ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당해 수입 내역이 없습니다.</td></tr>`;
+        }
     } else {
         if(incs.length) {
             incs.forEach(t=>{ 
@@ -1307,29 +1362,96 @@ window.renderReport = () => {
     ih+=`<tr class="bg-blue-50 border-t-2 border-blue-200"><td colspan="2" class="p-2 sm:p-3 text-center font-black text-blue-900">${isYearly?'당해':'당월'} 수입 합계</td><td class="p-2 sm:p-3 text-right font-black text-blue-700 text-sm sm:text-base whitespace-nowrap">${ci.toLocaleString()}</td></tr></tbody></table></div></div>`;
 
     ih += `<div class="space-y-3 md:space-y-4">
-        <h3 class="text-base md:text-lg font-black text-red-800 border-b-2 border-red-200 pb-2 flex items-center gap-2"><div class="bg-red-100 p-1.5 rounded-lg"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i></div> ${isYearly?'당해':'당월'} 지출 내역</h3>
-        <div class="overflow-x-auto nav-scroll"><table class="w-full text-[11px] sm:text-xs border border-slate-200 shadow-sm min-w-[280px]"><thead class="bg-slate-100 text-slate-600"><tr><th class="p-2 sm:p-2.5 border-b font-black whitespace-nowrap">${isYearly?'구분':'일자'}</th><th class="p-2 sm:p-2.5 border-b font-black text-left">${isYearly?'항목':'내역'}</th><th class="p-2 sm:p-2.5 border-b font-black text-right whitespace-nowrap">금액</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+        <div class="flex items-center justify-between border-b-2 border-red-200 pb-2">
+            <h3 class="text-base md:text-lg font-black text-red-800 flex items-center gap-2"><div class="bg-red-100 p-1.5 rounded-lg"><i data-lucide="arrow-up-circle" class="w-4 h-4"></i></div> ${isYearly?'당해':'당월'} 지출 내역</h3>
+            ${isYearly ? `<button type="button" onclick="window.toggleAllYearlyRows('exp')" class="print:hidden text-[10px] md:text-xs bg-red-50 hover:bg-red-100 text-red-700 font-bold px-2.5 py-1 rounded-lg border border-red-200 flex items-center gap-1 transition-all"><i data-lucide="chevrons-down" class="w-3.5 h-3.5"></i> <span id="txt-toggle-all-exp">세부내역 전체 펼치기</span></button>` : ''}
+        </div>
+        <div class="overflow-x-auto nav-scroll"><table class="w-full text-[11px] sm:text-xs border border-slate-200 shadow-sm min-w-[280px]"><thead class="bg-slate-100 text-slate-600"><tr><th class="p-2 sm:p-2.5 border-b font-black whitespace-nowrap">${isYearly?'순번':'일자'}</th><th class="p-2 sm:p-2.5 border-b font-black text-left">${isYearly?'항목 (터치 시 세부내역)':'내역'}</th><th class="p-2 sm:p-2.5 border-b font-black text-right whitespace-nowrap">금액</th></tr></thead><tbody class="divide-y divide-slate-100">`;
     
     const exps = (transactions||[]).filter(t=>t.category==='expense' && (isYearly ? String(t.date).substring(0,4)===targetPeriod : String(t.date).substring(0,7)===targetPeriod)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     
     if(isYearly) {
         let catExp = {};
-        let catNotes = {};
+        let catExpItems = {};
+        let catExpCounts = {};
+
         exps.forEach(t => { 
             let cat = t.type || '기타'; 
-            if(!catExp[cat]) { catExp[cat] = 0; catNotes[cat] = []; }
+            if(!catExp[cat]) { catExp[cat] = 0; catExpItems[cat] = []; catExpCounts[cat] = 0; }
             catExp[cat] += Number(t.amount)||0; 
-            
-            if (t.note && t.note !== '과거 압축') {
-                catNotes[cat].push(window.escapeHtml(t.note) + ' ' + (Number(t.amount)||0).toLocaleString());
-            }
+            catExpCounts[cat]++;
+
+            const txDateStr = String(t.date || '');
+            let detail = t.note && t.note !== '과거 압축' ? t.note : '';
+            if(!detail) detail = txDateStr ? txDateStr.substring(5) : '지출';
+
+            catExpItems[cat].push({
+                date: txDateStr,
+                detail: detail,
+                amount: Number(t.amount)||0
+            });
         });
+
         const cKeys = Object.keys(catExp).sort((a,b)=>catExp[b]-catExp[a]);
-        if(cKeys.length) cKeys.forEach(c => { 
-            let noteHtml = catNotes[c] && catNotes[c].length ? `<div class="text-[9px] text-slate-400 mt-1 leading-tight font-normal break-keep">${catNotes[c].join('<br>')}</div>` : '';
-            ih+=`<tr><td class="p-2 sm:p-2.5 text-center text-slate-700 font-bold">-</td><td class="p-2 sm:p-2.5 font-black text-slate-800 text-left leading-relaxed">${window.escapeHtml(c)}${noteHtml}</td><td class="p-2 sm:p-2.5 text-right font-black text-red-600 whitespace-nowrap">${catExp[c].toLocaleString()}</td></tr>`; 
-        });
-        else ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당해 지출 내역이 없습니다.</td></tr>`;
+        if(cKeys.length) {
+            cKeys.forEach((c, idx) => { 
+                const rowId = `yearly-exp-${idx}`;
+                const itemsCount = catExpCounts[c] || 0;
+
+                let dispC = c;
+                if(c.includes('식대')) dispC = `<span class="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('생수') || c.includes('간식')) dispC = `<span class="text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('용품')) dispC = `<span class="text-[10px] bg-blue-100 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('대회참가비')) dispC = `<span class="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('협회비')) dispC = `<span class="text-[10px] bg-indigo-100 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('찬조금')) dispC = `<span class="text-[10px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('경조사비')) dispC = `<span class="text-[10px] bg-rose-100 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else if(c.includes('행사')) dispC = `<span class="text-[10px] bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+                else dispC = `<span class="font-black text-slate-800">${window.escapeHtml(c)}</span>`;
+
+                let itemsListHtml = (catExpItems[c] || []).map(item => `
+                    <div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-b-0 text-[10px] sm:text-[11px]">
+                        <div class="text-slate-700 font-bold leading-tight break-keep pr-2">
+                            ${item.date ? `<span class="text-slate-400 font-normal mr-1">${item.date.substring(5).replace('-','/')}</span>` : ''}
+                            <span>${window.escapeHtml(item.detail)}</span>
+                        </div>
+                        <div class="text-slate-900 font-black whitespace-nowrap text-right">
+                            ${item.amount.toLocaleString()}원
+                        </div>
+                    </div>
+                `).join('');
+
+                ih += `
+                <tr onclick="window.toggleYearlyRow('${rowId}')" class="cursor-pointer hover:bg-red-50/50 transition-colors select-none">
+                    <td class="p-2 sm:p-2.5 text-center text-slate-400 font-bold whitespace-nowrap text-[11px]">${idx + 1}</td>
+                    <td class="p-2 sm:p-2.5 text-left leading-tight">
+                        <div class="flex items-center justify-between gap-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                ${dispC}
+                                <span class="text-[10px] text-slate-400 font-bold">(${itemsCount}건)</span>
+                            </div>
+                            <span id="arrow-${rowId}" class="print:hidden text-[10px] text-slate-400 font-bold shrink-0 ml-1">▼</span>
+                        </div>
+                    </td>
+                    <td class="p-2 sm:p-2.5 text-right font-black text-red-600 whitespace-nowrap text-xs sm:text-sm">
+                        ${catExp[c].toLocaleString()}원
+                    </td>
+                </tr>
+                <tr id="detail-${rowId}" class="yearly-detail-row hidden print:table-row bg-slate-50/80 border-t border-slate-100">
+                    <td colspan="3" class="p-2 sm:p-3">
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs space-y-1">
+                            <div class="text-[10px] font-black text-slate-500 mb-1 flex items-center justify-between border-b border-slate-100 pb-1">
+                                <span>${window.escapeHtml(c)} 세부 지출 내역</span>
+                                <span class="text-red-600 font-bold">총 ${itemsCount}건 / ${catExp[c].toLocaleString()}원</span>
+                            </div>
+                            ${itemsListHtml}
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        } else {
+            ih+=`<tr><td colspan="3" class="p-6 text-center text-slate-400 font-bold">당해 지출 내역이 없습니다.</td></tr>`;
+        }
     } else {
         if(exps.length) {
             exps.forEach(t=>{ ih+=`<tr><td class="p-2 sm:p-2.5 text-center text-slate-500 font-bold whitespace-nowrap">${String(t.date).substring(8)}일</td><td class="p-2 sm:p-2.5 font-black text-slate-800 text-left leading-tight">${window.escapeHtml(t.type)} ${t.note?`<span class="text-[9px] text-slate-400 font-normal block mt-0.5 leading-tight break-keep">${window.escapeHtml(t.note)}</span>`:''}</td><td class="p-2 sm:p-2.5 text-right font-black text-red-600 whitespace-nowrap">${(Number(t.amount)||0).toLocaleString()}</td></tr>`; });
@@ -1436,6 +1558,45 @@ window.renderReport = () => {
 
     rb.innerHTML = ih;
     if(window.lucide) window.lucide.createIcons();
+};
+
+window.toggleYearlyRow = (rowId) => {
+    const detailRow = window.$('detail-' + rowId);
+    const arrow = window.$('arrow-' + rowId);
+    if (!detailRow) return;
+    const isHidden = detailRow.classList.contains('hidden');
+    if (isHidden) {
+        detailRow.classList.remove('hidden');
+        if (arrow) arrow.innerText = '▲';
+    } else {
+        detailRow.classList.add('hidden');
+        if (arrow) arrow.innerText = '▼';
+    }
+};
+
+window.toggleAllYearlyRows = (type) => {
+    const btnText = window.$(`txt-toggle-all-${type}`);
+    const rows = document.querySelectorAll(`[id^="detail-yearly-${type}-"]`);
+    if (!rows.length) return;
+    
+    let hasHidden = false;
+    rows.forEach(r => { if (r.classList.contains('hidden')) hasHidden = true; });
+
+    rows.forEach(r => {
+        const id = r.id.replace('detail-', '');
+        const arrow = window.$('arrow-' + id);
+        if (hasHidden) {
+            r.classList.remove('hidden');
+            if (arrow) arrow.innerText = '▲';
+        } else {
+            r.classList.add('hidden');
+            if (arrow) arrow.innerText = '▼';
+        }
+    });
+
+    if (btnText) {
+        btnText.innerText = hasHidden ? '세부내역 전체 접기' : '세부내역 전체 펼치기';
+    }
 };
 
 window.saveReportNote = async (period) => {
