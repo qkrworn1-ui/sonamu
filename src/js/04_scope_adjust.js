@@ -71,7 +71,7 @@ window.selectAccount = (type, value) => {
         }
 
         window.updatePaidMonthsUI();
-        window.autoPrice();
+        window.autoPrice(false);
         const noteEl = window.$('income-note');
         if(noteEl) {
             if(value.includes('특별찬조') || value.includes('찬조금') || value === '직접입력' || value.includes('식대') || value === '은행이자및캐쉬백' || value === '상금/대체입금') {
@@ -98,6 +98,6 @@ window.selectIncomeMember = (name) => {
     const b = window.$('income-member-display');
     if(b) { b.innerText = name; window.$('btn-income-member').classList.remove('text-slate-400'); window.$('btn-income-member').classList.add('text-slate-800'); }
     window.updatePaidMonthsUI();
-    window.autoPrice();
+    window.autoPrice(false);
     window.closeMemberSelectModal();
 };

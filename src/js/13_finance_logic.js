@@ -36,24 +36,58 @@ window.updatePaidMonthsUI = () => {
         }
     });
 };
-window.autoPrice = () => { const a=window.$('income-account')?.value, iF=a==='월회비'||a==='년회비'||a?.includes('면제'), iM=a==='월회비'||a==='면제'; window.$('month-selector-container')?.classList.toggle('hidden',!iM); window.$('year-selector-container')?.classList.toggle('hidden',!iF); if(iM) window.setVal('income-amount',a==='월회비'?20000*Array.from(document.querySelectorAll('.income-month-cb:checked:not(:disabled)')).length:0); else window.setVal('income-amount',a==='년회비'?200000:(a?.includes('면제')?0:'')); };
+window.autoPrice = (forceRecalc = false) => {
+    const a = window.$('income-account')?.value;
+    const iF = a === '월회비' || a === '년회비' || a?.includes('면제');
+    const iM = a === '월회비' || a === '면제';
+    window.$('month-selector-container')?.classList.toggle('hidden', !iM);
+    window.$('year-selector-container')?.classList.toggle('hidden', !iF);
+    
+    // [중요] 수정 모드(editingTransactionId 존재)이거나 기존 금액이 입력되어 있을 때 forceRecalc이 아니면 기존 금액 보존!
+    if (editingTransactionId && !forceRecalc) {
+        const curAmt = window.$('income-amount')?.value;
+        if (curAmt !== undefined && curAmt !== '' && curAmt !== null) {
+            return;
+        }
+    }
+    
+    if (iM) {
+        window.setVal('income-amount', a === '월회비' ? 20000 * Array.from(document.querySelectorAll('.income-month-cb:checked:not(:disabled)')).length : 0);
+    } else {
+        window.setVal('income-amount', a === '년회비' ? 200000 : (a?.includes('면제') ? 0 : ''));
+    }
+};
 window.updateMemberSelect = () => { window.setHtml('income-member', '<option value="">선택</option>'+(members||[]).filter(m=>m.role!=='파트너' && m.role!=='준회원' && m.role!=='초청선수').map(m=>`<option value="${m.name}">${m.name}</option>`).join('')); const mc=window.$('month-checkboxes'); if(mc&&!mc.innerHTML) window.setHtml('month-checkboxes', Array.from({length:12},(_,i)=>`<label class="flex flex-col items-center bg-white border p-1.5 rounded"><input type="checkbox" class="income-month-cb" value="${i+1}" onchange="window.autoPrice()"><span class="text-xs">${i+1}월</span></label>`).join('')); window.updatePaidMonthsUI(); };
 window.resetTransactionForm = c => { 
-    editingTransactionId=null; 
-    window.setVal(c+'-member'); window.setVal(c+'-account'); window.$(c+'-account')?.classList.add('hidden'); 
-    window.setVal(c+'-amount'); window.setVal(c+'-note'); window.$('btn-'+c+'-cancel')?.classList.add('hidden'); 
-    const b=window.$('btn-'+c+'-submit'); if(b) b.innerText='등록'; 
-    const ad=window.$(`btn-${c}-account`)?.querySelector('span') || window.$(`${c}-account-display`);
-    if(ad) { ad.innerText='항목 선택'; window.$(`btn-${c}-account`)?.classList.add('text-slate-400'); window.$(`btn-${c}-account`)?.classList.remove('text-slate-800'); }
-    if(c==='expense') window.clearReceipt();
-    if(c==='income'){ 
-        const md=window.$('income-member-display'); 
-        const mb=window.$('btn-income-member');
-        if(md){ md.innerText='회원 선택'; } 
-        if(mb){ mb.classList.add('text-slate-400'); mb.classList.remove('text-slate-800', 'opacity-50', 'pointer-events-none', 'bg-slate-50'); }
-        document.querySelectorAll('.income-month-cb').forEach(cb=>{cb.checked=false;cb.disabled=false;cb.parentElement.classList.remove('opacity-40');}); 
-        window.$('income-note')?.classList.add('hidden'); window.autoPrice();
-    } 
+    editingTransactionId = null; 
+    window.setVal(c + '-member'); window.setVal(c + '-account'); window.$(c + '-account')?.classList.add('hidden'); 
+    window.setVal(c + '-amount'); window.setVal(c + '-note'); window.$('btn-' + c + '-cancel')?.classList.add('hidden'); 
+    const b = window.$('btn-' + c + '-submit');
+    if (b) {
+        b.innerText = '등록';
+        b.className = "flex-1 bg-slate-900 hover:bg-slate-800 text-white p-3 rounded-xl font-black shadow-md transition-all";
+    }
+    const ad = window.$(`btn-${c}-account`)?.querySelector('span') || window.$(`${c}-account-display`);
+    if (ad) {
+        ad.innerText = '항목 선택';
+        window.$(`btn-${c}-account`)?.classList.add('text-slate-400');
+        window.$(`btn-${c}-account`)?.classList.remove('text-slate-800');
+    }
+    if (c === 'expense') window.clearReceipt();
+    if (c === 'income') { 
+        const md = window.$('income-member-display'); 
+        const mb = window.$('btn-income-member');
+        if (md) { md.innerText = '회원 선택'; } 
+        if (mb) { mb.classList.add('text-slate-400'); mb.classList.remove('text-slate-800', 'opacity-50', 'pointer-events-none', 'bg-slate-50'); }
+        document.querySelectorAll('.income-month-cb').forEach(cb => { cb.checked = false; cb.disabled = false; cb.parentElement.classList.remove('opacity-40'); }); 
+        window.$('income-note')?.classList.add('hidden');
+        window.autoPrice(true);
+    }
+    // 신규 등록용 오늘 날짜로 재설정
+    if (window.getTodayString) window.setVal(c + '-date', window.getTodayString());
+    // 수정 모드 알림 배너 제거
+    const banner = window.$('finance-edit-banner-' + c);
+    if (banner) banner.remove();
 };
 window.addTransaction = async c => {
     if(c==='income' && !window.isFinanceAdmin()) { window.showAlert("권한이 없습니다."); return; }
@@ -150,15 +184,32 @@ window.editTransaction = id => {
     const c = t.category;
     editingTransactionId = id;
 
-    // 탭 전환
+    // 1. 탭 전환
     if (typeof window.switchFinanceTab === 'function') window.switchFinanceTab(c);
 
-    // 공통 필드 채우기
-    window.setVal(c + '-amount', t.amount);
-    window.setVal(c + '-date', t.date);
+    // 2. 날짜 정규화 및 설정 (YYYY-MM-DD 형식 확실 보장)
+    let formattedDate = '';
+    if (t.date) {
+        const m = String(t.date).match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+        if (m) {
+            formattedDate = `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`;
+        } else {
+            const parsed = new Date(t.date);
+            if (!isNaN(parsed.getTime())) {
+                formattedDate = parsed.toISOString().slice(0, 10);
+            } else {
+                formattedDate = window.getTodayString ? window.getTodayString() : '';
+            }
+        }
+    } else {
+        formattedDate = window.getTodayString ? window.getTodayString() : '';
+    }
+    window.setVal(c + '-date', formattedDate);
+
+    // 3. 메모 및 공통 필드
     window.setVal(c + '-note', t.note || '');
 
-    // 항목(계정) 처리
+    // 4. 항목(계정) 처리
     const accInput = window.$(c + '-account');
     const accDisplay = window.$(c + '-account-display');
     const accBtn = window.$(`btn-${c}-account`);
@@ -173,39 +224,41 @@ window.editTransaction = id => {
             accDisplay.innerText = t.type;
             accInput.classList.add('hidden');
         } else {
-            accInput.value = t.type;
-            accDisplay.innerText = '직접입력';
+            accInput.value = t.type || '';
+            accDisplay.innerText = t.type ? t.type : '직접입력';
             accInput.classList.remove('hidden');
         }
-        if(accBtn) { accBtn.classList.remove('text-slate-400'); accBtn.classList.add('text-slate-800'); }
+        if (accBtn) { accBtn.classList.remove('text-slate-400'); accBtn.classList.add('text-slate-800'); }
     }
 
+    // 5. 수입/지출 전용 필드 처리
     if (c === 'income') {
-        window.setVal('income-member', t.name);
+        window.setVal('income-member', t.name || '');
         const memDisplay = window.$('income-member-display');
         const memBtn = window.$('btn-income-member');
         if (memDisplay) memDisplay.innerText = t.name || '회원 선택';
         
         if (String(t.type).includes('특별찬조') || t.type === '은행이자및캐쉬백' || t.type === '상금/대체입금') {
-            if(memBtn) memBtn.classList.add('opacity-50', 'pointer-events-none', 'bg-slate-50');
+            if (memBtn) memBtn.classList.add('opacity-50', 'pointer-events-none', 'bg-slate-50');
         } else {
-            if(memBtn) memBtn.classList.remove('opacity-50', 'pointer-events-none', 'bg-slate-50');
+            if (memBtn) memBtn.classList.remove('opacity-50', 'pointer-events-none', 'bg-slate-50');
         }
 
         if (t.targetYear) window.setVal('income-target-year', t.targetYear);
         
-        // 월 선택 처리
+        // 월 선택 체크박스 처리
         document.querySelectorAll('.income-month-cb').forEach(cb => {
             cb.checked = (t.months || []).includes(cb.value);
             cb.disabled = false;
             cb.parentElement.classList.remove('opacity-40');
         });
         
-        window.autoPrice();
+        // UI 컨테이너 표시 여부 조정 (금액 덮어쓰기 방지: forceRecalc=false)
+        window.autoPrice(false);
         
         const noteEl = window.$('income-note');
         if (noteEl) {
-            if(String(t.type).includes('특별찬조') || String(t.type).includes('찬조금') || t.type === '직접입력' || String(t.type).includes('식대') || t.type === '은행이자및캐쉬백' || t.type === '상금/대체입금' || t.note) {
+            if (String(t.type).includes('특별찬조') || String(t.type).includes('찬조금') || t.type === '직접입력' || String(t.type).includes('식대') || t.type === '은행이자및캐쉬백' || t.type === '상금/대체입금' || t.note) {
                 noteEl.classList.remove('hidden');
                 noteEl.placeholder = String(t.type).includes('비회원') ? '비고 (성명, 내역 등 기재)' : (t.type === '상금/대체입금' ? '비고 (대회명, 입금자명, 내역 등 기재)' : (t.type === '은행이자및캐쉬백' ? '비고 (예금이자, 캐쉬백 등)' : '비고 (내용 등)'));
             } else {
@@ -227,11 +280,49 @@ window.editTransaction = id => {
         }
     }
 
-    const submitBtn = window.$('btn-' + c + '-submit');
-    if (submitBtn) submitBtn.innerText = '수정 완료';
-    window.$('btn-' + c + '-cancel')?.classList.remove('hidden');
+    // 6. [핵심] 기존 금액 설정 (autoPrice() 뒤에서 기존 금액 100% 확실 보장!)
+    if (t.amount !== undefined && t.amount !== null) {
+        window.setVal(c + '-amount', t.amount);
+    }
 
-    window.scrollTo({ top: window.$(c + '-view').offsetTop - 100, behavior: 'smooth' });
+    // 7. 등록 버튼을 '수정 완료'로 전환 및 취소 버튼 활성화
+    const submitBtn = window.$('btn-' + c + '-submit');
+    if (submitBtn) {
+        submitBtn.innerText = '수정 완료';
+        submitBtn.className = "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-black shadow-md transition-all";
+    }
+    const cancelBtn = window.$('btn-' + c + '-cancel');
+    if (cancelBtn) {
+        cancelBtn.classList.remove('hidden');
+    }
+
+    // 8. 상단 내역 수정 안내 배너 노출
+    const editContainer = window.$(c + '-view')?.querySelector('.bg-white.p-6');
+    if (editContainer) {
+        let banner = window.$('finance-edit-banner-' + c);
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'finance-edit-banner-' + c;
+            editContainer.prepend(banner);
+        }
+        banner.className = "mb-4 p-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-2xl flex items-center justify-between text-xs font-black text-indigo-900 shadow-sm animate-newsFadeIn";
+        banner.innerHTML = `
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-black">수정 모드</span>
+                <span>기존 날짜(<strong>${formattedDate}</strong>)와 금액(<strong>${(Number(t.amount)||0).toLocaleString()}원</strong>)이 자동 입력되었습니다. 항목 등을 수정한 후 [수정 완료]를 누르세요.</span>
+            </div>
+            <button type="button" onclick="window.resetTransactionForm('${c}')" class="text-[11px] text-slate-500 hover:text-rose-600 underline ml-2 font-black shrink-0">수정 취소</button>
+        `;
+    }
+
+    // 9. 폼 영역으로 부드럽게 스크롤 이동
+    const formView = window.$(c + '-view');
+    if (formView) {
+        formView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.showToast) {
+        window.showToast(`기존 내역(날짜: ${formattedDate}, 금액: ${(Number(t.amount)||0).toLocaleString()}원)을 불러왔습니다.`);
+    }
 };
 window.restoreTransaction = async id => { 
     if(window.isSavingData) return; window.isSavingData=true; 
