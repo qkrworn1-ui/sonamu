@@ -378,7 +378,7 @@ window.getMemberMileageItems = (m, evts = teamEvents, pList = posts, targetYear 
                         if (['참석', 'attend', 'late', '지각'].includes(baseV)) {
                             const isFuture = d > window.getTodayString();
                             if (!isFuture || explicitlyVoted) {
-                                items.push({ d, desc: `운동 참석 보너스`, p: 1, icon: 'user-check' });
+                                items.push({ d, desc: `운동 참석 보너스`, p: 2, icon: 'user-check' });
                             }
                         }
                     }
@@ -405,7 +405,7 @@ window.getMemberMileageItems = (m, evts = teamEvents, pList = posts, targetYear 
                             items.push({ d: pDate, desc: `운동 투표 참여 (기록)`, p: 2, icon: 'history' });
                         }
                         if (['참석', 'attend', 'late', '지각'].includes(baseV)) {
-                            items.push({ d: pDate, desc: `운동 참석 보너스 (기록)`, p: 1, icon: 'user-check' });
+                            items.push({ d: pDate, desc: `운동 참석 보너스 (기록)`, p: 2, icon: 'user-check' });
                         }
                     }
                 }

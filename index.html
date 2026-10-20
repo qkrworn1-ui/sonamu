@@ -82,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=119"></script>
-    <link rel="stylesheet" href="style.css?v=119">
+    <script src="firebase-config.js?v=120"></script>
+    <link rel="stylesheet" href="style.css?v=120">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -285,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.0</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.1</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -421,7 +421,7 @@
                     </div>
                     <div class="px-2 pb-0.5 text-[9px] text-white/40 font-bold flex items-center gap-1">
                         <i data-lucide="info" class="w-2.5 h-2.5"></i>
-                        선정 기준: 운동 참석(3~5pt) 및 각종 투표 참여(2pt) 등 누적 마일리지 합계 (정규회원 이상)
+                        선정 기준: 운동 참석(4pt) 및 각종 투표 참여(2pt) 등 누적 마일리지 합계 (정규회원 이상)
                     </div>
                 </div>
 
@@ -875,9 +875,8 @@
                             <div class="flex flex-col gap-1">
                                 <label class="text-[10px] font-black text-slate-500 uppercase tracking-wider">부여 점수 (복구 포인트)</label>
                                 <select id="recovery-pts" class="w-full border-2 p-3 rounded-xl bg-white font-black outline-none focus:border-rose-400 text-sm">
-                                    <option value="5">🔥 5점 (투표 + 참석)</option>
-                                    <option value="2">🗳️ 2점 (투표만 수행)</option>
-                                    <option value="3">🏃 3점 (참석만 수행)</option>
+                                    <option value="4">🔥 4점 (투표 + 참석)</option>
+                                    <option value="2">🗳️ 2점 (투표 또는 참석)</option>
                                 </select>
                             </div>
                         </div>
@@ -1043,7 +1042,7 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-indigo-100/50 pt-3">
                                         <div class="flex items-center gap-2">
                                             <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
-                                            <span class="text-[10px] font-black text-slate-600">운동 참석: <span class="text-blue-600">3 PT</span> (투표2 + 참석1)</span>
+                                            <span class="text-[10px] font-black text-slate-600">운동 참석: <span class="text-blue-600">4 PT</span> (투표2 + 참석2)</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="w-1 h-1 bg-indigo-400 rounded-full"></span>
@@ -1482,24 +1481,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=119"></script>
-<script src="src/js/02_env_version.js?v=119"></script>
-<script src="src/js/03_init_utils.js?v=119"></script>
-<script src="src/js/04_scope_adjust.js?v=119"></script>
-<script src="src/js/05_mileage_engine.js?v=119"></script>
-<script src="src/js/06_common_ui_utils.js?v=119"></script>
-<script src="src/js/07_firebase_init.js?v=119"></script>
-<script src="src/js/08_auth_logic.js?v=119"></script>
-<script src="src/js/09_navigation_sync.js?v=119"></script>
-<script src="src/js/10_dashboard_logic.js?v=119"></script>
-<script src="src/js/11_vote_logic.js?v=119"></script>
-<script src="src/js/12_team_mgmt.js?v=119"></script>
-<script src="src/js/13_finance_logic.js?v=119"></script>
-<script src="src/js/14_member_mgmt.js?v=119"></script>
-<script src="src/js/15_board_logic.js?v=119"></script>
-<script src="src/js/16_gallery_report.js?v=119"></script>
-<script src="src/js/17_calendar_logic.js?v=119"></script>
-<script src="src/js/18_member_positions.js?v=119"></script>
+<script src="src/js/01_kakao_optimization.js?v=120"></script>
+<script src="src/js/02_env_version.js?v=120"></script>
+<script src="src/js/03_init_utils.js?v=120"></script>
+<script src="src/js/04_scope_adjust.js?v=120"></script>
+<script src="src/js/05_mileage_engine.js?v=120"></script>
+<script src="src/js/06_common_ui_utils.js?v=120"></script>
+<script src="src/js/07_firebase_init.js?v=120"></script>
+<script src="src/js/08_auth_logic.js?v=120"></script>
+<script src="src/js/09_navigation_sync.js?v=120"></script>
+<script src="src/js/10_dashboard_logic.js?v=120"></script>
+<script src="src/js/11_vote_logic.js?v=120"></script>
+<script src="src/js/12_team_mgmt.js?v=120"></script>
+<script src="src/js/13_finance_logic.js?v=120"></script>
+<script src="src/js/14_member_mgmt.js?v=120"></script>
+<script src="src/js/15_board_logic.js?v=120"></script>
+<script src="src/js/16_gallery_report.js?v=120"></script>
+<script src="src/js/17_calendar_logic.js?v=120"></script>
+<script src="src/js/18_member_positions.js?v=120"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
@@ -1653,8 +1652,8 @@
                         <div class="flex items-start gap-2.5">
                             <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0"></div>
                             <div>
-                                <div class="text-[10px] font-black text-slate-800">운동 참석: <span class="text-blue-600">3 PT</span></div>
-                                <div class="text-[11px] text-slate-700 font-bold leading-tight">투표 참여(2pt) + 실제 참석 보너스(1pt) 합산</div>
+                                <div class="text-[10px] font-black text-slate-800">운동 참석: <span class="text-blue-600">4 PT</span></div>
+                                <div class="text-[11px] text-slate-700 font-bold leading-tight">투표 참여(2pt) + 실제 참석 보너스(2pt) 합산</div>
                             </div>
                         </div>
                         <div class="flex items-start gap-2.5">
@@ -1781,9 +1780,9 @@
                     </h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-4">
-                            <div class="font-black text-blue-700 mb-1.5">⚽ 정기 운동 참석 (3pt)</div>
+                            <div class="font-black text-blue-700 mb-1.5">⚽ 정기 운동 참석 (4pt)</div>
                             <ul class="list-disc pl-4 space-y-1 text-slate-600 font-bold text-[11px]">
-                                <li>운동 투표 참여 후 실제 참석 시: <strong>+3 PT</strong></li>
+                                <li>운동 투표 참여 후 실제 참석 시: <strong>+4 PT</strong> (투표 2pt + 참석 2pt)</li>
                                 <li>(단순 투표만 하고 운동 미참석 시: <strong>+2 PT</strong>)</li>
                             </ul>
                         </div>
