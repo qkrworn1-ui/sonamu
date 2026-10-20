@@ -251,14 +251,7 @@ window.updateDashboard = () => {
         } else luckBtnContainer.classList.add('hidden');
     }
 
-    const luckDiv = window.$('dashboard-luck-winners');
-    if (luckDiv) {
-        const winners = luckyWinners ? luckyWinners[td] : null;
-        if (winners && winners.length > 0) {
-            luckDiv.classList.remove('hidden');
-            luckDiv.innerHTML = `<div class="news-card border-2 border-amber-500 bg-amber-50/30 news-fade-in"><div class="news-label text-amber-600 border-amber-600">Special Extra</div><div class="flex flex-col md:flex-row items-center justify-between gap-4"><div class="flex items-center gap-3"><i data-lucide="award" class="w-8 h-8 text-amber-600"></i><div><h4 class="text-lg font-black text-slate-800">축! 행운 마일리지 당첨</h4><p class="text-[10px] font-bold text-amber-700 uppercase">Daily Draw Result</p></div></div><div class="flex flex-wrap gap-2 justify-center">${winners.map(w => `<span class="bg-white border-2 border-amber-400 px-4 py-1.5 rounded-sm font-black text-slate-800 shadow-sm text-sm">${w}</span>`).join('')}</div><div class="text-right text-[11px] font-black text-slate-700">각 <span class="text-amber-600">${typeof luckMileageAmount === 'number' ? luckMileageAmount : 10} PT</span> 적립 완료</div></div><div class="mt-3 pt-2 border-t border-amber-200 text-[9px] text-amber-600/70 font-bold flex items-center gap-1"><i data-lucide="info" class="w-2.5 h-2.5"></i> 선정 기준: 전일 운동 투표 또는 각종 투표 참여자 중 랜덤 선정 (정규회원 이상)</div></div>`;
-        } else luckDiv.classList.add('hidden');
-    }
+
     
     const excludeRoles = ['준회원', '파트너', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
     window.setText('summary-members', (members||[]).filter(m=>!excludeRoles.includes(m.role)).length+'명');
@@ -524,7 +517,7 @@ window.updateDashboard = () => {
 
         eligibleM.forEach(m => {
             // [수정] 실시간 계산 엔진(Source of Truth)을 사용하여 대시보드 점수 정확도 보장
-            memberScores.push({ id: m.id, name: m.name, score: window.getMemberCalculatedScore(m, teamEvents, posts) });
+            memberScores.push({ id: m.id, name: m.name, score: window.getMemberCalculatedScore(m, teamEvents, posts, null, true) });
         });
 
         // 점수 순 정렬 (공동 순위 그룹화)
