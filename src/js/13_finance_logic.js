@@ -215,7 +215,7 @@ window.editTransaction = id => {
     const accBtn = window.$(`btn-${c}-account`);
     
     if (accInput && accDisplay) {
-        const incomeList = ['월회비', '년회비', '찬조금(회원)', '특별찬조(비회원)', '면제', '식대(개별납부)', '은행이자및캐쉬백', '상금/대체입금', '직접입력'];
+        const incomeList = ['월회비', '년회비', '찬조금(회원)', '특별찬조(비회원)', '대회참가비', '행사참가비', '면제', '식대(개별납부)', '은행이자및캐쉬백', '상금/대체입금', '직접입력'];
         const expenseList = ['식대', '생수및간식', '용품', '대한족구협회비', '구리시족구협회비', '찬조금', '경조사비', '행사준비비', '직접입력'];
         const list = c === 'income' ? incomeList : expenseList;
         
@@ -258,9 +258,9 @@ window.editTransaction = id => {
         
         const noteEl = window.$('income-note');
         if (noteEl) {
-            if (String(t.type).includes('특별찬조') || String(t.type).includes('찬조금') || t.type === '직접입력' || String(t.type).includes('식대') || t.type === '은행이자및캐쉬백' || t.type === '상금/대체입금' || t.note) {
+            if (String(t.type).includes('특별찬조') || String(t.type).includes('찬조금') || t.type === '직접입력' || String(t.type).includes('식대') || t.type === '은행이자및캐쉬백' || t.type === '상금/대체입금' || String(t.type).includes('참가비') || t.note) {
                 noteEl.classList.remove('hidden');
-                noteEl.placeholder = String(t.type).includes('비회원') ? '비고 (성명, 내역 등 기재)' : (t.type === '상금/대체입금' ? '비고 (대회명, 입금자명, 내역 등 기재)' : (t.type === '은행이자및캐쉬백' ? '비고 (예금이자, 캐쉬백 등)' : '비고 (내용 등)'));
+                noteEl.placeholder = String(t.type).includes('비회원') ? '비고 (성명, 내역 등 기재)' : (t.type === '상금/대체입금' ? '비고 (대회명, 입금자명, 내역 등 기재)' : (String(t.type).includes('대회') ? '비고 (대회명, 부서 등 기재)' : (String(t.type).includes('행사') ? '비고 (행사명, 내용 등 기재)' : (t.type === '은행이자및캐쉬백' ? '비고 (예금이자, 캐쉬백 등)' : '비고 (내용 등)'))));
             } else {
                 noteEl.classList.add('hidden');
             }
@@ -421,6 +421,8 @@ window.renderTransactionLists = () => {
                 let rawDt = dt;
                 if(dt.includes('특별찬조')) dt = `<span class="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1 rounded">${dt}</span>`;
                 else if(dt.includes('찬조금')) dt = `<span class="text-[9px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 px-1 rounded">${dt}</span>`;
+                else if(dt.includes('대회참가비')) dt = `<span class="text-[9px] bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-1 rounded font-black">${dt}</span>`;
+                else if(dt.includes('행사참가비')) dt = `<span class="text-[9px] bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300 px-1 rounded font-black">${dt}</span>`;
                 else if(dt.includes('식대')) dt = `<span class="text-[9px] bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 px-1 rounded">${dt}</span>`;
                 else if(dt.includes('은행이자')) dt = `<span class="text-[9px] bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 px-1 rounded">${dt}</span>`;
                 
@@ -1203,6 +1205,8 @@ window.renderReport = () => {
             if(c.includes('특별찬조')) dispC = `<span class="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
             else if(c.includes('찬조금')) dispC = `<span class="text-[10px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
             else if(c.includes('[특별청구]')) dispC = `<span class="text-[10px] bg-indigo-100 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+            else if(c.includes('대회참가비')) dispC = `<span class="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
+            else if(c.includes('행사참가비')) dispC = `<span class="text-[10px] bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
             else if(c.includes('식대')) dispC = `<span class="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
             else if(c.includes('은행이자')) dispC = `<span class="text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
             else if(c.includes('상금/대체입금')) dispC = `<span class="text-[10px] bg-sky-100 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-black mr-1 shadow-sm whitespace-nowrap">${c}</span>`;
@@ -1242,6 +1246,8 @@ window.renderReport = () => {
                 if(dispType.includes('특별찬조')) dispType = `<span class="text-[9px] sm:text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
                 else if(dispType.includes('찬조금')) dispType = `<span class="text-[9px] sm:text-[10px] bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
                 else if(dispType && dispType.includes('[특별청구]')) dispType = `<span class="text-[9px] sm:text-[10px] bg-indigo-100 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
+                else if(dispType.includes('대회참가비')) dispType = `<span class="text-[9px] sm:text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
+                else if(dispType.includes('행사참가비')) dispType = `<span class="text-[9px] sm:text-[10px] bg-pink-100 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
                 else if(dispType.includes('식대')) dispType = `<span class="text-[9px] sm:text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
                 else if(dispType.includes('은행이자')) dispType = `<span class="text-[9px] sm:text-[10px] bg-teal-100 text-teal-700 border border-teal-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
                 else if(dispType.includes('상금/대체입금')) dispType = `<span class="text-[9px] sm:text-[10px] bg-sky-100 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-black ml-1 shadow-sm whitespace-nowrap">${dispType}</span>`;
@@ -1264,6 +1270,8 @@ window.renderReport = () => {
                 if(c.includes('특별찬조')) dispC = `<span class="text-amber-600">${dispC}</span>`;
                 else if(c.includes('찬조금')) dispC = `<span class="text-emerald-600">${dispC}</span>`;
                 else if(c.includes('[특별청구]')) dispC = `<span class="text-indigo-600">${dispC}</span>`;
+                else if(c.includes('대회참가비')) dispC = `<span class="text-purple-600 font-black">${dispC}</span>`;
+                else if(c.includes('행사참가비')) dispC = `<span class="text-pink-600 font-black">${dispC}</span>`;
                 else if(c.includes('식대')) dispC = `<span class="text-orange-600">${dispC}</span>`;
                 else if(c.includes('은행이자')) dispC = `<span class="text-teal-600">${dispC}</span>`;
                 else if(c.includes('상금/대체입금')) dispC = `<span class="text-sky-600">${dispC}</span>`;

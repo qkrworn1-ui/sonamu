@@ -18,7 +18,7 @@ window.closeMemoModal = () => window.closeModal('memo-modal', 'memo-modal-conten
 window.closeMemberSelectModal = () => window.closeModal('member-select-modal', null);
 window.closeAccountSelectModal = () => window.closeModal('account-select-modal', null);
 
-const incomeAccountsList = ['월회비', '년회비', '찬조금(회원)', '특별찬조(비회원)', '면제', '식대(개별납부)', '은행이자및캐쉬백', '상금/대체입금', '직접입력'];
+const incomeAccountsList = ['월회비', '년회비', '찬조금(회원)', '특별찬조(비회원)', '대회참가비', '행사참가비', '면제', '식대(개별납부)', '은행이자및캐쉬백', '상금/대체입금', '직접입력'];
 const expenseAccountsList = ['식대', '생수및간식', '용품', '대한족구협회비', '구리시족구협회비', '찬조금', '경조사비', '행사준비비', '직접입력'];
 
 window.openAccountSelectModal = (type) => {
@@ -74,9 +74,9 @@ window.selectAccount = (type, value) => {
         window.autoPrice(false);
         const noteEl = window.$('income-note');
         if(noteEl) {
-            if(value.includes('특별찬조') || value.includes('찬조금') || value === '직접입력' || value.includes('식대') || value === '은행이자및캐쉬백' || value === '상금/대체입금') {
+            if(value.includes('특별찬조') || value.includes('찬조금') || value === '직접입력' || value.includes('식대') || value === '은행이자및캐쉬백' || value === '상금/대체입금' || value.includes('참가비')) {
                 noteEl.classList.remove('hidden');
-                noteEl.placeholder = value.includes('비회원') ? '비고 (성명, 내역 등 기재)' : (value === '상금/대체입금' ? '비고 (대회명, 입금자명, 내역 등 기재)' : (value === '은행이자및캐쉬백' ? '비고 (예금이자, 캐쉬백 등)' : '비고 (내용 등)'));
+                noteEl.placeholder = value.includes('비회원') ? '비고 (성명, 내역 등 기재)' : (value === '상금/대체입금' ? '비고 (대회명, 입금자명, 내역 등 기재)' : (value.includes('대회') ? '비고 (대회명, 부서 등 기재)' : (value.includes('행사') ? '비고 (행사명, 내용 등 기재)' : (value === '은행이자및캐쉬백' ? '비고 (예금이자, 캐쉬백 등)' : '비고 (내용 등)'))));
             }
             else {
                 noteEl.classList.add('hidden');
