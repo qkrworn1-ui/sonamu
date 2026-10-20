@@ -1189,8 +1189,8 @@ window.renderReport = () => {
             catInc[cat] += Number(t.amount)||0; 
             catCounts[cat]++;
 
-            let detail = '';
-            if(t.name && t.name !== '비회원' && t.name !== '시스템') detail += t.name;
+            let detailParts = [];
+            if(t.name && t.name !== '시스템') detailParts.push(t.name);
             
             const txDateStr = String(t.date||'');
             const txYear = txDateStr.substring(0,4);
@@ -1198,11 +1198,13 @@ window.renderReport = () => {
             const isDiffYear = tYear && tYear !== targetPeriod;
             const yearPrefix = isDiffYear ? `[${tYear}년] ` : '';
 
-            if(t.months && Array.isArray(t.months) && t.months.length > 0) detail += ` (${yearPrefix}${t.months.join(',')}월)`;
-            else if(isDiffYear && (cat.includes('회비') || cat.includes('면제'))) detail += ` [${tYear}년도]`;
+            if(t.months && Array.isArray(t.months) && t.months.length > 0) detailParts.push(`(${yearPrefix}${t.months.join(',')}월)`);
+            else if(isDiffYear && (cat.includes('회비') || cat.includes('면제'))) detailParts.push(`[${tYear}년도]`);
 
-            if(t.note && t.note !== '과거 압축') detail += (detail ? ' ['+t.note+']' : t.note);
-            if(!detail) detail = txDateStr ? txDateStr.substring(5) : '내역';
+            if(t.note && t.note !== '과거 압축' && t.note.trim()) detailParts.push(`[${t.note.trim()}]`);
+            
+            let detail = detailParts.join(' ').trim();
+            if(!detail) detail = t.type || cat || '수입';
 
             catItems[cat].push({
                 date: txDateStr,
@@ -1382,8 +1384,17 @@ window.renderReport = () => {
             catExpCounts[cat]++;
 
             const txDateStr = String(t.date || '');
-            let detail = t.note && t.note !== '과거 압축' ? t.note : '';
-            if(!detail) detail = txDateStr ? txDateStr.substring(5) : '지출';
+            let detailParts = [];
+            
+            if(t.note && t.note !== '과거 압축' && t.note.trim()) {
+                detailParts.push(t.note.trim());
+            }
+            if(t.name && t.name !== '비회원' && t.name !== '시스템' && t.name.trim()) {
+                detailParts.push(`(${t.name.trim()})`);
+            }
+            
+            let detail = detailParts.join(' ').trim();
+            if(!detail) detail = t.type || cat || '지출';
 
             catExpItems[cat].push({
                 date: txDateStr,
