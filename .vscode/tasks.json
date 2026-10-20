@@ -1,0 +1,38 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Git 즉시 커밋 & 푸시 (소나무)",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/c",
+                "${workspaceFolder}\\push.bat"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Git 실시간 감시 자동 푸시 시작",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/c",
+                "start",
+                "cmd.exe",
+                "/k",
+                "${workspaceFolder}\\auto_push_watcher.bat"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

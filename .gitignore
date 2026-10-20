@@ -9,6 +9,7 @@ $RECYCLE.BIN/
 # Editor / IDE Files
 .vscode/*
 !.vscode/settings.json
+!.vscode/tasks.json
 .idea/
 *.suo
 *.ntvs*
