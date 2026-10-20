@@ -19,7 +19,7 @@ window.closeMemberSelectModal = () => window.closeModal('member-select-modal', n
 window.closeAccountSelectModal = () => window.closeModal('account-select-modal', null);
 
 const incomeAccountsList = ['월회비', '년회비', '찬조금(회원)', '특별찬조(비회원)', '대회참가비', '행사참가비', '면제', '식대(개별납부)', '은행이자및캐쉬백', '상금/대체입금', '직접입력'];
-const expenseAccountsList = ['식대', '생수및간식', '용품', '대한족구협회비', '구리시족구협회비', '찬조금', '경조사비', '행사준비비', '직접입력'];
+const expenseAccountsList = ['식대', '생수및간식', '용품', '대회참가비', '대한족구협회비', '구리시족구협회비', '찬조금', '경조사비', '행사준비비', '직접입력'];
 
 window.openAccountSelectModal = (type) => {
     const m = window.$('account-select-modal');
