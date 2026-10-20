@@ -82,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=122"></script>
-    <link rel="stylesheet" href="style.css?v=122">
+    <script src="firebase-config.js?v=123"></script>
+    <link rel="stylesheet" href="style.css?v=123">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -285,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.3</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.4</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -396,7 +396,7 @@
                                         반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
                                     </h2>
                                     <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.3</span></span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.4</span></span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                                     <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
@@ -412,7 +412,35 @@
                     </div>
                 </div>
 
-                <!-- [2. 통합 퀵 액션 그리드 (5구 모던 바)] -->
+                
+                <!-- [2. 미참여 투표 안내 알림함 (미투표 건 존재 시 최상단 우선 노출)] -->
+                <div id="pending-vote-task-container" class="hidden bg-gradient-to-r from-rose-50 via-rose-50/90 to-amber-50/70 dark:from-rose-950/50 dark:via-rose-950/30 dark:to-slate-900 border-2 border-rose-300 dark:border-rose-800/80 p-5 rounded-3xl shadow-sm animate-newsFadeIn transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-rose-500 text-white p-2.5 rounded-2xl shadow-md ring-4 ring-rose-500/10 animate-pulse flex items-center justify-center">
+                                <i data-lucide="bell-ring" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+                                        📌 미참여 투표 안내
+                                    </h3>
+                                    <span class="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-black animate-pulse">투표 필수</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                                    참석 여부를 투표하시면 마일리지가 자동 적립됩니다 (+4PT)
+                                </p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 dark:bg-slate-800 px-3.5 py-1.5 rounded-2xl border border-rose-200 dark:border-rose-800 shadow-sm flex items-center gap-2 shrink-0">
+                             <div class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></div>
+                             <span id="pending-vote-count" class="text-xs font-black text-rose-700 dark:text-rose-300">0건</span>
+                        </div>
+                    </div>
+                    <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- [3. 통합 퀵 액션 그리드 (5구 모던 바)] -->
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <button onclick="window.scrollToNextWorkout()" class="bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
                         <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
@@ -450,7 +478,7 @@
                     </button>
                 </div>
 
-                <!-- [3. 메인 하이라이트 2단 그리드: 다음 운동 & 공식 회비 계좌] -->
+                <!-- [4. 메인 하이라이트 2단 그리드: 다음 운동 & 공식 회비 계좌] -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="workout-highlight-section">
                     
                     <!-- [좌측] 다음 정기 운동 & 투표 현황 카드 -->
@@ -596,24 +624,6 @@
                         </button>
                     </div>
 
-                </div>
-
-                <!-- [4. 추가 미참여 투표(설문/무기명) 알림함 (존재 시에만 노출)] -->
-                <div id="pending-vote-task-container" class="hidden bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 p-5 rounded-3xl shadow-sm animate-newsFadeIn">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-rose-500 text-white p-2.5 rounded-2xl shadow-md ring-4 ring-rose-500/10 animate-pulse"><i data-lucide="bell" class="w-5 h-5"></i></div>
-                            <div>
-                                <h3 class="text-base font-black text-slate-900 dark:text-white leading-tight">미참여 투표 안내</h3>
-                                <p class="text-[10px] font-black text-rose-600 dark:text-rose-400">참여가 필요한 정기 운동 및 설문/안건 투표가 있습니다</p>
-                            </div>
-                        </div>
-                        <div class="bg-white/80 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-800 shadow-sm flex items-center gap-2">
-                             <div class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></div>
-                             <span id="pending-vote-count" class="text-xs font-black text-rose-700 dark:text-rose-300">0건</span>
-                        </div>
-                    </div>
-                    <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </div>
 
                 <!-- [5. 마일리지 명예의 전당 (Top 3 포디움 & 마키 티커)] -->
@@ -1603,24 +1613,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=122"></script>
-<script src="src/js/02_env_version.js?v=122"></script>
-<script src="src/js/03_init_utils.js?v=122"></script>
-<script src="src/js/04_scope_adjust.js?v=122"></script>
-<script src="src/js/05_mileage_engine.js?v=122"></script>
-<script src="src/js/06_common_ui_utils.js?v=122"></script>
-<script src="src/js/07_firebase_init.js?v=122"></script>
-<script src="src/js/08_auth_logic.js?v=122"></script>
-<script src="src/js/09_navigation_sync.js?v=122"></script>
-<script src="src/js/10_dashboard_logic.js?v=122"></script>
-<script src="src/js/11_vote_logic.js?v=122"></script>
-<script src="src/js/12_team_mgmt.js?v=122"></script>
-<script src="src/js/13_finance_logic.js?v=122"></script>
-<script src="src/js/14_member_mgmt.js?v=122"></script>
-<script src="src/js/15_board_logic.js?v=122"></script>
-<script src="src/js/16_gallery_report.js?v=122"></script>
-<script src="src/js/17_calendar_logic.js?v=122"></script>
-<script src="src/js/18_member_positions.js?v=122"></script>
+<script src="src/js/01_kakao_optimization.js?v=123"></script>
+<script src="src/js/02_env_version.js?v=123"></script>
+<script src="src/js/03_init_utils.js?v=123"></script>
+<script src="src/js/04_scope_adjust.js?v=123"></script>
+<script src="src/js/05_mileage_engine.js?v=123"></script>
+<script src="src/js/06_common_ui_utils.js?v=123"></script>
+<script src="src/js/07_firebase_init.js?v=123"></script>
+<script src="src/js/08_auth_logic.js?v=123"></script>
+<script src="src/js/09_navigation_sync.js?v=123"></script>
+<script src="src/js/10_dashboard_logic.js?v=123"></script>
+<script src="src/js/11_vote_logic.js?v=123"></script>
+<script src="src/js/12_team_mgmt.js?v=123"></script>
+<script src="src/js/13_finance_logic.js?v=123"></script>
+<script src="src/js/14_member_mgmt.js?v=123"></script>
+<script src="src/js/15_board_logic.js?v=123"></script>
+<script src="src/js/16_gallery_report.js?v=123"></script>
+<script src="src/js/17_calendar_logic.js?v=123"></script>
+<script src="src/js/18_member_positions.js?v=123"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
