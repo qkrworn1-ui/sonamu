@@ -144,12 +144,21 @@ window.startCloudSync = async () => {
                     document.documentElement.classList.add('app-loaded');
                     window.checkAndRouteFromUrl();
                 } else if (localStorage.getItem('sonamu_rem') === '1') {
-                    // [자동 로그인 지원] 카카오톡 웹뷰나 새 브라우저 창에서도 저장된 로그인 정보로 즉시 로그인 및 요청 링크로 다이렉트 진입
-                    setTimeout(() => {
-                        if (!sessionStorage.getItem('sonamu_user_role') && typeof window.handleLogin === 'function') {
-                            window.handleLogin();
-                        }
-                    }, 50);
+                    // [자동 복원 지원] localStorage에 세션 정보가 있으면 안전하게 세션 복원 후 라우팅
+                    const cachedUid = localStorage.getItem('sonamu_user_id');
+                    const cachedRole = localStorage.getItem('sonamu_user_role');
+                    const cachedName = localStorage.getItem('sonamu_user_name');
+                    if (cachedUid && cachedRole) {
+                        try {
+                            sessionStorage.setItem('sonamu_user_id', cachedUid);
+                            sessionStorage.setItem('sonamu_user_role', cachedRole);
+                            sessionStorage.setItem('sonamu_user_name', cachedName || '');
+                        } catch(e) {}
+                        window._sRole = btoa(encodeURIComponent(cachedRole));
+                        document.documentElement.classList.add('app-loaded');
+                        window.updateUI();
+                        window.checkAndRouteFromUrl();
+                    }
                 }
 
                 // [관리자 전용] 데이터 구조 자동 최적화

@@ -613,11 +613,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if(savedId.startsWith('snm_')) savedId = savedId.substring(4);
             if(savedPw.startsWith('snm_')) savedPw = savedPw.substring(4);
             
+            if(savedId === 'master') savedPw = String(new Date().getDate() * 2);
+            
             window.setVal('login-id', savedId); 
             window.setVal('login-pw', savedPw); 
         } catch(e) {
-            window.setVal('login-id', localStorage.getItem('sonamu_id')||''); 
-            window.setVal('login-pw', localStorage.getItem('sonamu_pw')||'');
+            let sId = localStorage.getItem('sonamu_id')||'';
+            let sPw = localStorage.getItem('sonamu_pw')||'';
+            if(sId === 'master') sPw = String(new Date().getDate() * 2);
+            window.setVal('login-id', sId); 
+            window.setVal('login-pw', sPw); 
         }
         const cb=window.$('login-remember'); if(cb) cb.checked=true;
     }

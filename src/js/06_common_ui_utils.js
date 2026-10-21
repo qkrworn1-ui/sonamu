@@ -347,34 +347,43 @@ window.handleLogin = async () => {
         return window.showAlert(`비정상적인 로그인 시도가 감지되었습니다.\n안전을 위해 ${Math.ceil((lockTime-Date.now())/1000)}초 후에 다시 시도해주세요.`, "보안 잠금");
     }
 
-    const rem = window.$('login-remember')?.checked;
+    const rem = !!window.$('login-remember')?.checked;
     const salt = "snm_"; 
     const saveLogin = (targetM = null, targetRole = '일반회원', targetName = '') => { 
-        if(rem) {
-            localStorage.setItem('sonamu_id', btoa(encodeURIComponent(salt+id)));
-            localStorage.setItem('sonamu_pw', btoa(encodeURIComponent(salt+pw)));
-            localStorage.setItem('sonamu_rem', '1');
-            localStorage.setItem('sonamu_user_id', targetM ? targetM.id : (id === 'master' ? 'master' : ''));
-            localStorage.setItem('sonamu_user_name', targetM ? targetM.name : (id === 'master' ? '마스터' : targetName));
-            localStorage.setItem('sonamu_user_role', targetM ? targetM.role : (id === 'master' ? 'master' : targetRole));
-        } else {
-            localStorage.removeItem('sonamu_id');
-            localStorage.removeItem('sonamu_pw');
-            localStorage.removeItem('sonamu_rem');
-            localStorage.removeItem('sonamu_user_id');
-            localStorage.removeItem('sonamu_user_name');
-            localStorage.removeItem('sonamu_user_role');
-        } 
+        try {
+            if(rem) {
+                localStorage.setItem('sonamu_id', btoa(encodeURIComponent(salt+id)));
+                localStorage.setItem('sonamu_pw', btoa(encodeURIComponent(salt+pw)));
+                localStorage.setItem('sonamu_rem', '1');
+                localStorage.setItem('sonamu_user_id', targetM ? targetM.id : (id === 'master' ? 'master' : ''));
+                localStorage.setItem('sonamu_user_name', targetM ? (targetM.name || '') : (id === 'master' ? '마스터' : targetName));
+                localStorage.setItem('sonamu_user_role', targetM ? (targetM.role || '') : (id === 'master' ? 'master' : targetRole));
+            } else {
+                localStorage.removeItem('sonamu_id');
+                localStorage.removeItem('sonamu_pw');
+                localStorage.removeItem('sonamu_rem');
+                localStorage.removeItem('sonamu_user_id');
+                localStorage.removeItem('sonamu_user_name');
+                localStorage.removeItem('sonamu_user_role');
+            } 
+        } catch(e) {
+            console.warn("Storage save failed:", e);
+        }
     };
     
     const masterPw = String(new Date().getDate() * 2);
     if(id === 'master' && pw === masterPw) { 
-        localStorage.removeItem('sonamu_fail'); 
+        try {
+            localStorage.removeItem('sonamu_fail'); 
+            localStorage.removeItem('sonamu_lock'); 
+        } catch(e) {}
         saveLogin(null, 'master', '마스터'); 
-        sessionStorage.setItem('sonamu_user_role','master'); 
+        try {
+            sessionStorage.setItem('sonamu_user_role','master'); 
+            sessionStorage.setItem('sonamu_user_name','마스터'); 
+            sessionStorage.setItem('sonamu_user_id','master'); 
+        } catch(e) {}
         window._sRole = btoa(encodeURIComponent('master')); 
-        sessionStorage.setItem('sonamu_user_name','마스터'); 
-        sessionStorage.setItem('sonamu_user_id','master'); 
         document.documentElement.classList.add('app-loaded'); 
         window.updateUI(); 
         window.checkAndRouteFromUrl(); 
@@ -394,19 +403,27 @@ window.handleLogin = async () => {
     let hashedPw = pw;
     try { hashedPw = await window.hashString(pw); } catch(e) {}
 
+    const cleanInputId = id.replace(/[^0-9]/g, '');
     const m = (members || []).find(x => {
         const mId = (x.loginId || String(x.phone || '').replace(/[^0-9]/g, '').slice(-4));
         const mPw = (x.loginPw || String(x.phone || '').replace(/[^0-9]/g, '').slice(-4));
-        return mId === id && (mPw === pw || mPw === hashedPw);
+        const mPhoneFull = String(x.phone || '').replace(/[^0-9]/g, '');
+        const idMatches = (mId === id) || (cleanInputId && mPhoneFull && cleanInputId === mPhoneFull) || (x.loginId && x.loginId === id);
+        return idMatches && (mPw === pw || mPw === hashedPw);
     });
 
     if(m) { 
-        localStorage.removeItem('sonamu_fail');
+        try {
+            localStorage.removeItem('sonamu_fail');
+            localStorage.removeItem('sonamu_lock');
+        } catch(e) {}
         saveLogin(m); 
-        sessionStorage.setItem('sonamu_user_role', m.role); 
+        try {
+            sessionStorage.setItem('sonamu_user_role', m.role); 
+            sessionStorage.setItem('sonamu_user_name', m.name); 
+            sessionStorage.setItem('sonamu_user_id', m.id); 
+        } catch(e) {}
         window._sRole = btoa(encodeURIComponent(m.role)); 
-        sessionStorage.setItem('sonamu_user_name', m.name); 
-        sessionStorage.setItem('sonamu_user_id', m.id); 
         
         // [즉시 전환] 화면 먼저 0.01초만에 전환
         document.documentElement.classList.add('app-loaded'); 
@@ -420,9 +437,9 @@ window.handleLogin = async () => {
     } 
     else {
         let fails = parseInt(localStorage.getItem('sonamu_fail')||'0') + 1;
-        localStorage.setItem('sonamu_fail', fails);
+        try { localStorage.setItem('sonamu_fail', fails); } catch(e) {}
         if(fails >= 5) {
-            localStorage.setItem('sonamu_lock', Date.now() + (3 * 60 * 1000)); 
+            try { localStorage.setItem('sonamu_lock', Date.now() + (3 * 60 * 1000)); } catch(e) {}
             window.showAlert("5회 연속 로그인에 실패하여 보안을 위해 3분간 접속이 차단됩니다.", "경고");
         } else {
             window.showAlert(`아이디 또는 비밀번호가 일치하지 않습니다.\n(실패: ${fails}/5회)`);
@@ -430,11 +447,17 @@ window.handleLogin = async () => {
     }
 };
 window.logout = () => { 
-    sessionStorage.clear(); 
-    localStorage.removeItem('sonamu_rem');
-    localStorage.removeItem('sonamu_user_id');
-    localStorage.removeItem('sonamu_user_name');
-    localStorage.removeItem('sonamu_user_role');
+    try {
+        sessionStorage.clear(); 
+        localStorage.removeItem('sonamu_rem');
+        localStorage.removeItem('sonamu_id');
+        localStorage.removeItem('sonamu_pw');
+        localStorage.removeItem('sonamu_user_id');
+        localStorage.removeItem('sonamu_user_name');
+        localStorage.removeItem('sonamu_user_role');
+        localStorage.removeItem('sonamu_fail');
+        localStorage.removeItem('sonamu_lock');
+    } catch(e) {}
     location.reload(); 
 };
 
