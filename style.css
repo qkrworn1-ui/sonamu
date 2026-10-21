@@ -102,6 +102,87 @@
             color: #1e293b !important; 
         }
 
+                /* [라이트 모드 전용] 상단 헤더 & 타이틀 클린 화이트 에어 글래스 (1안) */
+        html:not(.dark) header.main-glass-card {
+            background: rgba(255, 255, 255, 0.92) !important;
+            backdrop-filter: blur(24px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+            border: 1px solid rgba(226, 232, 240, 0.95) !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            color: #0f172a !important;
+        }
+        html:not(.dark) header.main-glass-card:hover {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+        }
+        html:not(.dark) header .mini-logo-container {
+            background: #eff6ff !important;
+            border: 1.5px solid #bfdbfe !important;
+            box-shadow: 0 1px 3px rgba(59, 130, 246, 0.15) !important;
+        }
+        html:not(.dark) header .mini-logo-container i,
+        html:not(.dark) header .mini-logo-container svg {
+            color: #2563eb !important;
+        }
+        html:not(.dark) header .text-premium-blue {
+            color: #0f172a !important;
+            filter: none !important;
+            text-shadow: none !important;
+            font-weight: 900 !important;
+        }
+        html:not(.dark) #main-app-version {
+            background-color: #eff6ff !important;
+            color: #2563eb !important;
+            border: 1px solid #bfdbfe !important;
+            font-weight: 900 !important;
+        }
+        html:not(.dark) #header-account-name {
+            color: #334155 !important;
+            font-weight: 800 !important;
+        }
+        html:not(.dark) header .flex-col i[data-lucide="user"],
+        html:not(.dark) header .flex-col svg.lucide-user {
+            color: #64748b !important;
+        }
+        html:not(.dark) #ai-credit-status {
+            background: #eff6ff !important;
+            border: 1px solid #bfdbfe !important;
+            color: #2563eb !important;
+        }
+        html:not(.dark) header button {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        }
+        html:not(.dark) header button:hover {
+            background-color: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+        }
+        html:not(.dark) header button:has(#theme-icon-m),
+        html:not(.dark) header button[title*="테마"] {
+            color: #d97706 !important;
+        }
+        html:not(.dark) header button[title*="프로필"] {
+            color: #2563eb !important;
+        }
+        html:not(.dark) header button[title*="로그아웃"] {
+            color: #e11d48 !important;
+        }
+        html:not(.dark) header .bg-black\/20,
+        html:not(.dark) header .bg-black\/20 {
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        }
+        html:not(.dark) header .text-blue-500\/80 {
+            color: #2563eb !important;
+        }
+        html:not(.dark) header .ticker-text,
+        html:not(.dark) #header-visitors-text {
+            color: #475569 !important;
+            font-weight: 700 !important;
+        }
+
         /* [테마 2] 다크모드 전역 스타일 및 텍스트 가독성 완벽 오버라이드 (삼성 갤럭시/안드로이드 크롬 최적화) */
         html.dark { color-scheme: dark; }
         html.dark body { background-color: #020617 !important; color: #f8fafc !important; }

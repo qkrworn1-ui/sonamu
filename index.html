@@ -82,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=141"></script>
-    <link rel="stylesheet" href="style.css?v=141">
+    <script src="firebase-config.js?v=142"></script>
+    <link rel="stylesheet" href="style.css?v=142">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -259,7 +259,7 @@
                         </div>
 
                         <!-- 우측 버전 칩 -->
-                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.24</span>
+                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.25</span>
                     </div>
 
                     <!-- 중앙 타이틀 -->
@@ -285,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.24</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.25</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -357,39 +357,42 @@
         <div class="main-bg-blob main-blob-2"></div>
 
         <div class="sticky top-0 z-50 print:hidden flex flex-col w-full px-4 pt-4">
-            <header class="main-glass-card p-3 sm:p-4 text-white rounded-[2rem] relative z-20 w-full flex flex-col gap-3">
+            <header class="main-glass-card p-3 sm:p-4 text-slate-900 dark:text-white rounded-[2rem] relative z-20 w-full flex flex-col gap-3">
                 <div class="flex justify-between items-center w-full">
                     <div class="flex items-center gap-3">
-                        <!-- 로그인 화면과 통일된 상태 표시 로고 -->
+                        <!-- 미니 로고와 타이틀 통합 락업 형태 -->
                         <div id="main-logo-container" class="mini-logo-container">
-                            <i data-lucide="trees" class="text-blue-400"></i>
+                            <i data-lucide="trees" class="text-blue-600 dark:text-blue-400"></i>
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-2">
-                                <h1 class="text-sm sm:text-base font-black tracking-tight uppercase text-premium-blue">Sonamu Club</h1>
-                                <span id="main-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 새로고침" class="cursor-pointer hover:bg-white/20 text-[9px] font-bold text-blue-300/80 px-2 py-0.5 bg-white/10 rounded-full transition-all"></span>
+                                <h1 class="text-sm sm:text-base font-black tracking-tight uppercase text-slate-900 dark:text-premium-blue">Sonamu Club</h1>
+                                <span id="main-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 새로고침" class="cursor-pointer hover:bg-blue-100 dark:hover:bg-white/20 text-[9px] font-black text-blue-600 dark:text-blue-300/80 px-2 py-0.5 bg-blue-50 dark:bg-white/10 border border-blue-200 dark:border-transparent rounded-full transition-all"></span>
                             </div>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <i data-lucide="user" class="w-2.5 h-2.5 text-slate-500"></i>
-                                <span id="header-account-name" class="text-[10px] font-bold text-slate-400/80"></span>
+                                <i data-lucide="user" class="w-2.5 h-2.5 text-slate-400 dark:text-slate-500"></i>
+                                <span id="header-account-name" class="text-[10px] font-bold text-slate-600 dark:text-slate-400/80"></span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="flex items-center gap-2">
-                        <div id="ai-credit-status" onclick="window.startCloudSync(); window.showToast('서버 데이터를 새로고침합니다.');" class="cursor-pointer ai-credit-badge flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-2 rounded-xl text-[9px] font-black tracking-tight whitespace-nowrap shrink-0 active:scale-95 transition-all">
+                        <div id="ai-credit-status" onclick="window.startCloudSync(); window.showToast('클라우드 동기화를 시작합니다.');" class="cursor-pointer ai-credit-badge flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-2 rounded-xl text-[9px] font-black tracking-tight whitespace-nowrap shrink-0 active:scale-95 transition-all">
                             <i data-lucide="sparkles" class="w-3 h-3"></i>
-                            <span id="ai-credit-text" class="hidden sm:inline-block">서버 연결됨</span>
+                            <span id="ai-credit-text" class="hidden sm:inline-block">클라우드 정상</span>
                         </div>
-                        <button onclick="window.toggleTheme()" title="테마 변경" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-amber-200 hover:bg-white/10 transition-all btn-touch"><i id="theme-icon-m" data-lucide="moon" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
-                        <button onclick="window.openMyProfile()" title="내 정보" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-blue-400 hover:bg-white/10 transition-all btn-touch"><i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
-                        <button onclick="window.logout()" title="로그아웃" class="bg-white/5 border border-white/10 p-2 sm:p-2.5 rounded-xl text-rose-400 hover:bg-white/10 transition-all btn-touch"><i data-lucide="log-out" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                        <button onclick="window.toggleTheme()" title="테마 변경" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 sm:p-2.5 rounded-xl text-amber-600 dark:text-amber-200 hover:bg-slate-50 dark:hover:bg-white/10 transition-all btn-touch shadow-2xs dark:shadow-none"><i id="theme-icon-m" data-lucide="moon" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                        <button onclick="window.openMyProfile()" title="내 프로필" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 sm:p-2.5 rounded-xl text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-white/10 transition-all btn-touch shadow-2xs dark:shadow-none"><i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
+                        <button onclick="window.logout()" title="로그아웃" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 sm:p-2.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-white/10 transition-all btn-touch shadow-2xs dark:shadow-none"><i data-lucide="log-out" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></button>
                     </div>
                 </div>
 
-                <div class="flex items-center bg-black/20 border border-white/5 px-3 py-2 rounded-xl shadow-inner gap-3 overflow-hidden">
-                    <span class="text-[9px] text-blue-500/80 font-black shrink-0 uppercase tracking-widest">Live Access</span>
-                    <div class="ticker-container flex-1 text-[9px] font-bold text-slate-300"><span class="ticker-text" id="header-visitors-text">확인중...</span></div>
+                <div class="flex items-center bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 px-3 py-2 rounded-xl shadow-inner gap-3 overflow-hidden">
+                    <span class="text-[9px] text-blue-600 dark:text-blue-500/80 font-black shrink-0 uppercase tracking-widest flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        Live Access
+                    </span>
+                    <div class="ticker-container flex-1 text-[9px] font-bold text-slate-600 dark:text-slate-300"><span class="ticker-text" id="header-visitors-text">불러오는 중...</span></div>
                 </div>
             </header>
         </div>
@@ -410,7 +413,7 @@
                                         반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
                                     </h2>
                                     <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.24</span></span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.25</span></span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                                     <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
@@ -1626,24 +1629,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=141"></script>
-<script src="src/js/02_env_version.js?v=141"></script>
-<script src="src/js/03_init_utils.js?v=141"></script>
-<script src="src/js/04_scope_adjust.js?v=141"></script>
-<script src="src/js/05_mileage_engine.js?v=141"></script>
-<script src="src/js/06_common_ui_utils.js?v=141"></script>
-<script src="src/js/07_firebase_init.js?v=141"></script>
-<script src="src/js/08_auth_logic.js?v=141"></script>
-<script src="src/js/09_navigation_sync.js?v=141"></script>
-<script src="src/js/10_dashboard_logic.js?v=141"></script>
-<script src="src/js/11_vote_logic.js?v=141"></script>
-<script src="src/js/12_team_mgmt.js?v=141"></script>
-<script src="src/js/13_finance_logic.js?v=141"></script>
-<script src="src/js/14_member_mgmt.js?v=141"></script>
-<script src="src/js/15_board_logic.js?v=141"></script>
-<script src="src/js/16_gallery_report.js?v=141"></script>
-<script src="src/js/17_calendar_logic.js?v=141"></script>
-<script src="src/js/18_member_positions.js?v=141"></script>
+<script src="src/js/01_kakao_optimization.js?v=142"></script>
+<script src="src/js/02_env_version.js?v=142"></script>
+<script src="src/js/03_init_utils.js?v=142"></script>
+<script src="src/js/04_scope_adjust.js?v=142"></script>
+<script src="src/js/05_mileage_engine.js?v=142"></script>
+<script src="src/js/06_common_ui_utils.js?v=142"></script>
+<script src="src/js/07_firebase_init.js?v=142"></script>
+<script src="src/js/08_auth_logic.js?v=142"></script>
+<script src="src/js/09_navigation_sync.js?v=142"></script>
+<script src="src/js/10_dashboard_logic.js?v=142"></script>
+<script src="src/js/11_vote_logic.js?v=142"></script>
+<script src="src/js/12_team_mgmt.js?v=142"></script>
+<script src="src/js/13_finance_logic.js?v=142"></script>
+<script src="src/js/14_member_mgmt.js?v=142"></script>
+<script src="src/js/15_board_logic.js?v=142"></script>
+<script src="src/js/16_gallery_report.js?v=142"></script>
+<script src="src/js/17_calendar_logic.js?v=142"></script>
+<script src="src/js/18_member_positions.js?v=142"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
