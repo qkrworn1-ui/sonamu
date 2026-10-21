@@ -320,6 +320,9 @@ window.renderPaymentStatus = () => {
             return 'U';
         });
         let annualFlag = false; // 'A' = 년회비, 'E' = 면제
+        if (m.role === '총무') {
+            annualFlag = 'E';
+        }
 
         // 입금 내역으로 월별 상태 업데이트
         (transactions||[]).filter(t => t.category==='income' && (t.targetYear ? String(t.targetYear) : String(t.date||'').substring(0,4)) === String(currentStatusYear)).forEach(t => {
@@ -359,7 +362,7 @@ window.renderPaymentStatus = () => {
             });
         }
  
-        const pastUnpaid = window._calcPastUnpaid(mName, m.joinDate);
+        const pastUnpaid = m.role === '총무' ? 0 : window._calcPastUnpaid(mName, m.joinDate);
  
         memberData.push({ name: mName, role: m.role, joinDate: m.joinDate, months, annualFlag, paidCount, unpaidCount, totalDue, pastUnpaid });
     });

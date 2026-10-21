@@ -2275,8 +2275,10 @@ window.checkAndShowWelcomeModal = (force = false) => {
     if (!force && localStorage.getItem(dismissKey) === '1') return;
 
     // 1. 회비 면제 여부 및 미납금 계산
-    const exemptRoles = ['파트너', '준회원', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
-    const isRoleExempt = exemptRoles.includes(curUser.role);
+    // [중요] 총무는 클럽 정관상 회비 면제 대상자이므로 직책/역할 기준 100% 면제 처리 (미납 팝업 차단)
+    const exemptRoles = ['총무', '파트너', '준회원', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
+    const userRole = (curUser && curUser.role) || sessionStorage.getItem('sonamu_user_role') || '';
+    const isRoleExempt = exemptRoles.includes(userRole) || userRole === '총무';
     
     const curYear = new Date().getFullYear();
     const curMonth = new Date().getMonth() + 1;
@@ -2294,7 +2296,7 @@ window.checkAndShowWelcomeModal = (force = false) => {
             const ty = String(t.type || '');
             const tYear = t.targetYear ? String(t.targetYear) : String(t.date || '').substring(0, 4);
             if (tYear === String(curYear)) {
-                if (ty.includes('총무년회비면제') || (ty.includes('년회비') && ty.includes('면제'))) {
+                if (ty.includes('총무') || (ty.includes('년회비') && ty.includes('면제')) || ty.includes('면제')) {
                     isOfficerExempt = true;
                 } else if (ty.includes('년회비')) {
                     hasPaidYearly = true;
