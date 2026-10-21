@@ -47,8 +47,24 @@
             main { padding-bottom: calc(140px + env(safe-area-inset-bottom)) !important; } 
         }
         body:not(.is-admin) .admin-only, body:not(.is-team-admin) .team-admin-only, body:not(.is-master) .master-only, body:not(.is-finance-admin) .finance-admin-only, body:not(.is-expense-admin) .expense-admin-only, body:not(.is-notice-admin) .notice-admin-only { display: none !important; }
-        body.is-monitor .monitor-hidden, body.is-partner .partner-hidden { display: none !important; }
+        body.is-monitor .monitor-hidden, body.is-partner .partner-hidden, body.is-temp .temp-hidden { display: none !important; }
         body.is-partner nav button:not(#tab-teams):not(#tab-vote) { display: none !important; }
+        
+        /* 파트너/준회원 대시보드 레이아웃 최적화 (재정 카드 은닉 시 다음 운동 카드 전폭 확장 및 퀵액션 그리드 정렬) */
+        .is-partner #dashboard-next-workout-card,
+        .is-temp #dashboard-next-workout-card {
+            grid-column: 1 / -1 !important;
+        }
+        .is-partner #dashboard-quick-actions .quick-action-manual,
+        .is-temp #dashboard-quick-actions .quick-action-manual {
+            grid-column: span 1 / span 1 !important;
+        }
+        @media (min-width: 640px) {
+            .is-partner #dashboard-quick-actions,
+            .is-temp #dashboard-quick-actions {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            }
+        }
         .scoreboard-enter { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .ticker-container { overflow: hidden; white-space: nowrap; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }

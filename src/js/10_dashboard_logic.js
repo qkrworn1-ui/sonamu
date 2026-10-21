@@ -253,14 +253,23 @@ window.updateDashboard = () => {
 
 
     
-    const excludeRoles = ['준회원', '파트너', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
-    window.setText('summary-members', (members||[]).filter(m=>!excludeRoles.includes(m.role)).length+'명');
-    const curYM=td.substring(0,7), ct=(transactions||[]).filter(t=>t.date && String(t.date).startsWith(curYM));
-    window.setText('summary-income', ct.filter(t=>t.category==='income').reduce((s,t)=>s+(Number(t.amount)||0),0).toLocaleString()+'원');
-    window.setText('summary-expense', ct.filter(t=>t.category==='expense').reduce((s,t)=>s+(Number(t.amount)||0),0).toLocaleString()+'원');
-    const totalInc = (transactions||[]).filter(t=>t.category==='income').reduce((s,t)=>s+(Number(t.amount)||0),0);
-    const totalExp = (transactions||[]).filter(t=>t.category==='expense').reduce((s,t)=>s+(Number(t.amount)||0),0);
-    window.setText('summary-balance', (totalInc - totalExp).toLocaleString()+'원');
+    // [재정 지표 보안] 파트너 및 준회원은 회비 면제 대상자이므로 통장 잔액 및 수입/지출 지표 비공개 처리
+    const isPartnerOrTemp = role === '파트너' || role === '준회원';
+    if (!isPartnerOrTemp) {
+        const excludeRoles = ['준회원', '파트너', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
+        window.setText('summary-members', (members||[]).filter(m=>!excludeRoles.includes(m.role)).length+'명');
+        const curYM=td.substring(0,7), ct=(transactions||[]).filter(t=>t.date && String(t.date).startsWith(curYM));
+        window.setText('summary-income', ct.filter(t=>t.category==='income').reduce((s,t)=>s+(Number(t.amount)||0),0).toLocaleString()+'원');
+        window.setText('summary-expense', ct.filter(t=>t.category==='expense').reduce((s,t)=>s+(Number(t.amount)||0),0).toLocaleString()+'원');
+        const totalInc = (transactions||[]).filter(t=>t.category==='income').reduce((s,t)=>s+(Number(t.amount)||0),0);
+        const totalExp = (transactions||[]).filter(t=>t.category==='expense').reduce((s,t)=>s+(Number(t.amount)||0),0);
+        window.setText('summary-balance', (totalInc - totalExp).toLocaleString()+'원');
+    } else {
+        window.setText('summary-balance', '');
+        window.setText('summary-income', '');
+        window.setText('summary-expense', '');
+        window.setText('summary-members', '');
+    }
 
     let pendingVotes = [];
     const teamPosts = [...(teamEvents||[])].map(e=>({...e, dDate:window.getNextRecurringDate(e)})).sort((a,b)=>String(a.dDate||a.date).localeCompare(String(b.dDate||b.date)));

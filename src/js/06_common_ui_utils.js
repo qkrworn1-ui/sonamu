@@ -167,14 +167,18 @@ window.updateUI = () => {
         if(['master','회장','총무','감독'].includes(r)) document.body.classList.add('is-notice-admin');
     }
 
-    // [추가] 마스터/파트너 전용 요소 통합 관리
+    // [추가] 마스터/파트너/준회원 전용 요소 통합 관리
     document.querySelectorAll('.master-only').forEach(e => {
         if(r === 'master') e.classList.remove('hidden');
         else e.classList.add('hidden');
     });
     document.querySelectorAll('.partner-hidden').forEach(e => {
         if(r === '파트너') e.classList.add('hidden');
-        else e.classList.remove('hidden');
+        else if(!e.classList.contains('temp-hidden') || r !== '준회원') e.classList.remove('hidden');
+    });
+    document.querySelectorAll('.temp-hidden').forEach(e => {
+        if(r === '준회원') e.classList.add('hidden');
+        else if(!e.classList.contains('partner-hidden') || r !== '파트너') e.classList.remove('hidden');
     });
 
     const uid = sessionStorage.getItem('sonamu_user_id');
