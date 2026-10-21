@@ -396,10 +396,14 @@ window.handleLogin = async () => {
             if (cachedM) members = JSON.parse(cachedM);
         } catch(e) {}
     }
-    // [동기화 대기 보장] 만약 회원이 아직 로드되지 않았다면 최대 2.5초간 안전하게 대기
+    // [동기화 대기 보장] 첫 방문 등으로 회원이 아직 로드되지 않았다면 최대 6초간 부드럽게 비동기 대기
     if (!members || members.length === 0) {
-        if (window.showToast) window.showToast("서버와 동기화 중입니다. 잠시만 기다려주세요...");
-        for (let i = 0; i < 12; i++) {
+        const btn = window.$('btn-login');
+        const origBtnText = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<span>서버 연결 중...</span>';
+        if (window.showToast) window.showToast("서버와 동기화 중입니다. 1~2초 후 자동으로 로그인됩니다.");
+        
+        for (let i = 0; i < 30; i++) {
             await new Promise(r => setTimeout(r, 200));
             if (typeof members !== 'undefined' && members && members.length > 0) break;
             try {
@@ -407,9 +411,10 @@ window.handleLogin = async () => {
                 if (cachedM) { members = JSON.parse(cachedM); break; }
             } catch(e) {}
         }
+        if (btn && origBtnText) btn.innerHTML = origBtnText;
     }
     if (!members || members.length === 0) {
-        return window.showAlert("서버 연결 대기 중입니다. 잠시 후 다시 누르시거나 네트워크를 확인해주세요.", "연결 확인");
+        return window.showAlert("서버 연결이 지연되고 있습니다. 화면 상단의 버전(v) 뱃지를 눌러 캐시를 초기화하시거나 네트워크 상태를 확인해주세요.", "연결 확인");
     }
 
     let hashedPw = pw;
