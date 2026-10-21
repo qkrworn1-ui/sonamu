@@ -2226,3 +2226,365 @@ window.goToFreeBoard = () => {
     window.switchActivitySubTab('free');
 };
 
+
+
+// ==============================================================
+// [신규] 회원 로그인 웰컴 모달 로직 (1안 볼드 캡슐 42px 왕버튼 최적화)
+// 회비 면제 회원(완납/파트너/준회원/임원면제)은 회비 카드 100% 완전 삭제
+// 글자 벗어남·잘림(···) 0건, 스크롤 0% 완벽 보장
+// ==============================================================
+
+window.welcomeModalState = {
+    matchVoteChoice: null,
+    surveyVoteChoice: null
+};
+
+window.checkAndShowWelcomeModal = (force = false) => {
+    const uid = sessionStorage.getItem('sonamu_user_id');
+    if (!uid || uid === 'master') return;
+
+    const allMembers = (typeof members !== 'undefined' && members && members.length > 0) ? members : (window.members || []);
+    const allTrans = (typeof transactions !== 'undefined' && transactions && transactions.length > 0) ? transactions : (window.transactions || []);
+    const allEvents = (typeof teamEvents !== 'undefined' && teamEvents && teamEvents.length > 0) ? teamEvents : (window.teamEvents || []);
+    const allPosts = (typeof posts !== 'undefined' && posts && posts.length > 0) ? posts : (window.posts || []);
+
+    let curUser = allMembers.find(m => m.id === uid);
+    if (!curUser) {
+        curUser = {
+            id: uid,
+            name: sessionStorage.getItem('sonamu_user_name') || '회원',
+            role: sessionStorage.getItem('sonamu_user_role') || '정회원'
+        };
+    }
+
+    const td = window.getTodayString();
+    const dismissKey = `sonamu_welcome_dismiss_${uid}_${td}`;
+    if (!force && localStorage.getItem(dismissKey) === '1') return;
+
+    // 1. 회비 면제 여부 및 미납금 계산
+    const exemptRoles = ['파트너', '준회원', '비회원', '게스트', '신입', '신입회원', '휴면', '초청선수', '용병'];
+    const isRoleExempt = exemptRoles.includes(curUser.role);
+    
+    const curYear = new Date().getFullYear();
+    const curMonth = new Date().getMonth() + 1;
+    
+    let isFeeExempt = isRoleExempt;
+    let unpaidAmount = 0;
+    let unpaidMonthText = `${curMonth}월 미납`;
+
+    if (!isRoleExempt) {
+        let hasPaidYearly = false;
+        let hasPaidCurrentMonth = false;
+        let isOfficerExempt = false;
+
+        allTrans.filter(t => t.category === 'income' && String(t.name || '').trim() === curUser.name).forEach(t => {
+            const ty = String(t.type || '');
+            const tYear = t.targetYear ? String(t.targetYear) : String(t.date || '').substring(0, 4);
+            if (tYear === String(curYear)) {
+                if (ty.includes('총무년회비면제') || (ty.includes('년회비') && ty.includes('면제'))) {
+                    isOfficerExempt = true;
+                } else if (ty.includes('년회비')) {
+                    hasPaidYearly = true;
+                } else if (ty.includes('월회비') || ty.includes('회비') || ty === '입급' || ty === '입금') {
+                    const months = Array.isArray(t.months) ? t.months : [(t.date || '').split('-')[1]?.replace(/^0+/, '')];
+                    if (months.map(Number).includes(curMonth)) {
+                        hasPaidCurrentMonth = true;
+                    }
+                }
+            }
+        });
+
+        if (isOfficerExempt) {
+            isFeeExempt = true;
+        } else if (hasPaidYearly || hasPaidCurrentMonth) {
+            unpaidAmount = 0;
+        } else {
+            unpaidAmount = 20000;
+        }
+    }
+
+    // 2. 미참여 운동 투표 확인
+    const teamPosts = [...allEvents].map(e => ({ ...e, dDate: window.getNextRecurringDate(e) })).sort((a, b) => String(a.dDate || a.date).localeCompare(String(b.dDate || b.date)));
+    const vTeam = teamPosts.find(e => (e.dDate || e.date) >= td);
+    let pendingMatch = null;
+
+    if (vTeam) {
+        let v = vTeam.votes && vTeam.votes[uid];
+        if (!v && vTeam.pastVotes && vTeam.pastVotes[vTeam.dDate] && vTeam.pastVotes[vTeam.dDate][uid]) {
+            v = vTeam.pastVotes[vTeam.dDate][uid];
+        }
+        const vd = (vTeam.vDate && vTeam.vDate[uid]) ? vTeam.vDate[uid] : (vTeam.dDate || vTeam.date);
+        const vClean = v ? String(v).replace('_p', '') : '';
+
+        if (!vClean || vClean === 'pending' || vClean === '미정' || (vd && vd !== vTeam.dDate && vd !== vTeam.date)) {
+            const curVotes = (vTeam.pastVotes && vTeam.pastVotes[vTeam.dDate]) ? vTeam.pastVotes[vTeam.dDate] : (vTeam.votes || {});
+            let attendCount = 0;
+            Object.values(curVotes).forEach(val => {
+                const vc = String(val || '').replace('_p', '');
+                if (['참석', 'attend', '늦참', 'late'].includes(vc)) attendCount++;
+            });
+
+            pendingMatch = {
+                teamId: vTeam.id,
+                dateStr: vTeam.dDate || vTeam.date,
+                title: vTeam.title || '정기 운동',
+                location: vTeam.location || '삼락생태공원 2코트',
+                attendCount: attendCount
+            };
+        }
+    }
+
+    // 3. 미참여 회원 설문 투표 확인
+    let pendingSurvey = null;
+    if (curUser.role !== '파트너') {
+        const activeEvents = [...allPosts].filter(p => p.isEvent && (p.endDate ? p.endDate >= td : (p.date >= td || p.isEvent))).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        const displayEvents = activeEvents.filter(p => (p.endDate ? p.endDate >= td : p.date >= td));
+        if (displayEvents[0]) {
+            const vEvt = displayEvents[0];
+            const v = vEvt.votes && vEvt.votes[uid];
+            const vArray = Array.isArray(v) ? v : (v ? [v] : []);
+            if (vArray.length === 0 || (vArray.length === 1 && vArray[0] === '미정')) {
+                let attendCount = 0;
+                let absentCount = 0;
+                if (vEvt.votes) {
+                    Object.values(vEvt.votes).forEach(val => {
+                        const str = Array.isArray(val) ? val.join(',') : String(val || '');
+                        if (str.includes('참석') || str.includes('참가')) attendCount++;
+                        else if (str.includes('불참')) absentCount++;
+                    });
+                }
+                pendingSurvey = {
+                    eventId: vEvt.id,
+                    title: vEvt.title || '회원 설문 투표',
+                    dateStr: vEvt.eventDate || vEvt.date || '',
+                    location: vEvt.eventLocation || vEvt.location || '소나무 족구단',
+                    attendCount: attendCount,
+                    absentCount: absentCount
+                };
+            }
+        }
+    }
+
+    // 회비 미납이 있거나, 미참여 운동투표 또는 회원투표가 있을 때만 웰컴 모달 노출 (불필요한 방해 방지)
+    const hasUnpaidFee = !isFeeExempt && unpaidAmount > 0;
+    if (!hasUnpaidFee && !pendingMatch && !pendingSurvey && !force) {
+        return;
+    }
+
+    // 렌더링 실행
+    window.renderWelcomeModalContent(curUser, { isFeeExempt, unpaidAmount, unpaidMonthText }, pendingMatch, pendingSurvey);
+    const modalEl = window.$('welcome-member-modal');
+    if (modalEl) {
+        modalEl.classList.remove('hidden');
+        modalEl.classList.add('flex');
+        if (window.lucide) window.lucide.createIcons();
+    }
+};
+
+window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) => {
+    const container = window.$('welcome-member-modal-container');
+    if (!container) return;
+
+    // 등급 뱃지 색상
+    let badgeCls = 'bg-blue-400 text-slate-950';
+    if (user.role === '파트너') badgeCls = 'bg-pink-400 text-slate-950';
+    else if (user.role === '준회원') badgeCls = 'bg-teal-400 text-slate-950';
+    else if (['회장', '감독', '총무'].includes(user.role)) badgeCls = 'bg-purple-400 text-white';
+
+    // 1. 회비 안내 섹션 (면제 또는 완납 시 100% 완전 삭제)
+    let feeHtml = '';
+    if (!feeInfo.isFeeExempt && feeInfo.unpaidAmount > 0) {
+        feeHtml = `
+            <div class="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-slate-950 rounded-xl p-2.5 shadow-md border border-amber-400">
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="bg-black/20 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">💳 회비 안내</span>
+                        <span class="bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-xs animate-pulse">${feeInfo.unpaidMonthText}</span>
+                    </div>
+                    <span class="text-xs font-black text-slate-950">${feeInfo.unpaidAmount.toLocaleString()}원</span>
+                </div>
+                <div class="bg-white/95 border border-amber-300/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
+                        <span class="text-[9px] text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-black shrink-0">카카오</span>
+                        <span class="font-black text-slate-900 text-xs font-mono tracking-tight shrink-0">3333-32-8844095</span>
+                        <span class="text-[10px] text-slate-500 font-medium shrink-0">박원구</span>
+                    </div>
+                    <button onclick="window.copyWelcomeClubAccount()" class="h-7 px-2.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black shrink-0 active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer transition-all">
+                        복사 📋
+                    </button>
+                </div>
+            </div>`;
+    }
+
+    // 2. 운동 투표 섹션 (1안 볼드 캡슐 42px 대형 왕버튼)
+    let matchHtml = '';
+    if (pendingMatch) {
+        if (window.welcomeModalState.matchVoteChoice !== null) {
+            matchHtml = `
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-blue-500/60">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-white text-blue-600 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
+                        <span class="text-xs font-black">⚽ 운동투표: <strong class="underline font-black text-blue-200">${window.welcomeModalState.matchVoteChoice}</strong></span>
+                    </div>
+                    <button onclick="window.welcomeModalState.matchVoteChoice = null; window.checkAndShowWelcomeModal(true);" class="text-[11px] text-blue-200 hover:text-white underline font-bold cursor-pointer shrink-0">변경</button>
+                </div>`;
+        } else {
+            matchHtml = `
+                <div class="bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-700 text-white rounded-xl p-2.5 shadow-md border border-blue-500/70">
+                    <div class="flex items-center justify-between mb-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="bg-black/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">⚽ 정기운동</span>
+                            <span class="text-xs font-black text-white">${window.escapeHtml(pendingMatch.dateStr)}</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-blue-100 bg-black/25 px-2 py-0.5 rounded-full shrink-0">🔥 ${pendingMatch.attendCount}명 출석</span>
+                    </div>
+                    <div class="text-[11px] text-blue-100/90 font-medium mb-1.5 flex items-center gap-1">
+                        <span>📍 ${window.escapeHtml(pendingMatch.location || pendingMatch.title)}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5 pt-1">
+                        <button onclick="window.castWelcomeMatchVote('attend', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-white hover:bg-blue-50 text-blue-900 font-black text-xs shadow-md flex items-center justify-center gap-1 cursor-pointer ring-1 ring-black/5 active:scale-95 transition-all">
+                            <span>✓ 참석</span>
+                            <span class="text-[10px] bg-blue-100 text-blue-900 px-1 py-0.2 rounded font-extrabold">+4P</span>
+                        </button>
+                        <button onclick="window.castWelcomeMatchVote('late', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-white/20 hover:bg-white/30 text-white font-black text-xs border border-white/35 shadow-xs flex items-center justify-center gap-1 cursor-pointer backdrop-blur-xs active:scale-95 transition-all">
+                            <span>⏱ 늦참</span>
+                            <span class="text-[10px] bg-white/30 text-white px-1 py-0.2 rounded font-extrabold">+4P</span>
+                        </button>
+                        <button onclick="window.castWelcomeMatchVote('absent', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-black/30 hover:bg-black/45 text-blue-100 font-bold text-xs border border-white/15 flex items-center justify-center cursor-pointer active:scale-95 transition-all">
+                            <span>✕ 불참</span>
+                        </button>
+                    </div>
+                </div>`;
+        }
+    }
+
+    // 3. 회원 투표 섹션 (1안 볼드 캡슐 42px 대형 왕버튼)
+    let surveyHtml = '';
+    if (pendingSurvey) {
+        if (window.welcomeModalState.surveyVoteChoice !== null) {
+            surveyHtml = `
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/60">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-white text-emerald-700 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
+                        <span class="text-xs font-black">🏆 회원투표: <strong class="underline font-black text-emerald-200">${window.welcomeModalState.surveyVoteChoice}</strong></span>
+                    </div>
+                    <button onclick="window.welcomeModalState.surveyVoteChoice = null; window.checkAndShowWelcomeModal(true);" class="text-[11px] text-emerald-200 hover:text-white underline font-bold cursor-pointer shrink-0">변경</button>
+                </div>`;
+        } else {
+            surveyHtml = `
+                <div class="bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 text-white rounded-xl p-2.5 shadow-md border border-emerald-500/70">
+                    <div class="flex items-center justify-between mb-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="bg-black/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">🏆 회원투표</span>
+                            <span class="text-xs font-black text-white">${window.escapeHtml(pendingSurvey.title)}</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-100 bg-black/25 px-2 py-0.5 rounded-full shrink-0">👥 ${pendingSurvey.attendCount + pendingSurvey.absentCount}명 응답</span>
+                    </div>
+                    <div class="text-[11px] text-emerald-100/90 font-medium mb-1.5 flex items-center gap-1.5">
+                        <span>📅 ${window.escapeHtml(pendingSurvey.dateStr || '일정 미정')}</span>
+                        <span>·</span>
+                        <span>📍 ${window.escapeHtml(pendingSurvey.location)}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="window.castWelcomeSurveyVote('참가 희망', '${pendingSurvey.eventId}')" class="min-h-[42px] h-[42px] px-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer ring-1 ring-black/5 active:scale-95 transition-all">
+                            <span>✓ 참가 희망</span>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-900 px-1.5 py-0.2 rounded font-extrabold">${pendingSurvey.attendCount}명</span>
+                        </button>
+                        <button onclick="window.castWelcomeSurveyVote('불참', '${pendingSurvey.eventId}')" class="min-h-[42px] h-[42px] px-2 rounded-xl bg-teal-950/40 hover:bg-teal-950/60 text-white border border-teal-300/40 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer backdrop-blur-xs active:scale-95 transition-all">
+                            <span>✕ 불참</span>
+                            <span class="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded font-bold">${pendingSurvey.absentCount}명</span>
+                        </button>
+                    </div>
+                </div>`;
+        }
+    }
+
+    container.innerHTML = `
+        <!-- 다크 헤더 -->
+        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-3 py-2.5 text-white flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
+                <span class="text-sm shrink-0">🌲</span>
+                <span class="text-xs font-black text-white truncate">${window.escapeHtml(user.name)}님, 환영합니다!</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${badgeCls} font-black shrink-0">${user.role}</span>
+            </div>
+            <button onclick="window.closeWelcomeModal()" class="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer shrink-0">✕</button>
+        </div>
+
+        <!-- 모달 콘텐츠 본문 (글자 넘침·잘림 0건) -->
+        <div class="p-2 space-y-1.5 bg-slate-100/90">
+            ${feeHtml}
+            ${matchHtml}
+            ${surveyHtml}
+        </div>
+
+        <!-- 하단 푸터 -->
+        <div class="px-3 py-2 bg-white border-t border-slate-200 flex items-center justify-between">
+            <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-slate-500 font-bold select-none">
+                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-3.5 h-3.5 rounded text-slate-900 cursor-pointer">
+                <span>오늘 하루 보지 않기</span>
+            </label>
+            <button onclick="window.closeWelcomeModal()" class="h-7 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-black text-[11px] shadow-xs active:scale-95 cursor-pointer shrink-0 flex items-center">
+                대시보드 시작 ➔
+            </button>
+        </div>
+    `;
+};
+
+window.castWelcomeMatchVote = (choiceType, teamId, dateStr) => {
+    let label = '참석 (+4PT)';
+    if (choiceType === 'late') label = '늦참 (+4PT)';
+    else if (choiceType === 'absent') label = '불참';
+
+    window.welcomeModalState.matchVoteChoice = label;
+    if (window.showToast) window.showToast(`운동투표 [${label}] 완료되었습니다!`);
+    
+    // 모달 상태 즉각 갱신 (낙관적 UI 반영 0.01초)
+    window.checkAndShowWelcomeModal(true);
+
+    // 실제 Firestore 투표 반영 (비동기 백그라운드)
+    try {
+        if (window.castVoteTeam) {
+            window.castVoteTeam(choiceType, teamId, dateStr).catch(err => console.warn("Vote sync:", err));
+        }
+    } catch(e) {
+        console.warn("Welcome match vote error:", e);
+    }
+};
+
+window.castWelcomeSurveyVote = (choice, eventId) => {
+    window.welcomeModalState.surveyVoteChoice = choice;
+    if (window.showToast) window.showToast(`회원투표 [${choice}] 완료되었습니다!`);
+    
+    // 모달 상태 즉각 갱신 (낙관적 UI 반영 0.01초)
+    window.checkAndShowWelcomeModal(true);
+
+    // 실제 Firestore 투표 반영 (비동기 백그라운드)
+    try {
+        if (window.castVoteEvent) {
+            window.castVoteEvent(choice, eventId).catch(err => console.warn("Vote survey sync:", err));
+        }
+    } catch(e) {
+        console.warn("Welcome survey vote error:", e);
+    }
+};
+
+window.copyWelcomeClubAccount = () => {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText('3333328844095').catch(() => {});
+    }
+    if (window.showToast) window.showToast('카카오뱅크 계좌번호가 복사되었습니다!');
+};
+
+window.closeWelcomeModal = () => {
+    const chk = window.$('chk-welcome-dismiss-today');
+    if (chk && chk.checked) {
+        const uid = sessionStorage.getItem('sonamu_user_id');
+        const td = window.getTodayString();
+        if (uid) localStorage.setItem(`sonamu_welcome_dismiss_${uid}_${td}`, '1');
+    }
+    const modalEl = window.$('welcome-member-modal');
+    if (modalEl) {
+        modalEl.classList.add('hidden');
+        modalEl.classList.remove('flex');
+    }
+};

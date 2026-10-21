@@ -434,6 +434,11 @@ window.handleLogin = async () => {
         setTimeout(() => {
             if (window.recordMemberAccess) window.recordMemberAccess(m.id);
         }, 500);
+
+        // [신규] 회원 로그인 웰컴 모달 (1안 볼드 캡슐 42px 터치 최적화) 체크 및 표시
+        setTimeout(() => {
+            if (window.checkAndShowWelcomeModal) window.checkAndShowWelcomeModal();
+        }, 600);
     } 
     else {
         let fails = parseInt(localStorage.getItem('sonamu_fail')||'0') + 1;
