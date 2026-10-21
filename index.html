@@ -82,8 +82,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=140"></script>
-    <link rel="stylesheet" href="style.css?v=140">
+    <script src="firebase-config.js?v=141"></script>
+    <link rel="stylesheet" href="style.css?v=141">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -259,7 +259,7 @@
                         </div>
 
                         <!-- 우측 버전 칩 -->
-                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.23</span>
+                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.24</span>
                     </div>
 
                     <!-- 중앙 타이틀 -->
@@ -285,7 +285,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.23</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.24</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -410,7 +410,7 @@
                                         반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
                                     </h2>
                                     <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.23</span></span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.24</span></span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                                     <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
@@ -454,41 +454,41 @@
                     <div id="pending-vote-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </div>
 
-                <!-- [3. 통합 퀵 액션 그리드 (5구 모던 바)] -->
-                <div id="dashboard-quick-actions" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    <button onclick="window.scrollToNextWorkout()" class="bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
-                        <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                            🗳️
+                <!-- [3. 통합 퀵 액션 그리드 (토스/iOS 미니멀 그리드 바)] -->
+                <div id="dashboard-quick-actions" class="flex items-stretch justify-between gap-1.5 sm:gap-2.5 bg-white dark:bg-slate-900/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs backdrop-blur-sm">
+                    <button onclick="window.scrollToNextWorkout()" class="flex-1 min-w-0 py-2.5 px-1 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-black text-[11px] sm:text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all group cursor-pointer" title="다음 운동 투표하기">
+                        <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></svg>
                         </div>
-                        <span class="text-xs font-black">운동 투표하기</span>
+                        <span class="tracking-tight truncate max-w-full">투표하기</span>
                     </button>
 
-                    <button onclick="window.copyClubAccount()" class="partner-hidden temp-hidden bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                            💳
+                    <button onclick="window.copyClubAccount()" class="partner-hidden temp-hidden flex-1 min-w-0 py-2.5 px-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all group cursor-pointer" title="회비계좌 복사">
+                        <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200/60 dark:border-amber-800/60 group-hover:scale-110 transition-transform shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                         </div>
-                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">회비계좌 복사</span>
+                        <span class="tracking-tight truncate max-w-full">회비계좌</span>
                     </button>
 
-                    <button onclick="window.goToFreeBoard()" class="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
-                        <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                            💬
+                    <button onclick="window.goToFreeBoard()" class="flex-1 min-w-0 py-2.5 px-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all group cursor-pointer" title="클럽 한마디 바로가기">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-200/60 dark:border-purple-800/60 group-hover:scale-110 transition-transform shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         </div>
-                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">클럽 한마디</span>
+                        <span class="tracking-tight truncate max-w-full">한마디</span>
                     </button>
 
-                    <button onclick="window.shareApp()" class="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
-                        <div class="w-10 h-10 rounded-2xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                            🔗
+                    <button onclick="window.shareApp()" class="flex-1 min-w-0 py-2.5 px-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all group cursor-pointer" title="소나무 클럽 앱 공유하기">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center border border-cyan-200/60 dark:border-cyan-800/60 group-hover:scale-110 transition-transform shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
                         </div>
-                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">프로그램 공유</span>
+                        <span class="tracking-tight truncate max-w-full">앱 공유</span>
                     </button>
 
-                    <button onclick="window.openUserManualModal()" class="quick-action-manual col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-2 text-center group">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                            📖
+                    <button onclick="window.openUserManualModal()" class="quick-action-manual flex-1 min-w-0 py-2.5 px-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all group cursor-pointer" title="앱 사용설명서 열기">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/60 group-hover:scale-110 transition-transform shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                         </div>
-                        <span class="text-xs font-black text-slate-800 dark:text-slate-200">사용설명서</span>
+                        <span class="tracking-tight truncate max-w-full">설명서</span>
                     </button>
                 </div>
 
@@ -1626,24 +1626,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=140"></script>
-<script src="src/js/02_env_version.js?v=140"></script>
-<script src="src/js/03_init_utils.js?v=140"></script>
-<script src="src/js/04_scope_adjust.js?v=140"></script>
-<script src="src/js/05_mileage_engine.js?v=140"></script>
-<script src="src/js/06_common_ui_utils.js?v=140"></script>
-<script src="src/js/07_firebase_init.js?v=140"></script>
-<script src="src/js/08_auth_logic.js?v=140"></script>
-<script src="src/js/09_navigation_sync.js?v=140"></script>
-<script src="src/js/10_dashboard_logic.js?v=140"></script>
-<script src="src/js/11_vote_logic.js?v=140"></script>
-<script src="src/js/12_team_mgmt.js?v=140"></script>
-<script src="src/js/13_finance_logic.js?v=140"></script>
-<script src="src/js/14_member_mgmt.js?v=140"></script>
-<script src="src/js/15_board_logic.js?v=140"></script>
-<script src="src/js/16_gallery_report.js?v=140"></script>
-<script src="src/js/17_calendar_logic.js?v=140"></script>
-<script src="src/js/18_member_positions.js?v=140"></script>
+<script src="src/js/01_kakao_optimization.js?v=141"></script>
+<script src="src/js/02_env_version.js?v=141"></script>
+<script src="src/js/03_init_utils.js?v=141"></script>
+<script src="src/js/04_scope_adjust.js?v=141"></script>
+<script src="src/js/05_mileage_engine.js?v=141"></script>
+<script src="src/js/06_common_ui_utils.js?v=141"></script>
+<script src="src/js/07_firebase_init.js?v=141"></script>
+<script src="src/js/08_auth_logic.js?v=141"></script>
+<script src="src/js/09_navigation_sync.js?v=141"></script>
+<script src="src/js/10_dashboard_logic.js?v=141"></script>
+<script src="src/js/11_vote_logic.js?v=141"></script>
+<script src="src/js/12_team_mgmt.js?v=141"></script>
+<script src="src/js/13_finance_logic.js?v=141"></script>
+<script src="src/js/14_member_mgmt.js?v=141"></script>
+<script src="src/js/15_board_logic.js?v=141"></script>
+<script src="src/js/16_gallery_report.js?v=141"></script>
+<script src="src/js/17_calendar_logic.js?v=141"></script>
+<script src="src/js/18_member_positions.js?v=141"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
