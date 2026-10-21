@@ -2416,41 +2416,63 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
             </div>`;
     }
 
-    // 2. 운동 투표 섹션 (1안 볼드 캡슐 42px 대형 왕버튼)
+    // 2. 운동 투표 섹션 (시안 A: 비비드 3색 신호등 직관형 44px 볼드 버튼)
     let matchHtml = '';
     if (pendingMatch) {
         if (window.welcomeModalState.matchVoteChoice !== null) {
             matchHtml = `
-                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-blue-500/60">
-                    <div class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-white text-blue-600 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
-                        <span class="text-xs font-black">⚽ 운동투표: <strong class="underline font-black text-blue-200">${window.welcomeModalState.matchVoteChoice}</strong></span>
+                <div class="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-900 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/50">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 truncate pr-1">
+                        <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
+                        <span class="text-xs font-bold text-slate-200 truncate">⚽ 운동투표: <strong class="font-black text-emerald-300 underline">${window.escapeHtml(window.welcomeModalState.matchVoteChoice)}</strong></span>
                     </div>
-                    <button onclick="window.welcomeModalState.matchVoteChoice = null; window.checkAndShowWelcomeModal(true);" class="text-[11px] text-blue-200 hover:text-white underline font-bold cursor-pointer shrink-0">변경</button>
+                    <button onclick="window.welcomeModalState.matchVoteChoice = null; window.checkAndShowWelcomeModal(true);" class="text-[11px] text-emerald-300 hover:text-white underline font-bold cursor-pointer shrink-0">변경</button>
                 </div>`;
         } else {
+            let dDayBadge = 'D-Day';
+            try {
+                const targetDateOnly = String(pendingMatch.dateStr || '').substring(0, 10);
+                const targetT = new Date(targetDateOnly + 'T00:00:00');
+                const todayT = new Date(new Date().toISOString().substring(0, 10) + 'T00:00:00');
+                const diffDays = Math.round((targetT - todayT) / (1000 * 60 * 60 * 24));
+                if (diffDays === 0) dDayBadge = 'D-Day 오늘';
+                else if (diffDays === 1) dDayBadge = 'D-1 내일';
+                else if (diffDays > 1) dDayBadge = `D-${diffDays} 이번주`;
+            } catch(e) {}
+
             matchHtml = `
-                <div class="bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-700 text-white rounded-xl p-2.5 shadow-md border border-blue-500/70">
-                    <div class="flex items-center justify-between mb-0.5">
-                        <div class="flex items-center gap-1.5">
-                            <span class="bg-black/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">⚽ 정기운동</span>
-                            <span class="text-xs font-black text-white">${window.escapeHtml(pendingMatch.dateStr)}</span>
+                <div class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md border border-slate-700/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
+                            <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded shrink-0">⚽ 정기운동</span>
+                            <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded shrink-0">${dDayBadge}</span>
                         </div>
-                        <span class="text-[10px] font-bold text-blue-100 bg-black/25 px-2 py-0.5 rounded-full shrink-0">🔥 ${pendingMatch.attendCount}명 출석</span>
+                        <span class="text-[11px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">
+                            🔥 ${pendingMatch.attendCount}명 출석
+                        </span>
                     </div>
-                    <div class="text-[11px] text-blue-100/90 font-medium mb-1.5 flex items-center gap-1">
-                        <span>📍 ${window.escapeHtml(pendingMatch.location || pendingMatch.title)}</span>
+                    
+                    <div class="bg-slate-800/90 rounded-lg p-2 border border-slate-700/80 space-y-0.5">
+                        <div class="text-xs sm:text-sm font-black text-white flex items-center gap-1.5 tracking-tight truncate">
+                            <span class="text-blue-400 shrink-0">📅</span>
+                            <span class="truncate">${window.escapeHtml(pendingMatch.dateStr)}</span>
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-300 flex items-center gap-1 truncate">
+                            <span class="text-rose-400 shrink-0">📍</span>
+                            <span class="truncate">${window.escapeHtml(pendingMatch.location || pendingMatch.title)}</span>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5 pt-1">
-                        <button onclick="window.castWelcomeMatchVote('attend', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-white hover:bg-blue-50 text-blue-900 font-black text-xs shadow-md flex items-center justify-center gap-1 cursor-pointer ring-1 ring-black/5 active:scale-95 transition-all">
-                            <span>✓ 참석</span>
-                            <span class="text-[10px] bg-blue-100 text-blue-900 px-1 py-0.2 rounded font-extrabold">+4P</span>
+
+                    <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                        <button onclick="window.castWelcomeMatchVote('attend', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-950/50 flex flex-col items-center justify-center border border-emerald-400/50 active:scale-95 transition-all cursor-pointer">
+                            <span class="text-xs font-black">✓ 참석</span>
+                            <span class="text-[9px] bg-black/25 text-emerald-100 px-1.5 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
                         </button>
-                        <button onclick="window.castWelcomeMatchVote('late', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-white/20 hover:bg-white/30 text-white font-black text-xs border border-white/35 shadow-xs flex items-center justify-center gap-1 cursor-pointer backdrop-blur-xs active:scale-95 transition-all">
-                            <span>⏱ 늦참</span>
-                            <span class="text-[10px] bg-white/30 text-white px-1 py-0.2 rounded font-extrabold">+4P</span>
+                        <button onclick="window.castWelcomeMatchVote('late', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-950/50 flex flex-col items-center justify-center border border-amber-300/50 active:scale-95 transition-all cursor-pointer">
+                            <span class="text-xs font-black">⏱ 늦참</span>
+                            <span class="text-[9px] bg-black/20 text-slate-900 px-1.5 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
                         </button>
-                        <button onclick="window.castWelcomeMatchVote('absent', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[42px] h-[42px] rounded-xl bg-black/30 hover:bg-black/45 text-blue-100 font-bold text-xs border border-white/15 flex items-center justify-center cursor-pointer active:scale-95 transition-all">
+                        <button onclick="window.castWelcomeMatchVote('absent', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs shadow-xs flex items-center justify-center border border-slate-600 active:scale-95 transition-all cursor-pointer">
                             <span>✕ 불참</span>
                         </button>
                     </div>
