@@ -488,6 +488,11 @@
             transform: translateY(-50%) scale(0.92);
         }
         
+        /* 서버 연결 전 로그인 폼 잠금 상태 */
+        .login-input:disabled { opacity: 0.55; cursor: not-allowed; }
+        .login-input:disabled::placeholder { color: #67e8f9; animation: loginLockPulse 1.4s ease-in-out infinite; }
+        .login-form-locked .login-input-icon { opacity: 0.5; }
+        @keyframes loginLockPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .login-btn-premium {
             background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%);
             background-size: 200% auto;
