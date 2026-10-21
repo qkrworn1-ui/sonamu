@@ -869,6 +869,10 @@ window.shareKakaoVoteTeam = async () => {
     }
     allM.forEach(m => {
         if (!m || !m.name) return;
+        
+        // [수정] 정회원 외 파트너 등급은 운동투표 공유정보에서 완전 제외
+        if (m.role === '파트너' || String(m.role || '').includes('파트너')) return;
+
         let v = e.votes && e.votes[m.id];
         if (!v && e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
             v = e.pastVotes[targetDate][m.id];
@@ -895,7 +899,7 @@ window.shareKakaoVoteTeam = async () => {
             cleanName = e.guestNames[m.id];
         }
         
-        let dispName = (m.role === '파트너') ? `${cleanName}(파트너)` : cleanName;
+        let dispName = cleanName;
         if (seenNames.has(cleanName) && (!v || v === 'pending')) return;
         seenNames.add(cleanName);
         if (isExt) {
