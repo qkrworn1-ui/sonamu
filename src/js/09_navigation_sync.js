@@ -116,6 +116,11 @@ window.startCloudSync = async () => {
                 isAppReady = true;
                 sUI('success');
                 window.updateUI();
+
+                // [신규] 로그인 회원 웰컴 모달 (미납 회비 / 미참여 투표가 있을 때만) 체크
+                setTimeout(() => {
+                    if (window.checkAndShowWelcomeModal) window.checkAndShowWelcomeModal();
+                }, 700);
                 
                 // [동기화 피드백] 최신 동기화 시간 표시
                 const creditText = window.$('ai-credit-text');

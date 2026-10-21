@@ -396,8 +396,20 @@ window.handleLogin = async () => {
             if (cachedM) members = JSON.parse(cachedM);
         } catch(e) {}
     }
+    // [동기화 대기 보장] 만약 회원이 아직 로드되지 않았다면 최대 2.5초간 안전하게 대기
     if (!members || members.length === 0) {
-        return window.showToast("서버와 회원 데이터를 동기화 중입니다. 1~2초 후 다시 눌러주세요.");
+        if (window.showToast) window.showToast("서버와 동기화 중입니다. 잠시만 기다려주세요...");
+        for (let i = 0; i < 12; i++) {
+            await new Promise(r => setTimeout(r, 200));
+            if (typeof members !== 'undefined' && members && members.length > 0) break;
+            try {
+                const cachedM = localStorage.getItem('sonamu_cached_members');
+                if (cachedM) { members = JSON.parse(cachedM); break; }
+            } catch(e) {}
+        }
+    }
+    if (!members || members.length === 0) {
+        return window.showAlert("서버 연결 대기 중입니다. 잠시 후 다시 누르시거나 네트워크를 확인해주세요.", "연결 확인");
     }
 
     let hashedPw = pw;
