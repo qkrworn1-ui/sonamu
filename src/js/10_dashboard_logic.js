@@ -2391,37 +2391,37 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
     else if (user.role === '준회원') badgeCls = 'bg-teal-400 text-slate-950';
     else if (['회장', '감독', '총무'].includes(user.role)) badgeCls = 'bg-purple-400 text-white';
 
-    // 1. 회비 안내 섹션 (면제 또는 완납 시 100% 완전 삭제)
+    // 1. 회비 안내 섹션 (면제 또는 완납 시 100% 완전 삭제, 반투명 글래스 테마)
     let feeHtml = '';
     if (!feeInfo.isFeeExempt && feeInfo.unpaidAmount > 0) {
         feeHtml = `
-            <div class="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-slate-950 rounded-xl p-2.5 shadow-md border border-amber-400">
+            <div class="bg-gradient-to-r from-amber-600/85 to-orange-600/85 backdrop-blur-md text-white rounded-2xl p-2.5 shadow-md border border-amber-400/50">
                 <div class="flex items-center justify-between mb-1.5">
                     <div class="flex items-center gap-1.5">
-                        <span class="bg-black/20 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">💳 회비 안내</span>
+                        <span class="bg-black/35 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">💳 회비 안내</span>
                         <span class="bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-xs animate-pulse">${feeInfo.unpaidMonthText}</span>
                     </div>
-                    <span class="text-xs font-black text-slate-950">${feeInfo.unpaidAmount.toLocaleString()}원</span>
+                    <span class="text-xs font-black text-amber-200">${feeInfo.unpaidAmount.toLocaleString()}원</span>
                 </div>
-                <div class="bg-white/95 border border-amber-300/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between shadow-xs">
+                <div class="bg-black/40 border border-amber-300/30 rounded-xl px-2.5 py-1.5 flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
-                        <span class="text-[9px] text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-black shrink-0">카카오</span>
-                        <span class="font-black text-slate-900 text-xs font-mono tracking-tight shrink-0">3333-38-2146941</span>
-                        <span class="text-[10px] text-slate-500 font-medium shrink-0">박인규</span>
+                        <span class="text-[9px] text-amber-200 bg-amber-950/90 border border-amber-500/40 px-1.5 py-0.5 rounded font-black shrink-0">카카오</span>
+                        <span class="font-black text-amber-100 text-xs font-mono tracking-tight shrink-0">3333-38-2146941</span>
+                        <span class="text-[10px] text-slate-300 font-medium shrink-0">박인규</span>
                     </div>
-                    <button onclick="window.copyWelcomeClubAccount()" class="h-7 px-2.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black shrink-0 active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer transition-all">
+                    <button onclick="window.copyWelcomeClubAccount()" class="h-6 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black shrink-0 active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer transition-all">
                         복사 📋
                     </button>
                 </div>
             </div>`;
     }
 
-    // 2. 운동 투표 섹션 (시안 A: 비비드 3색 신호등 직관형 44px 볼드 버튼)
+    // 2. 운동 투표 섹션 (2안: 비비드 일렉트릭 블루 카드 - 모달 배경과 완벽 분리)
     let matchHtml = '';
     if (pendingMatch) {
         if (window.welcomeModalState.matchVoteChoice !== null) {
             matchHtml = `
-                <div class="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-900 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/50">
+                <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-slate-900 text-white rounded-2xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/50">
                     <div class="flex items-center gap-2 min-w-0 flex-1 truncate pr-1">
                         <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
                         <span class="text-xs font-bold text-slate-200 truncate">⚽ 운동투표: <strong class="font-black text-emerald-300 underline">${window.escapeHtml(window.welcomeModalState.matchVoteChoice)}</strong></span>
@@ -2441,38 +2441,38 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
             } catch(e) {}
 
             matchHtml = `
-                <div class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md border border-slate-700/80 space-y-2">
+                <div class="bg-gradient-to-b from-[#1e40af] via-[#1d4ed8] to-[#1e3a8a] text-white rounded-2xl p-3 shadow-2xl border-2 border-blue-300/60 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
-                            <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded shrink-0">⚽ 정기운동</span>
-                            <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded shrink-0">${dDayBadge}</span>
+                            <span class="bg-black/35 text-white text-[11px] font-black px-2.5 py-0.5 rounded-lg shadow-sm shrink-0">⚽ 운동 투표</span>
+                            <span class="bg-amber-300 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm shrink-0">${dDayBadge}</span>
                         </div>
-                        <span class="text-[11px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">
+                        <span class="text-[11px] font-black text-emerald-300 bg-black/40 border border-emerald-400/40 px-2 py-0.5 rounded-full shrink-0">
                             🔥 ${pendingMatch.attendCount}명 출석
                         </span>
                     </div>
                     
-                    <div class="bg-slate-800/90 rounded-lg p-2 border border-slate-700/80 space-y-0.5">
+                    <div class="bg-black/35 rounded-xl p-2.5 border border-white/20 space-y-1">
                         <div class="text-xs sm:text-sm font-black text-white flex items-center gap-1.5 tracking-tight truncate">
-                            <span class="text-blue-400 shrink-0">📅</span>
+                            <span class="text-blue-300 shrink-0 text-sm">📅</span>
                             <span class="truncate">${window.escapeHtml(pendingMatch.dateStr)}</span>
                         </div>
-                        <div class="text-[11px] font-bold text-slate-300 flex items-center gap-1 truncate">
-                            <span class="text-rose-400 shrink-0">📍</span>
+                        <div class="text-[11px] font-bold text-blue-100 flex items-center gap-1 truncate">
+                            <span class="text-rose-300 shrink-0 text-sm">📍</span>
                             <span class="truncate">${window.escapeHtml(pendingMatch.location || pendingMatch.title)}</span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-1.5 pt-0.5">
-                        <button onclick="window.castWelcomeMatchVote('attend', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-950/50 flex flex-col items-center justify-center border border-emerald-400/50 active:scale-95 transition-all cursor-pointer">
+                        <button onclick="window.castWelcomeMatchVote('attend', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 text-slate-950 font-black text-xs shadow-md flex flex-col items-center justify-center border border-emerald-300 active:scale-95 transition-all cursor-pointer">
                             <span class="text-xs font-black">✓ 참석</span>
-                            <span class="text-[9px] bg-black/25 text-emerald-100 px-1.5 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
+                            <span class="text-[9px] bg-black/20 text-emerald-950 px-1 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
                         </button>
-                        <button onclick="window.castWelcomeMatchVote('late', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-950/50 flex flex-col items-center justify-center border border-amber-300/50 active:scale-95 transition-all cursor-pointer">
+                        <button onclick="window.castWelcomeMatchVote('late', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-gradient-to-b from-amber-300 to-amber-400 hover:from-amber-200 hover:to-amber-300 text-slate-950 font-black text-xs shadow-md flex flex-col items-center justify-center border border-amber-200 active:scale-95 transition-all cursor-pointer">
                             <span class="text-xs font-black">⏱ 늦참</span>
-                            <span class="text-[9px] bg-black/20 text-slate-900 px-1.5 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
+                            <span class="text-[9px] bg-black/20 text-amber-950 px-1 py-0.2 rounded font-extrabold mt-0.5">+4 PT</span>
                         </button>
-                        <button onclick="window.castWelcomeMatchVote('absent', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs shadow-xs flex items-center justify-center border border-slate-600 active:scale-95 transition-all cursor-pointer">
+                        <button onclick="window.castWelcomeMatchVote('absent', '${pendingMatch.teamId}', '${pendingMatch.dateStr}')" class="min-h-[44px] h-[44px] rounded-xl bg-black/40 hover:bg-black/50 text-white font-bold text-xs flex items-center justify-center border border-white/20 active:scale-95 transition-all cursor-pointer">
                             <span>✕ 불참</span>
                         </button>
                     </div>
@@ -2485,16 +2485,16 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
     if (pendingSurvey) {
         if (window.welcomeModalState.surveyVoteChoice !== null) {
             surveyHtml = `
-                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/60">
+                <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-slate-900 text-white rounded-2xl px-3 py-2.5 flex items-center justify-between text-xs shadow-md border border-emerald-500/60">
                     <div class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-white text-emerald-700 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
+                        <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs shrink-0">✓</span>
                         <span class="text-xs font-black">🏆 회원투표: <strong class="underline font-black text-emerald-200">${window.welcomeModalState.surveyVoteChoice}</strong></span>
                     </div>
                     <button onclick="window.welcomeModalState.surveyVoteChoice = null; window.checkAndShowWelcomeModal(true);" class="text-[11px] text-emerald-200 hover:text-white underline font-bold cursor-pointer shrink-0">변경</button>
                 </div>`;
         } else {
             surveyHtml = `
-                <div class="bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 text-white rounded-xl p-2.5 shadow-md border border-emerald-500/70">
+                <div class="bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 text-white rounded-2xl p-2.5 shadow-md border border-emerald-500/70">
                     <div class="flex items-center justify-between mb-0.5">
                         <div class="flex items-center gap-1.5">
                             <span class="bg-black/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded backdrop-blur-xs">🏆 회원투표</span>
@@ -2522,30 +2522,30 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
     }
 
     container.innerHTML = `
-        <!-- 다크 헤더 -->
-        <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 px-3 py-2.5 text-white flex items-center justify-between border-b border-slate-800">
+        <!-- 반투명 네이비 헤더 -->
+        <div class="bg-blue-950/70 px-4 py-3 text-white flex items-center justify-between border-b border-blue-500/30">
             <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
-                <span class="text-sm shrink-0">🌲</span>
+                <span class="text-base shrink-0">🌲</span>
                 <span class="text-xs font-black text-white truncate">${window.escapeHtml(user.name)}님, 환영합니다!</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded-full ${badgeCls} font-black shrink-0">${user.role}</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full ${badgeCls} font-black shrink-0">${user.role}</span>
             </div>
-            <button onclick="window.closeWelcomeModal()" class="text-slate-400 hover:text-white text-xs font-bold p-1 cursor-pointer shrink-0">✕</button>
+            <button onclick="window.closeWelcomeModal()" class="text-blue-300 hover:text-white text-xs font-bold p-1 cursor-pointer shrink-0">✕</button>
         </div>
 
-        <!-- 모달 콘텐츠 본문 (글자 넘침·잘림 0건) -->
-        <div class="p-2 space-y-1.5 bg-slate-100/90">
+        <!-- 모달 콘텐츠 본문 (반투명 바탕) -->
+        <div class="p-3 space-y-2.5 bg-transparent">
             ${feeHtml}
             ${matchHtml}
             ${surveyHtml}
         </div>
 
-        <!-- 하단 푸터 -->
-        <div class="px-3 py-2 bg-white border-t border-slate-200 flex items-center justify-between">
-            <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-slate-500 font-bold select-none">
-                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-3.5 h-3.5 rounded text-slate-900 cursor-pointer">
+        <!-- 하단 반투명 푸터 (흰색 완전 제거) -->
+        <div class="px-3.5 py-2.5 bg-blue-950/60 border-t border-blue-500/20 flex items-center justify-between">
+            <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-blue-200/70 font-bold select-none">
+                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer">
                 <span>오늘 하루 보지 않기</span>
             </label>
-            <button onclick="window.closeWelcomeModal()" class="h-7 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-black text-[11px] shadow-xs active:scale-95 cursor-pointer shrink-0 flex items-center">
+            <button onclick="window.closeWelcomeModal()" class="h-7 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] shadow-xs active:scale-95 cursor-pointer shrink-0 flex items-center">
                 대시보드 시작 ➔
             </button>
         </div>
