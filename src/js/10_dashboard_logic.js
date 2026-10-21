@@ -1,10 +1,10 @@
 
 window.copyClubAccount = () => {
     if (window.copyToClipboard) {
-        window.copyToClipboard('3333328844095');
+        window.copyToClipboard('3333382146941');
     }
     if (window.showToast) {
-        window.showToast('카카오뱅크 3333-32-8844095 계좌가 복사되었습니다!');
+        window.showToast('카카오뱅크 3333-38-2146941 (박인규) 계좌가 복사되었습니다!');
     }
 };
 
@@ -2406,8 +2406,8 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
                 <div class="bg-white/95 border border-amber-300/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
                         <span class="text-[9px] text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded font-black shrink-0">카카오</span>
-                        <span class="font-black text-slate-900 text-xs font-mono tracking-tight shrink-0">3333-32-8844095</span>
-                        <span class="text-[10px] text-slate-500 font-medium shrink-0">박원구</span>
+                        <span class="font-black text-slate-900 text-xs font-mono tracking-tight shrink-0">3333-38-2146941</span>
+                        <span class="text-[10px] text-slate-500 font-medium shrink-0">박인규</span>
                     </div>
                     <button onclick="window.copyWelcomeClubAccount()" class="h-7 px-2.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black shrink-0 active:scale-95 shadow-xs flex items-center gap-1 cursor-pointer transition-all">
                         복사 📋
@@ -2570,9 +2570,9 @@ window.castWelcomeSurveyVote = (choice, eventId) => {
 
 window.copyWelcomeClubAccount = () => {
     if (navigator.clipboard) {
-        navigator.clipboard.writeText('3333328844095').catch(() => {});
+        navigator.clipboard.writeText('3333382146941').catch(() => {});
     }
-    if (window.showToast) window.showToast('카카오뱅크 계좌번호가 복사되었습니다!');
+    if (window.showToast) window.showToast('카카오뱅크 3333-38-2146941 (박인규) 계좌가 복사되었습니다!');
 };
 
 window.closeWelcomeModal = () => {
