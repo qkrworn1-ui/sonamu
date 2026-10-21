@@ -3,12 +3,16 @@ if(window.top !== window.self) window.top.location = window.location;
         window.getTeamPts = v => { if(!v || v==='pending'||v==='미정') return 0; let p=2; if(v==='attend'||v==='참석'||v==='late'||v==='늦참') p+=3; return p; };
         window.getBoardPts = v => { const vArray = Array.isArray(v) ? v : (v ? [v] : []); const baseVArray = vArray.map(val => String(val).replace('_p', '')); if (baseVArray.length > 0 && !baseVArray.includes('미정')) return 2; return 0; };
         
-        // --- [테마 초기화] 다크모드 설정 ---
+        // --- [테마 초기화] ---
         (function() {
-            const savedTheme = localStorage.getItem('sonamu_theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
+            try {
+                const savedTheme = localStorage.getItem('sonamu_theme') || localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
         })();
 
         // --- [보안 추가] 우클릭, 개발자도구 단축키 차단 및 콘솔 로그 무효화 ---

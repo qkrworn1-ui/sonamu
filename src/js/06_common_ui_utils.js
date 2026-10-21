@@ -116,7 +116,6 @@ window.switchTeamSubTab = t => {
 };
 
 window.updateUI = () => {
-    if (typeof window.syncTheme === "function") window.syncTheme();
     // [추가] 외부 스크립트 접근을 위한 글로벌 참조 동기화
     window.members = members;
     window.teamEvents = teamEvents;
