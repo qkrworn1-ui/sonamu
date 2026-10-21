@@ -162,12 +162,8 @@ window.startCloudSync = async () => {
                     if(sid && sid !== 'master') window.recordMemberAccess(sid);
                 }, 300);
 
-                // 테마 아이콘 동기화
-                const isDark = document.documentElement.classList.contains('dark');
-                const dIcon = window.$('theme-icon-d'), mIcon = window.$('theme-icon-m');
-                if (dIcon) dIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-                if (mIcon) mIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-                if (window.lucide) window.lucide.createIcons();
+                // [테마 영속화] 저장된 테마 불러오기 및 아이콘 동기화
+                if (typeof window.syncTheme === 'function') window.syncTheme();
 
                 if (sessionStorage.getItem('sonamu_user_role')) {
                     document.documentElement.classList.add('app-loaded');

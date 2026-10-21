@@ -116,6 +116,7 @@ window.switchTeamSubTab = t => {
 };
 
 window.updateUI = () => {
+    if (typeof window.syncTheme === "function") window.syncTheme();
     // [추가] 외부 스크립트 접근을 위한 글로벌 참조 동기화
     window.members = members;
     window.teamEvents = teamEvents;
@@ -474,6 +475,7 @@ window.handleLogin = async () => {
 };
 window.logout = () => { 
     try {
+        const currentTheme = localStorage.getItem('sonamu_theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         sessionStorage.clear(); 
         localStorage.removeItem('sonamu_rem');
         localStorage.removeItem('sonamu_id');
@@ -483,6 +485,11 @@ window.logout = () => {
         localStorage.removeItem('sonamu_user_role');
         localStorage.removeItem('sonamu_fail');
         localStorage.removeItem('sonamu_lock');
+        // [테마 영속화] 로그아웃 후에도 사용자가 선택한 테마 완벽 보존
+        if (currentTheme) {
+            localStorage.setItem('sonamu_theme', currentTheme);
+            localStorage.setItem('theme', currentTheme);
+        }
     } catch(e) {}
     location.reload(); 
 };
