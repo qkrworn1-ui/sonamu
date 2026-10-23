@@ -434,32 +434,8 @@ window.handleLogin = async () => {
     });
 
     if(m) { 
-        try {
-            localStorage.removeItem('sonamu_fail');
-            localStorage.removeItem('sonamu_lock');
-        } catch(e) {}
         saveLogin(m); 
-        try {
-            sessionStorage.setItem('sonamu_user_role', m.role); 
-            sessionStorage.setItem('sonamu_user_name', m.name); 
-            sessionStorage.setItem('sonamu_user_id', m.id); 
-        } catch(e) {}
-        window._sRole = btoa(encodeURIComponent(m.role)); 
-        
-        // [즉시 전환] 화면 먼저 0.01초만에 전환
-        document.documentElement.classList.add('app-loaded'); 
-        window.updateUI(); 
-        window.checkAndRouteFromUrl(); 
-
-        // 접속 기록은 백그라운드에서 비동기 처리
-        setTimeout(() => {
-            if (window.recordMemberAccess) window.recordMemberAccess(m.id);
-        }, 500);
-
-        // [신규] 회원 로그인 웰컴 모달 (1안 볼드 캡슐 42px 터치 최적화) 체크 및 표시
-        setTimeout(() => {
-            if (window.checkAndShowWelcomeModal) window.checkAndShowWelcomeModal();
-        }, 600);
+        window.finalizeMemberLogin(m, false);
     } 
     else {
         let fails = parseInt(localStorage.getItem('sonamu_fail')||'0') + 1;
@@ -976,3 +952,50 @@ window.shareApp = async () => {
 };
 
 
+
+
+window.finalizeMemberLogin = (m, isGoogle = false) => {
+    try {
+        localStorage.removeItem('sonamu_fail');
+        localStorage.removeItem('sonamu_lock');
+    } catch(e) {}
+
+    const rem = isGoogle ? true : !!window.$('login-remember')?.checked;
+    try {
+        if(rem) {
+            localStorage.setItem('sonamu_rem', '1');
+            localStorage.setItem('sonamu_user_id', m.id);
+            localStorage.setItem('sonamu_user_name', m.name || '');
+            localStorage.setItem('sonamu_user_role', m.role || '');
+            if (isGoogle) {
+                localStorage.setItem('sonamu_auth_provider', 'google');
+            }
+        }
+    } catch(e) { console.warn("Storage save warning:", e); }
+
+    try {
+        sessionStorage.setItem('sonamu_user_role', m.role);
+        sessionStorage.setItem('sonamu_user_name', m.name);
+        sessionStorage.setItem('sonamu_user_id', m.id);
+        if (isGoogle) {
+            sessionStorage.setItem('sonamu_auth_provider', 'google');
+        }
+    } catch(e) {}
+
+    window._sRole = btoa(encodeURIComponent(m.role));
+
+    // [즉시 전환] 화면 먼저 0.01초만에 전환
+    document.documentElement.classList.add('app-loaded');
+    window.updateUI();
+    window.checkAndRouteFromUrl();
+
+    // 접속 기록은 백그라운드에서 비동기 처리
+    setTimeout(() => {
+        if (window.recordMemberAccess) window.recordMemberAccess(m.id);
+    }, 500);
+
+    // [신규] 회원 로그인 웰컴 모달 (1안 볼드 캡슐 42px 터치 최적화) 체크 및 표시
+    setTimeout(() => {
+        if (window.checkAndShowWelcomeModal) window.checkAndShowWelcomeModal();
+    }, 600);
+};

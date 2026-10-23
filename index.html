@@ -95,8 +95,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=145"></script>
-    <link rel="stylesheet" href="style.css?v=145">
+    <script src="firebase-config.js?v=146"></script>
+    <link rel="stylesheet" href="style.css?v=146">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -272,7 +272,7 @@
                         </div>
 
                         <!-- 우측 버전 칩 -->
-                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.28</span>
+                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.29</span>
                     </div>
 
                     <!-- 중앙 타이틀 -->
@@ -298,7 +298,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.28</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.29</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -306,6 +306,24 @@
 
                     <!-- 로그인 입력 폼 -->
                     <div class="w-full space-y-4">
+                        <!-- [신규] Google 간편 로그인 버튼 -->
+                        <button type="button" id="btn-google-login" onclick="window.handleGoogleLogin()" class="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 transition-all transform active:scale-[0.98] shadow-lg border border-slate-200 cursor-pointer">
+                            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                            </svg>
+                            <span>Google 계정으로 시작하기</span>
+                        </button>
+
+                        <!-- 구분선 -->
+                        <div class="relative flex items-center justify-center my-2">
+                            <div class="border-t border-white/15 w-full"></div>
+                            <span class="bg-[#020617] px-3 text-[11px] font-bold text-slate-400 shrink-0">또는 기존 정보로 로그인</span>
+                            <div class="border-t border-white/15 w-full"></div>
+                        </div>
+
                         <div class="login-input-group">
                             <i data-lucide="user" class="login-input-icon w-5 h-5"></i>
                             <input type="text" id="login-id" placeholder="서버 연결 중..." data-placeholder="휴대폰 뒷자리 또는 ID" disabled autocomplete="username" class="login-input w-full py-4 pr-4 rounded-2xl text-white placeholder-slate-500 text-sm sm:text-base font-bold outline-none transition-all border border-white/10 bg-slate-950/70 focus:bg-slate-950/95 shadow-inner">
@@ -426,7 +444,7 @@
                                         반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
                                     </h2>
                                     <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.28</span></span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.29</span></span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                                     <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
@@ -1091,6 +1109,24 @@
                                         <label class="text-[10px] text-slate-500 mb-1 block ml-1">비밀번호 (미입력시 연락처 뒤 4자리)</label>
                                         <input type="text" id="m-loginPw" placeholder="PW" class="w-full border-2 p-3 rounded-xl bg-slate-50 focus:border-indigo-400 outline-none">
                                     </div>
+                                    <!-- [신규] 구글 계정 연동 상태 및 해제 -->
+                                    <div id="m-google-link-container" class="col-span-2 hidden bg-slate-100 rounded-xl p-3 flex items-center justify-between">
+                                        <div class="flex items-center gap-2 min-w-0 flex-1 truncate pr-2">
+                                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                            </svg>
+                                            <div class="truncate text-xs">
+                                                <span class="text-slate-500 font-bold">구글 계정: </span>
+                                                <span id="m-google-email-text" class="text-blue-600 font-black truncate">연동 안 됨</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="window.unlinkGoogleFromMemberForm()" class="text-[11px] text-rose-500 hover:text-rose-700 font-black px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 shrink-0 cursor-pointer">
+                                            연동 해제
+                                        </button>
+                                    </div>
                                     <div class="col-span-2">
                                         <label class="text-[10px] text-slate-500 mb-1 block ml-1">연락처 (- 없이 숫자만)</label>
                                         <input type="tel" id="m-phone" oninput="formatPhoneInput(this)" placeholder="연락처" class="w-full border-2 p-3 rounded-xl focus:border-indigo-400 outline-none">
@@ -1642,24 +1678,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=145"></script>
-<script src="src/js/02_env_version.js?v=145"></script>
-<script src="src/js/03_init_utils.js?v=145"></script>
-<script src="src/js/04_scope_adjust.js?v=145"></script>
-<script src="src/js/05_mileage_engine.js?v=145"></script>
-<script src="src/js/06_common_ui_utils.js?v=145"></script>
-<script src="src/js/07_firebase_init.js?v=145"></script>
-<script src="src/js/08_auth_logic.js?v=145"></script>
-<script src="src/js/09_navigation_sync.js?v=145"></script>
-<script src="src/js/10_dashboard_logic.js?v=145"></script>
-<script src="src/js/11_vote_logic.js?v=145"></script>
-<script src="src/js/12_team_mgmt.js?v=145"></script>
-<script src="src/js/13_finance_logic.js?v=145"></script>
-<script src="src/js/14_member_mgmt.js?v=145"></script>
-<script src="src/js/15_board_logic.js?v=145"></script>
-<script src="src/js/16_gallery_report.js?v=145"></script>
-<script src="src/js/17_calendar_logic.js?v=145"></script>
-<script src="src/js/18_member_positions.js?v=145"></script>
+<script src="src/js/01_kakao_optimization.js?v=146"></script>
+<script src="src/js/02_env_version.js?v=146"></script>
+<script src="src/js/03_init_utils.js?v=146"></script>
+<script src="src/js/04_scope_adjust.js?v=146"></script>
+<script src="src/js/05_mileage_engine.js?v=146"></script>
+<script src="src/js/06_common_ui_utils.js?v=146"></script>
+<script src="src/js/07_firebase_init.js?v=146"></script>
+<script src="src/js/08_auth_logic.js?v=146"></script>
+<script src="src/js/09_navigation_sync.js?v=146"></script>
+<script src="src/js/10_dashboard_logic.js?v=146"></script>
+<script src="src/js/11_vote_logic.js?v=146"></script>
+<script src="src/js/12_team_mgmt.js?v=146"></script>
+<script src="src/js/13_finance_logic.js?v=146"></script>
+<script src="src/js/14_member_mgmt.js?v=146"></script>
+<script src="src/js/15_board_logic.js?v=146"></script>
+<script src="src/js/16_gallery_report.js?v=146"></script>
+<script src="src/js/17_calendar_logic.js?v=146"></script>
+<script src="src/js/18_member_positions.js?v=146"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
@@ -2106,5 +2142,64 @@
     </div>
 
     <!-- 삭제됨: 과거 내역 마이그레이션 스크립트 -->
+    <!-- ============================================================== -->
+    <!-- [신규] 구글 계정 최초 연동 모달 (기존 회원 1:1 매칭) -->
+    <!-- ============================================================== -->
+    <div id="google-link-modal" class="fixed inset-0 z-[160] hidden items-center justify-center p-3 bg-slate-950/75 backdrop-blur-[8px] transition-all duration-200">
+        <div class="relative z-20 w-full max-w-[360px] bg-[#0c162d]/95 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/40 animate-in fade-in zoom-in-95 duration-200 text-white">
+            <!-- 헤더 -->
+            <div class="bg-gradient-to-r from-blue-950 to-indigo-950 px-4 py-3 border-b border-cyan-500/30 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🌲</span>
+                    <span class="text-xs font-black text-white">소나무 족구단 계정 연동</span>
+                </div>
+                <button type="button" onclick="window.closeGoogleLinkModal()" aria-label="닫기" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 text-xs font-bold transition-all cursor-pointer">✕</button>
+            </div>
+
+            <div class="p-4 space-y-3.5">
+                <!-- 구글 프로필 카드 -->
+                <div class="bg-blue-900/30 border border-blue-400/30 rounded-2xl p-3 flex items-center gap-3">
+                    <img id="google-link-avatar" src="" class="w-10 h-10 rounded-full border border-cyan-400/40 object-cover shadow-sm bg-slate-800" alt="Google Profile">
+                    <div class="min-w-0 flex-1 truncate">
+                        <div class="text-xs font-black text-cyan-200 truncate" id="google-link-email">user@gmail.com</div>
+                        <div class="text-[11px] text-slate-300 font-bold flex items-center gap-1">
+                            <span>인증된 구글 계정</span>
+                            <span class="text-emerald-400 text-xs">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-1">
+                    <p class="text-xs font-black text-white">기존 회원 정보와 연동해주세요</p>
+                    <p class="text-[11px] text-slate-300 leading-snug">
+                        소나무 족구단에 등록된 <strong class="text-cyan-300">성함</strong>과 <strong class="text-cyan-300">전화번호 뒷 4자리</strong>를 입력하시면 1회 연동 후 다음부터 구글로 자동 로그인됩니다.
+                    </p>
+                </div>
+
+                <!-- 입력 필드 -->
+                <div class="space-y-2 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-300 mb-1">회원 성함</label>
+                        <input type="text" id="google-link-name" placeholder="예: 이유상" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-white/20 text-white placeholder-slate-500 text-xs font-bold outline-none focus:border-cyan-400 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-300 mb-1">전화번호 뒷 4자리 (또는 비밀번호)</label>
+                        <input type="password" id="google-link-phone" placeholder="예: 2688" maxlength="10" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-white/20 text-white placeholder-slate-500 text-xs font-bold outline-none focus:border-cyan-400 transition-all" onkeydown="if(event.key==='Enter') window.confirmGoogleAccountLink()">
+                    </div>
+                </div>
+
+                <!-- 확인 버튼 -->
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="window.closeGoogleLinkModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black transition-all cursor-pointer">
+                        취소
+                    </button>
+                    <button type="button" onclick="window.confirmGoogleAccountLink()" class="flex-[2] py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-black shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span>회원 계정 연동하기</span>
+                        <span>➔</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -762,6 +762,9 @@ window.resetMemberForm = (force = true) => {
         const bt = document.querySelector('input[name="m-birthType"][value="solar"]');
         if(bt) bt.checked = true;
 
+        const gCont = window.$('m-google-link-container');
+        if(gCont) gCont.classList.add('hidden');
+
         window.$('member-form-title').innerText = "회원 설정";
     };
 
@@ -785,6 +788,17 @@ window.editMember = id => {
     
     window.setText('member-form-title', '회원 정보 수정');
     window.$('btn-member-submit').innerText = '정보 수정 완료';
+
+    const gCont = window.$('m-google-link-container');
+    const gText = window.$('m-google-email-text');
+    if (gCont && gText) {
+        if (m.googleUid) {
+            gText.innerText = m.googleEmail || '구글 연동 완료';
+            gCont.classList.remove('hidden');
+        } else {
+            gCont.classList.add('hidden');
+        }
+    }
     
     const c = window.$('member-form-container');
     c.classList.remove('hidden'); 
