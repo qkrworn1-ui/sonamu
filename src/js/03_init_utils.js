@@ -26,13 +26,25 @@ let luckyWinners = {}; let luckMileageAmount = 10; let luckMileageCount = 2; let
 // [초고속 진입] 로컬 스토리지에 캐시된 전체 데이터 즉시 메모리 적재 (0.0001초)
 try {
     const cachedM = localStorage.getItem('sonamu_cached_members');
-    if (cachedM) members = JSON.parse(cachedM);
+    if (cachedM) {
+        members = JSON.parse(cachedM);
+        window.members = members;
+    }
     const cachedS = localStorage.getItem('sonamu_cached_sports');
-    if (cachedS) teamEvents = JSON.parse(cachedS);
+    if (cachedS) {
+        teamEvents = JSON.parse(cachedS);
+        window.teamEvents = teamEvents;
+    }
     const cachedB = localStorage.getItem('sonamu_cached_board');
-    if (cachedB) posts = JSON.parse(cachedB);
+    if (cachedB) {
+        posts = JSON.parse(cachedB);
+        window.posts = posts;
+    }
     const cachedF = localStorage.getItem('sonamu_cached_finance');
-    if (cachedF) transactions = JSON.parse(cachedF);
+    if (cachedF) {
+        transactions = JSON.parse(cachedF);
+        window.transactions = transactions;
+    }
 } catch(e) {}
 
 // [스코프 보정] 외부 스크립트(dashboard-charts.js 등) 접근을 위해 window 객체에 연결

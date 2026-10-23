@@ -40,20 +40,20 @@ window.openMyProfile = () => {
     }, 10);
 };
 
-// [로그인 폼 제어] 서버 연결이 완료된 후에만 아이디/비밀번호 입력 및 로그인 허용
-window.setLoginFormEnabled = (enabled) => {
+// [로그인 폼 제어] 로그인 입력 필드는 언제나 자유롭게 입력 가능하도록 보장 (잠금 해제)
+window.setLoginFormEnabled = (enabled = true) => {
     ['login-id', 'login-pw', 'login-remember', 'btn-login'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.disabled = !enabled;
+        el.disabled = false;
         if (el.dataset && el.dataset.placeholder) {
-            el.placeholder = enabled ? el.dataset.placeholder : '서버 연결 중...';
+            el.placeholder = el.dataset.placeholder;
         }
     });
     const group = document.getElementById('login-id')?.closest('.w-full.space-y-4');
-    if (group) group.classList.toggle('login-form-locked', !enabled);
-    // 데스크톱(마우스) 환경에서는 연결 완료 시 아이디 입력창에 자동 포커스 (모바일은 키보드 팝업 방지)
-    if (enabled && !window._loginFocusDone) {
+    if (group) group.classList.remove('login-form-locked');
+    // 데스크톱(마우스) 환경에서는 연결 시 아이디 입력창에 자동 포커스 (모바일은 키보드 팝업 방지)
+    if (!window._loginFocusDone) {
         window._loginFocusDone = true;
         const idEl = document.getElementById('login-id');
         const loginVisible = !document.documentElement.classList.contains('app-loaded');
@@ -79,24 +79,23 @@ window.startCloudSync = async () => {
             classes += ' bg-blue-950/40 text-blue-100 border-blue-500/40 animate-pulse glow-blue';
             logoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_30px_rgba(59,130,246,0.3)]';
             mLogoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.3)]';
-            window.setLoginFormEnabled(false); // 서버 연결 완료 전에는 아이디/비밀번호 입력 잠금
+            window.setLoginFormEnabled(true); // 입력 필드는 로딩 중에도 항상 입력 가능하게 유지
         } else if(t === 'success') {
             icon = '<div class="relative flex items-center justify-center mr-2"><div class="absolute w-5 h-5 rounded-full bg-emerald-500/20 animate-ping"></div><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 relative z-10"></i></div>';
             text = '서버 연결됨';
             classes += ' bg-emerald-950/40 text-emerald-100 border-emerald-500/40 glow-emerald';
             logoClasses += ' border-emerald-500/80 shadow-[0_0_40px_rgba(16,185,129,0.4)]';
             mLogoClasses += ' border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
-            window.setLoginFormEnabled(true); // 서버 연결 완료 → 입력 허용
+            window.setLoginFormEnabled(true);
         } else {
-            icon = '<div class="relative flex items-center justify-center mr-2"><i data-lucide="wifi-off" class="w-3.5 h-3.5 text-rose-400"></i></div>';
-            text = '오프라인 모드';
-            classes += ' bg-rose-950/40 text-rose-100 border-rose-500/40 animate-bounce';
-            logoClasses += ' border-rose-500/80 shadow-[0_0_30px_rgba(244,63,94,0.3)]';
-            mLogoClasses += ' border-rose-400/80 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
-            // 연결 실패: 저장된 회원 캐시가 있을 때만 오프라인 로그인 허용 (없으면 재연결 시도 또는 12초 안전장치)
+            icon = '<div class="relative flex items-center justify-center mr-2"><i data-lucide="wifi-off" class="w-3.5 h-3.5 text-amber-400"></i></div>';
             let hasCache = false;
-            try { hasCache = !!localStorage.getItem('sonamu_cached_members'); } catch(e) {}
-            window.setLoginFormEnabled(hasCache);
+            try { hasCache = !!(localStorage.getItem('sonamu_cached_members') || (members && members.length > 0)); } catch(e) {}
+            text = hasCache ? '오프라인 (캐시 이용)' : '오프라인 모드';
+            classes += ' bg-amber-950/40 text-amber-100 border-amber-500/40';
+            logoClasses += ' border-amber-500/80 shadow-[0_0_30px_rgba(245,158,11,0.3)]';
+            mLogoClasses += ' border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.3)]';
+            window.setLoginFormEnabled(true);
         }
 
         const html = `${icon}<span class="tracking-tight">${text}</span>`;
@@ -127,13 +126,19 @@ window.startCloudSync = async () => {
         let isAppReady = false;
 
         const checkInitComplete = (docName) => {
+            initDocs.add(docName);
+
+            // [초고속 반응] members 데이터만 도착해도 즉시 '서버 연결됨' 표시하여 대기 체감 0
+            if (initDocs.has('members')) {
+                sUI('success');
+            }
+
             if (isAppReady) {
                 window.updateUI();
                 return;
             }
             
-            initDocs.add(docName);
-            // [속도 최적화] 필수 코어 members 및 sports 준비 시 0.05초 만에 초고속 앱 오픈!
+            // 필수 코어 members 및 sports 준비 시 앱 완전 오픈
             const isCoreReady = initDocs.has('members') && initDocs.has('sports');
             
             if(isCoreReady) {
@@ -245,6 +250,22 @@ window.startCloudSync = async () => {
             }
         };
 
+        // [초고속 체감 보장] 네트워크 지연 시에도 캐시가 있으면 1.8초 내에 '서버 연결됨'으로 전환
+        setTimeout(() => {
+            if (!isAppReady) {
+                try {
+                    const cachedM = localStorage.getItem('sonamu_cached_members');
+                    if (cachedM && (!members || members.length === 0)) {
+                        members = JSON.parse(cachedM);
+                        window.members = members;
+                    }
+                    if (members && members.length > 0) {
+                        sUI('success');
+                    }
+                } catch(e) {}
+            }
+        }, 1800);
+
         // [연결 판정 보강] 서버에 닿지 못해 캐시에서 온 '빈 문서' 스냅샷은 연결 성공/회원 초기화로 처리하지 않음
         // (오프라인에서 members=[] 로 덮어쓰이거나 '서버 연결됨'이 잘못 표시되던 문제 방지)
         const isOfflineEmpty = (s) => !!(s && s.metadata && s.metadata.fromCache && !s.exists);
@@ -294,7 +315,10 @@ window.startCloudSync = async () => {
             if(document.documentElement.classList.contains('app-loaded')) {
                 window.updateUI();
             }
-        }, err => console.error(err));
+        }, err => {
+            console.error("docMembers sync error:", err);
+            sUI('offline');
+        });
         docFinance.onSnapshot(snap => { 
             if(snap.exists) { 
                 const d=snap.data(); 
@@ -431,7 +455,10 @@ window.startCloudSync = async () => {
             }
             checkInitComplete('sports');
             if(document.documentElement.classList.contains('app-loaded')) window.updateUI();
-        }, err => console.error(err));
+        }, err => {
+            console.error("docSports sync error:", err);
+            if (initDocs.has('members')) sUI('success'); else sUI('offline');
+        });
         docBoard.onSnapshot(async snap => {
             if(snap.exists) {
                 const d = snap.data();
@@ -614,13 +641,11 @@ auth.onAuthStateChanged(user => {
             window.updateUI();
         }
     } else {
-        // 비인증 상태 시 익명 로그인 (읽기 전용 보장)
+        // 비인증 상태여도 즉시 클라우드 동기화 시작 (백그라운드 익명 로그인 병행)
+        window.startCloudSync();
         auth.signInAnonymously().catch(e => {
             console.error("[Auth] Anonymous login failed:", e);
-            // 인증 서버 접속 실패: 저장된 회원 캐시가 있으면 오프라인 로그인 허용 (없으면 12초 안전장치까지 잠금 유지)
-            let hasCache = false;
-            try { hasCache = !!localStorage.getItem('sonamu_cached_members'); } catch(err) {}
-            if (window.setLoginFormEnabled) window.setLoginFormEnabled(hasCache);
+            if (window.sUI) window.sUI('offline');
         });
     }
 });
@@ -628,6 +653,8 @@ auth.onAuthStateChanged(user => {
 // 페이지 로드 및 비상 탈출 로직
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[Init] DOMContentLoaded");
+    if (window.setLoginFormEnabled) window.setLoginFormEnabled(true);
+    window.startCloudSync();
     
     // [비상 탈출] 인증 성공 후 5초가 지났는데도 오버레이가 안 사라지면 강제 제거
     setTimeout(() => {
