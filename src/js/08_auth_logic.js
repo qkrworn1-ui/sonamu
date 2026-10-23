@@ -60,6 +60,12 @@ window.handleRestoreUpload = (input) => {
 window._pendingGoogleUser = null;
 
 window.handleGoogleLogin = async () => {
+    // 0. 서버 연결 전 비활성화 가드
+    const googleBtn = document.getElementById('btn-google-login');
+    if (googleBtn && googleBtn.disabled) {
+        return window.showAlert("서버 연결 중입니다. 잠시 후 다시 시도해주세요.", "연결 확인");
+    }
+
     // 1. 카카오톡 인앱 브라우저 체크 (구글 OAuth 차단 사전 방어)
     const ua = (navigator.userAgent || '').toLowerCase();
     if (ua.includes('kakaotalk')) {

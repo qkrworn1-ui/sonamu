@@ -63,6 +63,22 @@ window.setLoginFormEnabled = (enabled = true) => {
     }
 };
 
+// [구글 로그인 버튼 제어] 서버 연결 전에는 비활성화, 서버 연결 완료 시 활성화
+window.setGoogleLoginEnabled = (enabled) => {
+    const btn = document.getElementById('btn-google-login');
+    if (!btn) return;
+    btn.disabled = !enabled;
+    if (enabled) {
+        btn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.add('cursor-pointer');
+        btn.removeAttribute('title');
+    } else {
+        btn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.remove('cursor-pointer');
+        btn.setAttribute('title', '서버 연결 후 구글 로그인이 가능합니다.');
+    }
+};
+
 window.startCloudSync = async () => {
     if (window._isCloudSyncStarted) return;
     window._isCloudSyncStarted = true;
@@ -80,6 +96,7 @@ window.startCloudSync = async () => {
             logoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_30px_rgba(59,130,246,0.3)]';
             mLogoClasses += ' border-blue-500/50 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.3)]';
             window.setLoginFormEnabled(true); // 입력 필드는 로딩 중에도 항상 입력 가능하게 유지
+            window.setGoogleLoginEnabled(false); // [요청] 서버 연결 전 구글 로그인 비활성화
         } else if(t === 'success') {
             icon = '<div class="relative flex items-center justify-center mr-2"><div class="absolute w-5 h-5 rounded-full bg-emerald-500/20 animate-ping"></div><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 relative z-10"></i></div>';
             text = '서버 연결됨';
@@ -87,6 +104,7 @@ window.startCloudSync = async () => {
             logoClasses += ' border-emerald-500/80 shadow-[0_0_40px_rgba(16,185,129,0.4)]';
             mLogoClasses += ' border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
             window.setLoginFormEnabled(true);
+            window.setGoogleLoginEnabled(true); // [요청] 서버 연결 완료 시 구글 로그인 활성화
         } else {
             icon = '<div class="relative flex items-center justify-center mr-2"><i data-lucide="wifi-off" class="w-3.5 h-3.5 text-amber-400"></i></div>';
             let hasCache = false;
@@ -96,6 +114,7 @@ window.startCloudSync = async () => {
             logoClasses += ' border-amber-500/80 shadow-[0_0_30px_rgba(245,158,11,0.3)]';
             mLogoClasses += ' border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.3)]';
             window.setLoginFormEnabled(true);
+            window.setGoogleLoginEnabled(false); // 오프라인 시 구글 로그인 비활성화
         }
 
         const html = `${icon}<span class="tracking-tight">${text}</span>`;
