@@ -701,26 +701,70 @@ window.saveData = async (type = 'all', msg = false, force = false, forceData = n
                                 mergedItem.lastLogin = serverItem.lastLogin || localItem.lastLogin;
                             }
                         }
-                        deepFields.forEach(field => {
-                            const sVal = serverItem[field];
-                            const lVal = localItem[field];
-                            if (sVal && typeof sVal === 'object' && !Array.isArray(sVal)) {
-                                // [중요] 투표/게스트 내역은 실시간 서버 상태(sVal)가 항상 최우선! (로컬의 오래된 캐시로 서버 투표가 덮어씌워지는 현상 방지)
-                                mergedItem[field] = { ...(lVal || {}) };
-                                // 서버의 최신 키-값들을 우선 반영
-                                Object.keys(sVal).forEach(k => {
-                                    if (sVal[k] && typeof sVal[k] === 'object' && !Array.isArray(sVal[k])) {
-                                        mergedItem[field][k] = { ...((lVal && lVal[k]) || {}), ...sVal[k] };
-                                    } else {
-                                        mergedItem[field][k] = sVal[k];
-                                    }
-                                });
-                            } else if (sVal !== undefined) {
-                                mergedItem[field] = sVal;
-                            } else if (lVal !== undefined) {
-                                mergedItem[field] = lVal;
+                        // [안전 보장] 운동 일정 등 날짜가 있는 이벤트의 투표 내역 병합 시
+                        // 1) 로컬이 새 날짜로 롤오버되었는데 서버가 이전 날짜인 경우: 서버의 지난 투표를 새 날짜 votes로 병합하지 않고 pastVotes로 아카이브
+                        if (localItem.date && serverItem.date && localItem.date > serverItem.date) {
+                            if (!mergedItem.pastVotes) mergedItem.pastVotes = {};
+                            if (!mergedItem.pastVDates) mergedItem.pastVDates = {};
+                            if (serverItem.votes && Object.keys(serverItem.votes).length > 0) {
+                                mergedItem.pastVotes[serverItem.date] = { ...(mergedItem.pastVotes[serverItem.date] || {}), ...serverItem.votes };
                             }
-                        });
+                            if (serverItem.vDate && Object.keys(serverItem.vDate).length > 0) {
+                                mergedItem.pastVDates[serverItem.date] = { ...(mergedItem.pastVDates[serverItem.date] || {}), ...serverItem.vDate };
+                            }
+                            mergedItem.votes = { ...(localItem.votes || {}) };
+                            mergedItem.vDate = { ...(localItem.vDate || {}) };
+                            mergedItem.proxyVotes = { ...(localItem.proxyVotes || {}) };
+                            mergedItem.guestCounts = { ...(localItem.guestCounts || {}) };
+                            mergedItem.guestNames = { ...(localItem.guestNames || {}) };
+                            // pastVotes, pastVDates는 양쪽 모두 보존 병합
+                            ['pastVotes', 'pastVDates'].forEach(f => {
+                                const s = serverItem[f], l = localItem[f];
+                                if (s || l) {
+                                    mergedItem[f] = { ...(l || {}) };
+                                    if (s) Object.keys(s).forEach(k => { mergedItem[f][k] = { ...((l && l[k]) || {}), ...s[k] }; });
+                                }
+                            });
+                        } else {
+                            deepFields.forEach(field => {
+                                const sVal = serverItem[field];
+                                const lVal = localItem[field];
+                                if (sVal && typeof sVal === 'object' && !Array.isArray(sVal)) {
+                                    // [중요] 투표/게스트 내역은 실시간 서버 상태(sVal)가 항상 최우선! (로컬의 오래된 캐시로 서버 투표가 덮어씌워지는 현상 방지)
+                                    mergedItem[field] = { ...(lVal || {}) };
+                                    // 서버의 최신 키-값들을 우선 반영
+                                    Object.keys(sVal).forEach(k => {
+                                        if (sVal[k] && typeof sVal[k] === 'object' && !Array.isArray(sVal[k])) {
+                                            mergedItem[field][k] = { ...((lVal && lVal[k]) || {}), ...sVal[k] };
+                                        } else {
+                                            mergedItem[field][k] = sVal[k];
+                                        }
+                                    });
+                                } else if (sVal !== undefined) {
+                                    mergedItem[field] = sVal;
+                                } else if (lVal !== undefined) {
+                                    mergedItem[field] = lVal;
+                                }
+                            });
+                        }
+
+                        // 2) mergedItem.votes 내에 현재 일정 날짜(mergedItem.date)와 일치하지 않는 과거 투표가 있다면 pastVotes로 격리
+                        if (mergedItem.date && mergedItem.votes && mergedItem.vDate) {
+                            Object.keys(mergedItem.votes).forEach(k => {
+                                const vd = mergedItem.vDate[k];
+                                if (vd && vd !== mergedItem.date) {
+                                    if (!mergedItem.pastVotes) mergedItem.pastVotes = {};
+                                    if (!mergedItem.pastVDates) mergedItem.pastVDates = {};
+                                    if (!mergedItem.pastVotes[vd]) mergedItem.pastVotes[vd] = {};
+                                    if (!mergedItem.pastVDates[vd]) mergedItem.pastVDates[vd] = {};
+                                    mergedItem.pastVotes[vd][k] = mergedItem.votes[k];
+                                    mergedItem.pastVDates[vd][k] = vd;
+                                    delete mergedItem.votes[k];
+                                    delete mergedItem.vDate[k];
+                                    if (mergedItem.proxyVotes) delete mergedItem.proxyVotes[k];
+                                }
+                            });
+                        }
                         merged.push(mergedItem);
                     }
                     serverMap.delete(localItem.id);

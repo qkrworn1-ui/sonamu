@@ -386,7 +386,7 @@ window.startCloudSync = async () => {
 
                             if (e.votes) {
                                 Object.keys(e.votes).forEach(uid => {
-                                    const vDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : nxt;
+                                    const vDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : e.date;
                                     if (vDate === nxt) {
                                         // 이번 회차(새 일정 nxt)에 미리 투표한 내역은 보존!
                                         upcomingVotes[uid] = e.votes[uid];
@@ -403,8 +403,8 @@ window.startCloudSync = async () => {
                             if (!e.pastVotes) e.pastVotes = {};
                             if (!e.pastVDates) e.pastVDates = {};
                             if (Object.keys(pastVotes).length > 0) {
-                                e.pastVotes[e.date] = pastVotes;
-                                e.pastVDates[e.date] = pastVDates;
+                                e.pastVotes[e.date] = { ...(e.pastVotes[e.date] || {}), ...pastVotes };
+                                e.pastVDates[e.date] = { ...(e.pastVDates[e.date] || {}), ...pastVDates };
                             }
 
                             // 만약 이미 pastVotes[nxt]에 이번 회차 투표가 보관되어 있었다면 upcomingVotes로 복원
@@ -454,6 +454,27 @@ window.startCloudSync = async () => {
                             if (!e.vDate) e.vDate = {};
                             Object.assign(e.votes, e.pastVotes[td]);
                             if (e.pastVDates && e.pastVDates[td]) Object.assign(e.vDate, e.pastVDates[td]);
+                        }
+
+                        // [과거 투표 정리] 활성 일정의 e.votes에 다른 날짜(과거 날짜)의 투표가 남아있다면 pastVotes로 격리
+                        if (e.votes && Object.keys(e.votes).length > 0) {
+                            let prunedAny = false;
+                            Object.keys(e.votes).forEach(uid => {
+                                const vd = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : null;
+                                if (vd && vd !== e.date) {
+                                    if (!e.pastVotes) e.pastVotes = {};
+                                    if (!e.pastVDates) e.pastVDates = {};
+                                    if (!e.pastVotes[vd]) e.pastVotes[vd] = {};
+                                    if (!e.pastVDates[vd]) e.pastVDates[vd] = {};
+                                    e.pastVotes[vd][uid] = e.votes[uid];
+                                    e.pastVDates[vd][uid] = vd;
+                                    delete e.votes[uid];
+                                    if (e.vDate) delete e.vDate[uid];
+                                    if (e.proxyVotes) delete e.proxyVotes[uid];
+                                    prunedAny = true;
+                                }
+                            });
+                            if (prunedAny) needsRollover = true;
                         }
                     }
                 });

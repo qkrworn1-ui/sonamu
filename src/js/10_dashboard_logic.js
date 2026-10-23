@@ -308,7 +308,9 @@ window.updateDashboard = () => {
         const targetMembers = (members || []).filter(m => m.role !== '파트너' && m.role !== '초청선수');
         
         targetMembers.forEach(m => {
-            const v = curVotes[m.id];
+            let v = curVotes[m.id];
+            const vd = (vTeam.vDate && vTeam.vDate[m.id]) ? vTeam.vDate[m.id] : ((vTeam.pastVDates && vTeam.pastVDates[nextDateStr] && vTeam.pastVDates[nextDateStr][m.id]) ? vTeam.pastVDates[nextDateStr][m.id] : (vTeam.dDate || vTeam.date));
+            if (vd !== nextDateStr) v = null;
             const vClean = v ? String(v).replace('_p', '') : '';
             if (['참석', 'attend'].includes(vClean)) attendCount++;
             else if (['늦참', 'late', '지각'].includes(vClean)) lateCount++;
@@ -330,7 +332,9 @@ window.updateDashboard = () => {
         // 현재 사용자 투표 상태에 따른 상단 뱃지 렌더링 (운동 카드의 투표는 미참여 투표 안내함으로 일원화)
         let userVote = '';
         if (curUid) {
-            const rawV = curVotes[curUid];
+            let rawV = curVotes[curUid];
+            const uvd = (vTeam.vDate && vTeam.vDate[curUid]) ? vTeam.vDate[curUid] : ((vTeam.pastVDates && vTeam.pastVDates[nextDateStr] && vTeam.pastVDates[nextDateStr][curUid]) ? vTeam.pastVDates[nextDateStr][curUid] : (vTeam.dDate || vTeam.date));
+            if (uvd !== nextDateStr) rawV = null;
             if (rawV) userVote = String(rawV).replace('_p', '');
         }
         const isUserUnvoted = !userVote || userVote === 'pending' || userVote === '미정';
@@ -693,9 +697,11 @@ window.renderVoteTeam = () => {
         else { btnAddExt.classList.remove('flex'); btnAddExt.classList.add('hidden'); }
     }
 
-    let myV = e.votes[uid] || (e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][uid]) || null;
-    const myVDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : targetDate;
-    if (myVDate !== targetDate) myV = null;
+    let myV = (e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][uid]) || null;
+    if (!myV && e.votes && e.votes[uid]) {
+        const myVDate = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : (e.date || targetDate);
+        if (myVDate === targetDate) myV = e.votes[uid];
+    }
 
     let att=[], lat=[], abs=[], pen=[], nov=[];
     let attCnt=0, latCnt=0, absCnt=0, penCnt=0, novCnt=0;
@@ -715,17 +721,18 @@ window.renderVoteTeam = () => {
         if (!m || !m.name) return;
         if (seenIds.has(m.id)) return;
         seenIds.add(m.id);
-        let v = e.votes ? e.votes[m.id] : null;
-        if (!v && e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
+        let v = null;
+        if (e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
             v = e.pastVotes[targetDate][m.id];
-        }
-        if (!v && e.guestNames) {
+        } else if (e.votes && e.votes[m.id]) {
+            const vd = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : (e.date || targetDate);
+            if (vd === targetDate) v = e.votes[m.id];
+        } else if (e.guestNames) {
             const matchedGid = Object.keys(e.guestNames).find(gid => e.guestNames[gid] === m.name && e.votes && e.votes[gid]);
-            if (matchedGid) v = e.votes[matchedGid];
-        }
-        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : ((e.pastVDates && e.pastVDates[targetDate] && e.pastVDates[targetDate][m.id]) ? e.pastVDates[targetDate][m.id] : targetDate);
-        if (vDate && vDate !== targetDate && vDate !== (e.date || targetDate)) {
-            if (!e.votes || !e.votes[m.id]) v = null;
+            if (matchedGid) {
+                const vd = (e.vDate && e.vDate[matchedGid]) ? e.vDate[matchedGid] : (e.date || targetDate);
+                if (vd === targetDate) v = e.votes[matchedGid];
+            }
         }
         
         const isExt = String(m.id).startsWith('ext_team_') || String(m.name).includes('[외부팀]');
@@ -882,17 +889,18 @@ window.shareKakaoVoteTeam = async () => {
         // [수정] 정회원 외 파트너 등급은 운동투표 공유정보에서 완전 제외
         if (m.role === '파트너' || String(m.role || '').includes('파트너')) return;
 
-        let v = e.votes && e.votes[m.id];
-        if (!v && e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
+        let v = null;
+        if (e.pastVotes && e.pastVotes[targetDate] && e.pastVotes[targetDate][m.id]) {
             v = e.pastVotes[targetDate][m.id];
-        }
-        if (!v && e.guestNames) {
+        } else if (e.votes && e.votes[m.id]) {
+            const vd = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : (e.date || targetDate);
+            if (vd === targetDate) v = e.votes[m.id];
+        } else if (e.guestNames) {
             const matchedGid = Object.keys(e.guestNames).find(gid => e.guestNames[gid] === m.name && e.votes && e.votes[gid]);
-            if (matchedGid) v = e.votes[matchedGid];
-        }
-        const vDate = (e.vDate && e.vDate[m.id]) ? e.vDate[m.id] : ((e.pastVDates && e.pastVDates[targetDate] && e.pastVDates[targetDate][m.id]) ? e.pastVDates[targetDate][m.id] : targetDate);
-        if (vDate && vDate !== targetDate && vDate !== (e.date || targetDate)) {
-            if (!e.votes || !e.votes[m.id]) v = null;
+            if (matchedGid) {
+                const vd = (e.vDate && e.vDate[matchedGid]) ? e.vDate[matchedGid] : (e.date || targetDate);
+                if (vd === targetDate) v = e.votes[matchedGid];
+            }
         }
         
         const isExt = String(m.id).startsWith('ext_team_') || String(m.name).includes('[외부팀]');
@@ -1207,25 +1215,30 @@ window.castVoteTeam = async (t, eid, vDate) => {
                 const td = window.getTodayString();
                 const nxtDate = (vDate && vDate !== 'undefined') ? vDate : (targetE.dDate || window.getNextRecurringDate(targetE) || targetE.date);
                 
-                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
-                if (targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) {
+                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있거나, votes에 다른 날짜 투표가 남아있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
+                const hasStaleVotes = Object.keys(targetE.votes).some(k => {
+                    const vd = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
+                    return vd !== nxtDate;
+                });
+                if ((targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) || hasStaleVotes) {
                     if (!targetE.pastVotes) targetE.pastVotes = {};
                     if (!targetE.pastVDates) targetE.pastVDates = {};
-                    const oldVotes = {};
-                    const oldVDates = {};
+                    const oldVotesByDate = {};
+                    const oldVDatesByDate = {};
                     Object.keys(targetE.votes).forEach(k => {
                         const itemVDate = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
                         if (itemVDate !== nxtDate) {
-                            oldVotes[k] = targetE.votes[k];
-                            oldVDates[k] = itemVDate;
+                            if (!oldVotesByDate[itemVDate]) { oldVotesByDate[itemVDate] = {}; oldVDatesByDate[itemVDate] = {}; }
+                            oldVotesByDate[itemVDate][k] = targetE.votes[k];
+                            oldVDatesByDate[itemVDate][k] = itemVDate;
                             delete targetE.votes[k];
                             if (targetE.vDate) delete targetE.vDate[k];
                         }
                     });
-                    if (Object.keys(oldVotes).length > 0) {
-                        targetE.pastVotes[targetE.date] = oldVotes;
-                        targetE.pastVDates[targetE.date] = oldVDates;
-                    }
+                    Object.keys(oldVotesByDate).forEach(dKey => {
+                        targetE.pastVotes[dKey] = { ...(targetE.pastVotes[dKey] || {}), ...oldVotesByDate[dKey] };
+                        targetE.pastVDates[dKey] = { ...(targetE.pastVDates[dKey] || {}), ...oldVDatesByDate[dKey] };
+                    });
                     if (targetE.pastVotes[nxtDate]) {
                         Object.assign(targetE.votes, targetE.pastVotes[nxtDate]);
                         if (targetE.pastVDates && targetE.pastVDates[nxtDate]) Object.assign(targetE.vDate, targetE.pastVDates[nxtDate]);
@@ -1304,25 +1317,30 @@ window.castVoteForTeam = async (u, t, eid) => {
                 const td = window.getTodayString();
                 const nxtDate = (targetE.dDate || window.getNextRecurringDate(targetE) || targetE.date);
 
-                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
-                if (targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) {
+                // [안전 보장] 만약 반복 일정이 이전 회차에 머물러 있거나, votes에 다른 날짜 투표가 남아있다면 과거 투표를 아카이빙하고 date를 nxtDate로 최신화
+                const hasStaleVotes = Object.keys(targetE.votes).some(k => {
+                    const vd = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
+                    return vd !== nxtDate;
+                });
+                if ((targetE.repeatMode && targetE.repeatMode !== 'none' && targetE.date && targetE.date < td && nxtDate && nxtDate >= td) || hasStaleVotes) {
                     if (!targetE.pastVotes) targetE.pastVotes = {};
                     if (!targetE.pastVDates) targetE.pastVDates = {};
-                    const oldVotes = {};
-                    const oldVDates = {};
+                    const oldVotesByDate = {};
+                    const oldVDatesByDate = {};
                     Object.keys(targetE.votes).forEach(k => {
                         const itemVDate = (targetE.vDate && targetE.vDate[k]) ? targetE.vDate[k] : targetE.date;
                         if (itemVDate !== nxtDate) {
-                            oldVotes[k] = targetE.votes[k];
-                            oldVDates[k] = itemVDate;
+                            if (!oldVotesByDate[itemVDate]) { oldVotesByDate[itemVDate] = {}; oldVDatesByDate[itemVDate] = {}; }
+                            oldVotesByDate[itemVDate][k] = targetE.votes[k];
+                            oldVDatesByDate[itemVDate][k] = itemVDate;
                             delete targetE.votes[k];
                             if (targetE.vDate) delete targetE.vDate[k];
                         }
                     });
-                    if (Object.keys(oldVotes).length > 0) {
-                        targetE.pastVotes[targetE.date] = oldVotes;
-                        targetE.pastVDates[targetE.date] = oldVDates;
-                    }
+                    Object.keys(oldVotesByDate).forEach(dKey => {
+                        targetE.pastVotes[dKey] = { ...(targetE.pastVotes[dKey] || {}), ...oldVotesByDate[dKey] };
+                        targetE.pastVDates[dKey] = { ...(targetE.pastVDates[dKey] || {}), ...oldVDatesByDate[dKey] };
+                    });
                     if (targetE.pastVotes[nxtDate]) {
                         Object.assign(targetE.votes, targetE.pastVotes[nxtDate]);
                         if (targetE.pastVDates && targetE.pastVDates[nxtDate]) Object.assign(targetE.vDate, targetE.pastVDates[nxtDate]);
@@ -2344,11 +2362,16 @@ window.checkAndShowWelcomeModal = (force = false) => {
         const vClean = v ? String(v).replace('_p', '') : '';
 
         if (!vClean || vClean === 'pending' || vClean === '미정' || (vd && vd !== vTeam.dDate && vd !== vTeam.date)) {
-            const curVotes = (vTeam.pastVotes && vTeam.pastVotes[vTeam.dDate]) ? vTeam.pastVotes[vTeam.dDate] : (vTeam.votes || {});
+            const targetDateStr = vTeam.dDate || vTeam.date;
+            const curVotes = (vTeam.pastVotes && vTeam.pastVotes[targetDateStr]) ? vTeam.pastVotes[targetDateStr] : (vTeam.votes || {});
             let attendCount = 0;
-            Object.values(curVotes).forEach(val => {
-                const vc = String(val || '').replace('_p', '');
-                if (['참석', 'attend', '늦참', 'late'].includes(vc)) attendCount++;
+            Object.keys(curVotes).forEach(mid => {
+                const val = curVotes[mid];
+                const mDate = (vTeam.vDate && vTeam.vDate[mid]) ? vTeam.vDate[mid] : ((vTeam.pastVDates && vTeam.pastVDates[targetDateStr] && vTeam.pastVDates[targetDateStr][mid]) ? vTeam.pastVDates[targetDateStr][mid] : targetDateStr);
+                if (mDate === targetDateStr) {
+                    const vc = String(val || '').replace('_p', '');
+                    if (['참석', 'attend', '늦참', 'late'].includes(vc)) attendCount++;
+                }
             });
 
             pendingMatch = {

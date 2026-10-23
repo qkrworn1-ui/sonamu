@@ -154,6 +154,25 @@ window.confirmAddTeamEvent = async () => {
             e.title = t;
             e.location = loc;
             e.time = tm;
+            if (e.date && d !== e.date && e.votes) {
+                if (!e.pastVotes) e.pastVotes = {};
+                if (!e.pastVDates) e.pastVDates = {};
+                const oldV = {}; const oldVD = {};
+                Object.keys(e.votes).forEach(uid => {
+                    const vd = (e.vDate && e.vDate[uid]) ? e.vDate[uid] : e.date;
+                    if (vd !== d) {
+                        oldV[uid] = e.votes[uid];
+                        oldVD[uid] = vd;
+                        delete e.votes[uid];
+                        if (e.vDate) delete e.vDate[uid];
+                        if (e.proxyVotes) delete e.proxyVotes[uid];
+                    }
+                });
+                if (Object.keys(oldV).length > 0) {
+                    e.pastVotes[e.date] = { ...(e.pastVotes[e.date] || {}), ...oldV };
+                    e.pastVDates[e.date] = { ...(e.pastVDates[e.date] || {}), ...oldVD };
+                }
+            }
             e.date = d;
             e.repeatMode = rm;
             e.repeatData = rd;
