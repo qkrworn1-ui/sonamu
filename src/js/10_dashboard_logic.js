@@ -2249,11 +2249,13 @@ window.goToFreeBoard = () => {
 
 window.welcomeModalState = {
     matchVoteChoice: null,
-    surveyVoteChoice: null
+    surveyVoteChoice: null,
+    dismissedToday: false,
+    dismissedUid: null
 };
 
 window.checkAndShowWelcomeModal = (force = false) => {
-    const uid = sessionStorage.getItem('sonamu_user_id');
+    const uid = sessionStorage.getItem('sonamu_user_id') || (typeof localStorage !== 'undefined' ? localStorage.getItem('sonamu_user_id') : null);
     if (!uid || uid === 'master') return;
 
     const allMembers = (typeof members !== 'undefined' && members && members.length > 0) ? members : (window.members || []);
@@ -2270,9 +2272,19 @@ window.checkAndShowWelcomeModal = (force = false) => {
         };
     }
 
-    const td = window.getTodayString();
+    const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
     const dismissKey = `sonamu_welcome_dismiss_${uid}_${td}`;
-    if (!force && localStorage.getItem(dismissKey) === '1') return;
+    
+    let isDismissed = false;
+    try {
+        if (localStorage.getItem(dismissKey) === '1') isDismissed = true;
+    } catch(e) {}
+    
+    if (window.welcomeModalState && window.welcomeModalState.dismissedToday && window.welcomeModalState.dismissedUid === uid) {
+        isDismissed = true;
+    }
+
+    if (!force && isDismissed) return;
 
     // 1. 회비 면제 여부 및 미납금 계산
     // [중요] 총무는 클럽 정관상 회비 면제 대상자이므로 직책/역할 기준 100% 면제 처리 (미납 팝업 차단)
@@ -2392,6 +2404,7 @@ window.checkAndShowWelcomeModal = (force = false) => {
     if (modalEl) {
         modalEl.classList.remove('hidden');
         modalEl.classList.add('flex');
+        modalEl.style.display = 'flex';
         if (window.lucide) window.lucide.createIcons();
     }
 };
@@ -2544,7 +2557,7 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
                 <span class="text-xs font-black text-white truncate">${window.escapeHtml(user.name)}님, 환영합니다!</span>
                 <span class="text-[9px] px-2 py-0.5 rounded-full ${badgeCls} font-black shrink-0">${user.role}</span>
             </div>
-            <button onclick="window.closeWelcomeModal()" class="text-blue-300 hover:text-white text-xs font-bold p-1 cursor-pointer shrink-0">✕</button>
+            <button type="button" onclick="window.closeWelcomeModal()" aria-label="닫기" class="w-8 h-8 rounded-full flex items-center justify-center text-blue-200 hover:text-white hover:bg-white/10 active:scale-90 text-sm font-bold cursor-pointer shrink-0 transition-all">✕</button>
         </div>
 
         <!-- 모달 콘텐츠 본문 (반투명 바탕) -->
@@ -2554,14 +2567,15 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
             ${surveyHtml}
         </div>
 
-        <!-- 하단 반투명 푸터 (흰색 완전 제거) -->
-        <div class="px-3.5 py-2.5 bg-blue-950/60 border-t border-blue-500/20 flex items-center justify-between">
-            <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-blue-200/70 font-bold select-none">
-                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer">
+        <!-- 하단 반투명 푸터 (터치 영역 최적화 및 확실한 닫기 피드백) -->
+        <div class="px-3.5 py-2.5 bg-blue-950/70 border-t border-blue-500/20 flex items-center justify-between gap-2">
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-blue-200 hover:text-white font-bold select-none py-1">
+                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-4 h-4 rounded text-blue-600 border-blue-400 focus:ring-0 cursor-pointer">
                 <span>오늘 하루 보지 않기</span>
             </label>
-            <button onclick="window.closeWelcomeModal()" class="h-7 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-black text-[11px] shadow-xs active:scale-95 cursor-pointer shrink-0 flex items-center">
-                대시보드 시작 ➔
+            <button type="button" onclick="window.closeWelcomeModal()" class="min-h-[34px] h-[34px] px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-md active:scale-95 cursor-pointer shrink-0 flex items-center gap-1 transition-all">
+                <span>대시보드 시작</span>
+                <span class="text-blue-200">➔</span>
             </button>
         </div>
     `;
@@ -2613,15 +2627,50 @@ window.copyWelcomeClubAccount = () => {
 };
 
 window.closeWelcomeModal = () => {
-    const chk = window.$('chk-welcome-dismiss-today');
-    if (chk && chk.checked) {
-        const uid = sessionStorage.getItem('sonamu_user_id');
-        const td = window.getTodayString();
-        if (uid) localStorage.setItem(`sonamu_welcome_dismiss_${uid}_${td}`, '1');
-    }
-    const modalEl = window.$('welcome-member-modal');
-    if (modalEl) {
-        modalEl.classList.add('hidden');
-        modalEl.classList.remove('flex');
+    try {
+        const chk = document.getElementById('chk-welcome-dismiss-today');
+        const uid = sessionStorage.getItem('sonamu_user_id') || (typeof localStorage !== 'undefined' ? localStorage.getItem('sonamu_user_id') : null);
+        const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
+
+        if (chk && chk.checked) {
+            if (window.welcomeModalState) {
+                window.welcomeModalState.dismissedToday = true;
+                window.welcomeModalState.dismissedUid = uid;
+            }
+            if (uid) {
+                const dismissKey = `sonamu_welcome_dismiss_${uid}_${td}`;
+                try {
+                    localStorage.setItem(dismissKey, '1');
+                } catch(err) {
+                    console.warn("Storage quota warning on welcome dismiss:", err);
+                    // Purge obsolete past dismissal keys if storage is full
+                    try {
+                        for (let i = localStorage.length - 1; i >= 0; i--) {
+                            const k = localStorage.key(i);
+                            if (k && k.startsWith('sonamu_welcome_dismiss_') && !k.endsWith(td)) {
+                                localStorage.removeItem(k);
+                            }
+                        }
+                        localStorage.setItem(dismissKey, '1');
+                    } catch(e2) {
+                        console.warn("LocalStorage remains restricted/full; in-memory dismissal active:", e2);
+                    }
+                }
+            }
+        }
+    } catch(err) {
+        console.warn("Error processing welcome modal close dismissal:", err);
+    } finally {
+        // Multi-layer guaranteed close: both class and inline style
+        try {
+            const modalEl = document.getElementById('welcome-member-modal');
+            if (modalEl) {
+                modalEl.classList.add('hidden');
+                modalEl.classList.remove('flex');
+                modalEl.style.display = 'none';
+            }
+        } catch(e) {
+            console.error("Failed to hide welcome modal element:", e);
+        }
     }
 };
