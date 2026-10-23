@@ -652,7 +652,7 @@ window.renderMemberList = () => {
         const displayNo = m.backNo ? String(m.backNo).padStart(2, '0') : '00';
         const backNoHtml = `<span class="text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1 py-0.5 rounded mr-1.5 font-black whitespace-nowrap inline-block text-center min-w-[34px] sm:min-w-[42px] tracking-tighter">No.${displayNo}</span>`;
         if(isTrash) {
-            return `<tr class="bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40"><td class="p-1.5 sm:p-3 text-center text-slate-500 dark:text-slate-400 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 dark:text-slate-100 text-left flex items-center text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span> <span class="text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600 dark:text-slate-300">${window.escapeHtml(m.role)}</span></td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
+            return `<tr class="bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40"><td class="p-1.5 sm:p-3 text-center text-slate-500 dark:text-slate-400 font-black text-[10px] sm:text-xs">${i+1}</td><td class="p-1.5 sm:p-3 font-black text-slate-800 dark:text-slate-100 text-left flex items-center gap-1 text-[11px] sm:text-sm whitespace-nowrap">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span> <span class="text-[9px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-normal ml-1 text-slate-600 dark:text-slate-300">${window.escapeHtml(m.role)}</span> ${window.getGoogleBadgeHtml ? window.getGoogleBadgeHtml(m) : ''}</td><td colspan="4" class="p-1.5 sm:p-3 text-right whitespace-nowrap"><button onclick="window.restoreMember('${m.id}')" class="bg-blue-600 text-white px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-black shadow-sm btn-touch">계정 복구</button></td></tr>`;
         }
         const rp = m.role==='파트너';
         const color = roleColors[m.role] || '#334155';
@@ -660,10 +660,11 @@ window.renderMemberList = () => {
             return `<tr class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <td class="p-4 flex flex-col gap-3">
                     <div class="flex justify-between items-center mb-1">
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[10px] font-black text-slate-400">#${i+1}</span>
                             <div class="font-black text-slate-900 dark:text-white text-sm flex items-center">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span></div>
                             <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
+                            ${window.getGoogleBadgeHtml ? window.getGoogleBadgeHtml(m) : ''}
                         </div>
                         <div class="text-[10px] font-black text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/50 shadow-sm">${window.escapeHtml(m.phone||'-')}</div>
                     </div>
@@ -685,9 +686,10 @@ window.renderMemberList = () => {
         return `<tr class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
             <td class="p-1 sm:p-3 text-center text-slate-400 font-black text-[10px] sm:text-xs whitespace-nowrap">${i+1}</td>
             <td class="p-1 py-2 sm:p-3 text-left">
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 flex-wrap">
                     <div class="font-black text-slate-900 dark:text-white text-[11px] sm:text-sm flex items-center whitespace-nowrap">${backNoHtml}<span class="member-name font-black" style="${nameStyle}">${window.escapeHtml(m.name)}</span></div>
                     <div class="text-[11px] px-1.5 py-0.5 rounded font-black text-white shadow-sm whitespace-nowrap leading-none" style="background-color:${color}">${window.escapeHtml(m.role)}</div>
+                    ${window.getGoogleBadgeHtml ? window.getGoogleBadgeHtml(m) : ''}
                 </div>
                 <div class="text-[10px] sm:text-[11px] text-slate-700 dark:text-slate-300 mt-1 font-black md:hidden">${window.escapeHtml(m.phone||'-')}</div>
             </td>

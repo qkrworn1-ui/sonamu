@@ -106,9 +106,10 @@ window.renderMemberPositions = () => {
                 return `
                     <div ${clickAction} class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3.5 flex flex-col gap-2 transition-all shadow-sm ${cursorClass} relative">
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 border dark:border-slate-700 text-slate-600 dark:text-slate-300 px-1 py-0.5 rounded leading-none">${backNoText}</span>
                                 <span class="font-black text-slate-900 dark:text-white text-sm">${window.escapeHtml(m.name)}</span>
+                                ${window.getGoogleBadgeHtml ? window.getGoogleBadgeHtml(m) : ''}
                             </div>
                             <span class="text-[9px] px-1.5 py-0.5 rounded font-black text-white shadow-sm leading-none" style="background-color: ${color}">
                                 ${window.escapeHtml(m.role)}
