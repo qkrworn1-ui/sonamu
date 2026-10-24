@@ -2265,11 +2265,67 @@ window.goToFreeBoard = () => {
 // 글자 벗어남·잘림(···) 0건, 스크롤 0% 완벽 보장
 // ==============================================================
 
+const _initTd = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
+let _initDismissed = false;
+try {
+    if (localStorage.getItem(`sonamu_welcome_dismiss_today_${_initTd}`) === '1') {
+        _initDismissed = true;
+    }
+} catch(e) {}
+
 window.welcomeModalState = {
     matchVoteChoice: null,
     surveyVoteChoice: null,
-    dismissedToday: false,
+    dismissedToday: _initDismissed,
     dismissedUid: null
+};
+
+window.toggleWelcomeDismissToday = (checked) => {
+    try {
+        const uid = sessionStorage.getItem('sonamu_user_id') || (typeof localStorage !== 'undefined' ? localStorage.getItem('sonamu_user_id') : null);
+        const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
+
+        if (window.welcomeModalState) {
+            window.welcomeModalState.dismissedToday = !!checked;
+            window.welcomeModalState.dismissedUid = uid;
+        }
+
+        const keys = [`sonamu_welcome_dismiss_today_${td}`];
+        if (uid) keys.push(`sonamu_welcome_dismiss_${uid}_${td}`);
+
+        try {
+            const allMembers = (typeof members !== 'undefined' && members && members.length > 0) ? members : (window.members || []);
+            const curUser = allMembers.find(m => m.id === uid);
+            if (curUser && curUser.googleUid) {
+                keys.push(`sonamu_welcome_dismiss_${curUser.googleUid}_${td}`);
+            }
+        } catch(e) {}
+
+        keys.forEach(k => {
+            try {
+                if (checked) {
+                    localStorage.setItem(k, '1');
+                } else {
+                    localStorage.removeItem(k);
+                }
+            } catch(e) {
+                console.warn("Storage warning on welcome dismiss:", e);
+                if (checked) {
+                    try {
+                        for (let i = localStorage.length - 1; i >= 0; i--) {
+                            const lk = localStorage.key(i);
+                            if (lk && lk.startsWith('sonamu_welcome_dismiss_') && !lk.endsWith(td)) {
+                                localStorage.removeItem(lk);
+                            }
+                        }
+                        localStorage.setItem(k, '1');
+                    } catch(e2) {}
+                }
+            }
+        });
+    } catch(err) {
+        console.warn("toggleWelcomeDismissToday error:", err);
+    }
 };
 
 window.checkAndShowWelcomeModal = (force = false) => {
@@ -2292,17 +2348,33 @@ window.checkAndShowWelcomeModal = (force = false) => {
 
     const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
     const dismissKey = `sonamu_welcome_dismiss_${uid}_${td}`;
+    const dismissTodayKey = `sonamu_welcome_dismiss_today_${td}`;
     
     let isDismissed = false;
     try {
-        if (localStorage.getItem(dismissKey) === '1') isDismissed = true;
+        if (localStorage.getItem(dismissKey) === '1' || localStorage.getItem(dismissTodayKey) === '1') {
+            isDismissed = true;
+        }
+        if (curUser.googleUid && localStorage.getItem(`sonamu_welcome_dismiss_${curUser.googleUid}_${td}`) === '1') {
+            isDismissed = true;
+        }
     } catch(e) {}
     
-    if (window.welcomeModalState && window.welcomeModalState.dismissedToday && window.welcomeModalState.dismissedUid === uid) {
+    if (window.welcomeModalState && window.welcomeModalState.dismissedToday && (window.welcomeModalState.dismissedUid === uid || !window.welcomeModalState.dismissedUid)) {
         isDismissed = true;
     }
 
-    if (!force && isDismissed) return;
+    if (!force && isDismissed) {
+        try {
+            const modalEl = window.$('welcome-member-modal');
+            if (modalEl) {
+                modalEl.classList.add('hidden');
+                modalEl.classList.remove('flex');
+                modalEl.style.display = 'none';
+            }
+        } catch(e) {}
+        return;
+    }
 
     // 1. 회비 면제 여부 및 미납금 계산
     // [중요] 총무는 클럽 정관상 회비 면제 대상자이므로 직책/역할 기준 100% 면제 처리 (미납 팝업 차단)
@@ -2572,6 +2644,17 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
         }
     }
 
+    const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
+    let isDismissedToday = false;
+    try {
+        if (localStorage.getItem(`sonamu_welcome_dismiss_today_${td}`) === '1' ||
+            (user && user.id && localStorage.getItem(`sonamu_welcome_dismiss_${user.id}_${td}`) === '1') ||
+            (user && user.googleUid && localStorage.getItem(`sonamu_welcome_dismiss_${user.googleUid}_${td}`) === '1') ||
+            (window.welcomeModalState && window.welcomeModalState.dismissedToday)) {
+            isDismissedToday = true;
+        }
+    } catch(e) {}
+
     container.innerHTML = `
         <!-- 반투명 네이비 헤더 -->
         <div class="bg-blue-950/70 px-4 py-3 text-white flex items-center justify-between border-b border-blue-500/30">
@@ -2593,7 +2676,7 @@ window.renderWelcomeModalContent = (user, feeInfo, pendingMatch, pendingSurvey) 
         <!-- 하단 반투명 푸터 (터치 영역 최적화 및 확실한 닫기 피드백) -->
         <div class="px-3.5 py-2.5 bg-blue-950/70 border-t border-blue-500/20 flex items-center justify-between gap-2">
             <label class="flex items-center gap-2 cursor-pointer text-xs text-blue-200 hover:text-white font-bold select-none py-1">
-                <input type="checkbox" id="chk-welcome-dismiss-today" class="w-4 h-4 rounded text-blue-600 border-blue-400 focus:ring-0 cursor-pointer">
+                <input type="checkbox" id="chk-welcome-dismiss-today" onchange="window.toggleWelcomeDismissToday(this.checked)" ${isDismissedToday ? 'checked' : ''} class="w-4 h-4 rounded text-blue-600 border-blue-400 focus:ring-0 cursor-pointer">
                 <span>오늘 하루 보지 않기</span>
             </label>
             <button type="button" onclick="window.closeWelcomeModal()" class="min-h-[34px] h-[34px] px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-md active:scale-95 cursor-pointer shrink-0 flex items-center gap-1 transition-all">
@@ -2652,34 +2735,9 @@ window.copyWelcomeClubAccount = () => {
 window.closeWelcomeModal = () => {
     try {
         const chk = document.getElementById('chk-welcome-dismiss-today');
-        const uid = sessionStorage.getItem('sonamu_user_id') || (typeof localStorage !== 'undefined' ? localStorage.getItem('sonamu_user_id') : null);
-        const td = (typeof window.getTodayString === 'function') ? window.getTodayString() : new Date().toISOString().slice(0, 10);
-
-        if (chk && chk.checked) {
-            if (window.welcomeModalState) {
-                window.welcomeModalState.dismissedToday = true;
-                window.welcomeModalState.dismissedUid = uid;
-            }
-            if (uid) {
-                const dismissKey = `sonamu_welcome_dismiss_${uid}_${td}`;
-                try {
-                    localStorage.setItem(dismissKey, '1');
-                } catch(err) {
-                    console.warn("Storage quota warning on welcome dismiss:", err);
-                    // Purge obsolete past dismissal keys if storage is full
-                    try {
-                        for (let i = localStorage.length - 1; i >= 0; i--) {
-                            const k = localStorage.key(i);
-                            if (k && k.startsWith('sonamu_welcome_dismiss_') && !k.endsWith(td)) {
-                                localStorage.removeItem(k);
-                            }
-                        }
-                        localStorage.setItem(dismissKey, '1');
-                    } catch(e2) {
-                        console.warn("LocalStorage remains restricted/full; in-memory dismissal active:", e2);
-                    }
-                }
-            }
+        const isChecked = (chk && chk.checked) || (window.welcomeModalState && window.welcomeModalState.dismissedToday);
+        if (isChecked) {
+            window.toggleWelcomeDismissToday(true);
         }
     } catch(err) {
         console.warn("Error processing welcome modal close dismissal:", err);
