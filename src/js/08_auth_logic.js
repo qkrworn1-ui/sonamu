@@ -59,6 +59,82 @@ window.handleRestoreUpload = (input) => {
 
 window._pendingGoogleUser = null;
 
+// [보안/환경 안내] 모바일 브라우저 쿠키/웹 저장소 제한 시 친절한 한글 안내 모달
+window.showGoogleStorageGuidanceModal = (rawError = null) => {
+    const msg = 
+        "현재 사용 중이신 브라우저(Chrome/Safari 등)의 보안 설정으로 인해 구글 로그인이 차단되었습니다.\n\n" +
+        "【원인】\n" +
+        "브라우저의 '서드파티 쿠키 차단' 또는 '웹 저장소(Web Storage) 제한' 설정\n\n" +
+        "【10초 만에 해결하는 방법】\n" +
+        "1. 브라우저 우측 상단 점 3개(⋮) > [설정] 클릭\n" +
+        "2. [개인정보 및 보안] > [서드파티 쿠키] 클릭\n" +
+        "3. [서드파티 쿠키 허용] 선택 후 다시 시도해주세요.\n\n" +
+        "※ 브라우저 설정 변경이 번거로우신 경우 아래 기존 [아이디 / 비밀번호]로도 즉시 정상 로그인하실 수 있습니다.";
+    window.showAlert(msg, "구글 로그인 브라우저 설정 안내");
+};
+
+// [공통 처리] 구글 사용자 계정 검증 및 매칭 로직 (팝업/리다이렉트 공통)
+window.processGoogleUserLogin = async (gUser) => {
+    if (!gUser) throw new Error("사용자 정보를 불러올 수 없습니다.");
+
+    // 회원 목록 로드 대기 (최대 3초)
+    if (!members || members.length === 0) {
+        try {
+            const cachedM = localStorage.getItem('sonamu_cached_members');
+            if (cachedM) members = JSON.parse(cachedM);
+        } catch(e) {}
+    }
+    if (!members || members.length === 0) {
+        for (let i = 0; i < 15; i++) {
+            await new Promise(r => setTimeout(r, 200));
+            if (typeof members !== 'undefined' && members && members.length > 0) break;
+        }
+    }
+
+    // Case 1: 이미 구글 UID로 연동된 회원인 경우 즉시 입장
+    const uidMatch = (members || []).find(m => m.googleUid === gUser.uid);
+    if (uidMatch) {
+        if (window.showToast) window.showToast(`${uidMatch.name}님, 환영합니다!`);
+        window.finalizeMemberLogin(uidMatch, true);
+        return;
+    }
+
+    // Case 2: 회원 DB에 이메일이 등록되어 있고 일치하는 경우 자동 매칭
+    const emailMatch = (members || []).find(m => m.email && gUser.email && m.email.trim().toLowerCase() === gUser.email.trim().toLowerCase());
+    if (emailMatch) {
+        emailMatch.googleUid = gUser.uid;
+        emailMatch.googleEmail = gUser.email;
+        if (gUser.photoURL && !emailMatch.profilePhoto) emailMatch.googlePhoto = gUser.photoURL;
+        await window.saveData('members', true);
+        if (window.showToast) window.showToast(`이메일(${gUser.email}) 일치로 자동 연동되었습니다.`);
+        window.finalizeMemberLogin(emailMatch, true);
+        return;
+    }
+
+    // Case 3: 최초 구글 로그인 - 기존 회원 정보와 1회 매칭 모달 오픈
+    window.openGoogleLinkModal(gUser);
+};
+
+// [리다이렉트 로그인 결과 자동 감지] 모바일 환경에서 페이지 복귀 시 처리
+window.checkGoogleRedirectResult = async () => {
+    if (typeof firebase === 'undefined' || !firebase.auth) return;
+    try {
+        const result = await firebase.auth().getRedirectResult();
+        if (result && result.user) {
+            sessionStorage.removeItem('sonamu_google_redirecting');
+            await window.processGoogleUserLogin(result.user);
+        }
+    } catch (err) {
+        sessionStorage.removeItem('sonamu_google_redirecting');
+        console.error("Google redirect result error:", err);
+        if (err.code === 'auth/operation-not-supported-in-this-environment' || err.code === 'auth/web-storage-unsupported') {
+            window.showGoogleStorageGuidanceModal(err);
+        } else if (err.code && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+            window.showAlert("구글 로그인 처리 중 오류가 발생했습니다:\n" + (err.message || err.code));
+        }
+    }
+};
+
 window.handleGoogleLogin = async () => {
     // 0. 서버 연결 전 비활성화 가드
     const googleBtn = document.getElementById('btn-google-login');
@@ -95,55 +171,42 @@ window.handleGoogleLogin = async () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         
-        const result = await firebase.auth().signInWithPopup(provider);
-        const gUser = result.user;
+        let gUser = null;
+        try {
+            const result = await firebase.auth().signInWithPopup(provider);
+            gUser = result ? result.user : null;
+        } catch (popupErr) {
+            console.warn("Popup sign-in error/warning:", popupErr);
+            // 팝업이 차단되거나 환경 미지원 오류(모바일 브라우저) 발생 시 signInWithRedirect로 자동 폴백
+            if (popupErr.code === 'auth/operation-not-supported-in-this-environment' || 
+                popupErr.code === 'auth/popup-blocked') {
+                try {
+                    sessionStorage.setItem('sonamu_google_redirecting', '1');
+                    await firebase.auth().signInWithRedirect(provider);
+                    return; // 브라우저가 구글 로그인으로 이동
+                } catch (redirectErr) {
+                    sessionStorage.removeItem('sonamu_google_redirecting');
+                    console.error("Redirect fallback error:", redirectErr);
+                    throw redirectErr;
+                }
+            } else {
+                throw popupErr;
+            }
+        }
 
         if (!gUser) {
             throw new Error("사용자 정보를 불러올 수 없습니다.");
         }
 
-        // 회원 목록 로드 대기 (최대 3초)
-        if (!members || members.length === 0) {
-            try {
-                const cachedM = localStorage.getItem('sonamu_cached_members');
-                if (cachedM) members = JSON.parse(cachedM);
-            } catch(e) {}
-        }
-        if (!members || members.length === 0) {
-            for (let i = 0; i < 15; i++) {
-                await new Promise(r => setTimeout(r, 200));
-                if (typeof members !== 'undefined' && members && members.length > 0) break;
-            }
-        }
-
-        // Case 1: 이미 구글 UID로 연동된 회원인 경우 즉시 입장
-        const uidMatch = (members || []).find(m => m.googleUid === gUser.uid);
-        if (uidMatch) {
-            if (window.showToast) window.showToast(`${uidMatch.name}님, 환영합니다!`);
-            window.finalizeMemberLogin(uidMatch, true);
-            return;
-        }
-
-        // Case 2: 회원 DB에 이메일이 등록되어 있고 일치하는 경우 자동 매칭
-        const emailMatch = (members || []).find(m => m.email && gUser.email && m.email.trim().toLowerCase() === gUser.email.trim().toLowerCase());
-        if (emailMatch) {
-            emailMatch.googleUid = gUser.uid;
-            emailMatch.googleEmail = gUser.email;
-            if (gUser.photoURL && !emailMatch.profilePhoto) emailMatch.googlePhoto = gUser.photoURL;
-            await window.saveData('members', true);
-            if (window.showToast) window.showToast(`이메일(${gUser.email}) 일치로 자동 연동되었습니다.`);
-            window.finalizeMemberLogin(emailMatch, true);
-            return;
-        }
-
-        // Case 3: 최초 구글 로그인 - 기존 회원 정보와 1회 매칭 모달 오픈
-        window.openGoogleLinkModal(gUser);
+        await window.processGoogleUserLogin(gUser);
 
     } catch (error) {
         console.error("구글 로그인 실패:", error);
         if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
             // 사용자가 의도적으로 팝업 닫음 - 경고 불필요
             return;
+        } else if (error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/web-storage-unsupported') {
+            window.showGoogleStorageGuidanceModal(error);
         } else if (error.code === 'auth/popup-blocked') {
             window.showAlert("브라우저에서 팝업이 차단되었습니다.\n주소창 설정에서 팝업을 허용해주세요.", "팝업 차단 해제");
         } else if (error.code === 'auth/network-request-failed') {

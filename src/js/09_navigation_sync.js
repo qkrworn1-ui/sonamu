@@ -165,6 +165,11 @@ window.startCloudSync = async () => {
                 sUI('success');
                 window.updateUI();
 
+                // [신규] 구글 리다이렉트 로그인 결과 자동 감지 및 처리
+                if (window.checkGoogleRedirectResult && !sessionStorage.getItem('sonamu_user_role')) {
+                    window.checkGoogleRedirectResult();
+                }
+
                 // [신규] 로그인 회원 웰컴 모달 (미납 회비 / 미참여 투표가 있을 때만) 체크
                 setTimeout(() => {
                     if (window.checkAndShowWelcomeModal) window.checkAndShowWelcomeModal();
