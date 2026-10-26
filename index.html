@@ -92,6 +92,7 @@
     <title>소나무 족구단 통합 관리 시스템</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer onload="if(window.initGIS) window.initGIS();"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -101,8 +102,8 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="firebase-config.js?v=154"></script>
-    <link rel="stylesheet" href="style.css?v=154">
+    <script src="firebase-config.js?v=155"></script>
+    <link rel="stylesheet" href="style.css?v=155">
 </head>
 <body class="antialiased text-slate-900">
 
@@ -278,7 +279,7 @@
                         </div>
 
                         <!-- 우측 버전 칩 -->
-                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.37</span>
+                        <span id="login-app-version" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-full shadow-lg backdrop-blur-md">v3.9.38</span>
                     </div>
 
                     <!-- 중앙 타이틀 -->
@@ -304,7 +305,7 @@
                         </div>
                         <div class="flex items-center justify-center gap-2 mb-1">
                             <h2 class="text-2xl font-black text-white tracking-tight">소나무 족구단</h2>
-                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.37</span>
+                            <span id="login-app-version-pc" onclick="window.forceAppUpdate()" title="버전 정보 및 강제 새로고침" class="cursor-pointer text-[10px] font-bold text-cyan-300 bg-slate-950/80 border border-cyan-500/30 px-2 py-0.5 rounded-full">v3.9.38</span>
                         </div>
                         <p class="text-xs text-slate-400 font-bold">회원 인증 후 통합 서비스를 이용하실 수 있습니다.</p>
                         <div class="h-1 w-12 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 rounded-full mt-2.5 opacity-60"></div>
@@ -463,7 +464,7 @@
                                         반갑습니다, <span id="dashboard-user-name" class="text-emerald-600 dark:text-emerald-400">회원</span>님! 👋
                                     </h2>
                                     <span id="dashboard-user-role" class="text-[10px] bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-black px-2 py-0.5 rounded-full">정회원</span>
-                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.37</span></span>
+                                    <span class="text-[10px] text-slate-400 font-bold ml-1">Edition #<span id="main-app-version-news">v3.9.38</span></span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                                     <span id="news-current-date">2026. 10. 20</span> · 오늘도 즐겁고 부상 없는 족구 생활 되세요!
@@ -1697,24 +1698,24 @@
 <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar/dist/korean-lunar-calendar.min.js"></script>
 
 <!-- 분리된 어플리케이션 로직 -->
-<script src="src/js/01_kakao_optimization.js?v=154"></script>
-<script src="src/js/02_env_version.js?v=154"></script>
-<script src="src/js/03_init_utils.js?v=154"></script>
-<script src="src/js/04_scope_adjust.js?v=154"></script>
-<script src="src/js/05_mileage_engine.js?v=154"></script>
-<script src="src/js/06_common_ui_utils.js?v=154"></script>
-<script src="src/js/07_firebase_init.js?v=154"></script>
-<script src="src/js/08_auth_logic.js?v=154"></script>
-<script src="src/js/09_navigation_sync.js?v=154"></script>
-<script src="src/js/10_dashboard_logic.js?v=154"></script>
-<script src="src/js/11_vote_logic.js?v=154"></script>
-<script src="src/js/12_team_mgmt.js?v=154"></script>
-<script src="src/js/13_finance_logic.js?v=154"></script>
-<script src="src/js/14_member_mgmt.js?v=154"></script>
-<script src="src/js/15_board_logic.js?v=154"></script>
-<script src="src/js/16_gallery_report.js?v=154"></script>
-<script src="src/js/17_calendar_logic.js?v=154"></script>
-<script src="src/js/18_member_positions.js?v=154"></script>
+<script src="src/js/01_kakao_optimization.js?v=155"></script>
+<script src="src/js/02_env_version.js?v=155"></script>
+<script src="src/js/03_init_utils.js?v=155"></script>
+<script src="src/js/04_scope_adjust.js?v=155"></script>
+<script src="src/js/05_mileage_engine.js?v=155"></script>
+<script src="src/js/06_common_ui_utils.js?v=155"></script>
+<script src="src/js/07_firebase_init.js?v=155"></script>
+<script src="src/js/08_auth_logic.js?v=155"></script>
+<script src="src/js/09_navigation_sync.js?v=155"></script>
+<script src="src/js/10_dashboard_logic.js?v=155"></script>
+<script src="src/js/11_vote_logic.js?v=155"></script>
+<script src="src/js/12_team_mgmt.js?v=155"></script>
+<script src="src/js/13_finance_logic.js?v=155"></script>
+<script src="src/js/14_member_mgmt.js?v=155"></script>
+<script src="src/js/15_board_logic.js?v=155"></script>
+<script src="src/js/16_gallery_report.js?v=155"></script>
+<script src="src/js/17_calendar_logic.js?v=155"></script>
+<script src="src/js/18_member_positions.js?v=155"></script>
 
 <div id="team-event-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 hidden transition-all duration-300 z-[999]">
     <div class="modal-content bg-white w-[95%] max-w-sm sm:max-w-md p-6 rounded-[2.5rem] shadow-2xl scale-95 transition-all duration-300 transform-gpu overflow-y-auto max-h-[95vh] relative">
