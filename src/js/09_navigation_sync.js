@@ -50,14 +50,15 @@ window.setLoginFormEnabled = (enabled = true) => {
             el.placeholder = el.dataset.placeholder;
         }
     });
-    const group = document.getElementById('login-id')?.closest('.w-full.space-y-4');
+    const group = document.getElementById('login-id')?.closest('#panel-login-pw') || document.getElementById('login-id')?.closest('.w-full.space-y-4');
     if (group) group.classList.remove('login-form-locked');
-    // 데스크톱(마우스) 환경에서는 연결 시 아이디 입력창에 자동 포커스 (모바일은 키보드 팝업 방지)
+    // 데스크톱(마우스) 환경에서는 연결 시 아이디 입력창에 자동 포커스 (아이디 탭이 활성화되어 있을 때만, 모바일은 키보드 팝업 방지)
     if (!window._loginFocusDone) {
         window._loginFocusDone = true;
         const idEl = document.getElementById('login-id');
         const loginVisible = !document.documentElement.classList.contains('app-loaded');
-        if (idEl && loginVisible && window.matchMedia && window.matchMedia('(pointer: fine)').matches && !idEl.value) {
+        const isPwTabVisible = document.getElementById('panel-login-pw') && !document.getElementById('panel-login-pw').classList.contains('hidden');
+        if (idEl && loginVisible && isPwTabVisible && window.matchMedia && window.matchMedia('(pointer: fine)').matches && !idEl.value) {
             try { idEl.focus(); } catch (e) {}
         }
     }

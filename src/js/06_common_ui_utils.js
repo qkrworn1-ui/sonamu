@@ -1002,6 +1002,7 @@ window.finalizeMemberLogin = (m, isGoogle = false) => {
     try {
         localStorage.removeItem('sonamu_fail');
         localStorage.removeItem('sonamu_lock');
+        localStorage.setItem('sonamu_preferred_login_tab', isGoogle ? 'google' : 'pw');
     } catch(e) {}
 
     const rem = isGoogle ? true : !!window.$('login-remember')?.checked;

@@ -57,6 +57,65 @@ window.handleRestoreUpload = (input) => {
 
 // --- [구글 간편 로그인 및 계정 연동 로직] ---
 
+// [로그인 화면 탭 전환 및 선호 탭 관리]
+window.switchLoginTab = (tab, savePreference = true) => {
+    const btnGoogle = document.getElementById('tab-btn-google');
+    const btnPw = document.getElementById('tab-btn-pw');
+    const panelGoogle = document.getElementById('panel-login-google');
+    const panelPw = document.getElementById('panel-login-pw');
+
+    if (!btnGoogle || !btnPw || !panelGoogle || !panelPw) return;
+
+    if (tab === 'pw') {
+        btnGoogle.classList.remove('active');
+        btnPw.classList.add('active');
+        panelGoogle.classList.add('hidden');
+        panelPw.classList.remove('hidden');
+
+        // 데스크톱 환경에서는 ID 탭 전환 시 입력창 자동 포커스
+        if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
+            const idEl = document.getElementById('login-id');
+            if (idEl && !idEl.value) {
+                try { idEl.focus(); } catch (e) {}
+            }
+        }
+    } else {
+        btnGoogle.classList.add('active');
+        btnPw.classList.remove('active');
+        panelGoogle.classList.remove('hidden');
+        panelPw.classList.add('hidden');
+    }
+
+    if (savePreference && typeof localStorage !== 'undefined') {
+        try {
+            localStorage.setItem('sonamu_preferred_login_tab', tab);
+        } catch (e) {}
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch(e) {}
+    }
+};
+
+// [초기화] 이전 선호 탭 복원 (기본값은 'google' 간편인증 탭)
+window.initLoginTabPreference = () => {
+    try {
+        const preferredTab = localStorage.getItem('sonamu_preferred_login_tab');
+        if (preferredTab === 'pw') {
+            window.switchLoginTab('pw', false);
+        } else {
+            window.switchLoginTab('google', false);
+        }
+    } catch (e) {
+        window.switchLoginTab('google', false);
+    }
+};
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.initLoginTabPreference);
+} else {
+    window.initLoginTabPreference();
+}
+
 window._pendingGoogleUser = null;
 
 const GOOGLE_CLIENT_ID = '4409664943-ld7hsd1b1thbqv59af0utrhc2e2v68b1.apps.googleusercontent.com';
