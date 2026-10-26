@@ -121,6 +121,26 @@ window._pendingGoogleUser = null;
 const GOOGLE_CLIENT_ID = '4409664943-ld7hsd1b1thbqv59af0utrhc2e2v68b1.apps.googleusercontent.com';
 window.gisTokenClient = null;
 
+// [구글 계정 선택 팝업 크기 최적화] Google GIS 기본 세로 760px 과대 팝업을 콤팩트 규격(480x580)으로 화면 중앙 자동 정렬
+(function() {
+    if (typeof window === 'undefined') return;
+    const _origOpen = window.open;
+    window.open = function(url, target, features) {
+        const isGoogleAuth = (typeof target === 'string' && target.indexOf('g_auth_token_window') !== -1) || 
+                             (typeof url === 'string' && url.indexOf('accounts.google.com') !== -1);
+        if (isGoogleAuth) {
+            const screenW = window.screen.availWidth || window.innerWidth || 1024;
+            const screenH = window.screen.availHeight || window.innerHeight || 768;
+            const w = Math.min(480, screenW - 20);
+            const h = Math.min(580, screenH - 60);
+            const left = Math.max(0, Math.round((screenW - w) / 2));
+            const top = Math.max(0, Math.round((screenH - h) / 2));
+            features = `toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${w},height=${h},top=${top},left=${left}`;
+        }
+        return _origOpen.call(this, url, target, features);
+    };
+})();
+
 // [신규] Google Identity Services (GIS) 최신 공식 클라이언트 초기화 (승인된 도메인 연동)
 window.initGIS = () => {
     if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
