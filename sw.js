@@ -1,30 +1,30 @@
-const CACHE_NAME = 'sonamu-pwa-v153';
+const CACHE_NAME = 'sonamu-pwa-v154';
 const ASSETS = [
   './',
-  './index.html?v=153',
-  './style.css?v=153',
-  './dashboard-charts.js?v=153',
-  './firebase-config.js?v=153',
+  './index.html?v=154',
+  './style.css?v=154',
+  './dashboard-charts.js?v=154',
+  './firebase-config.js?v=154',
   './manifest.json',
   './assets/images/hero_login.jpg',
-  './src/js/01_kakao_optimization.js?v=153',
-  './src/js/02_env_version.js?v=153',
-  './src/js/03_init_utils.js?v=153',
-  './src/js/04_scope_adjust.js?v=153',
-  './src/js/05_mileage_engine.js?v=153',
-  './src/js/06_common_ui_utils.js?v=153',
-  './src/js/07_firebase_init.js?v=153',
-  './src/js/08_auth_logic.js?v=153',
-  './src/js/09_navigation_sync.js?v=153',
-  './src/js/10_dashboard_logic.js?v=153',
-  './src/js/11_vote_logic.js?v=153',
-  './src/js/12_team_mgmt.js?v=153',
-  './src/js/13_finance_logic.js?v=153',
-  './src/js/14_member_mgmt.js?v=153',
-  './src/js/15_board_logic.js?v=153',
-  './src/js/16_gallery_report.js?v=153',
-  './src/js/17_calendar_logic.js?v=153',
-  './src/js/18_member_positions.js?v=153'
+  './src/js/01_kakao_optimization.js?v=154',
+  './src/js/02_env_version.js?v=154',
+  './src/js/03_init_utils.js?v=154',
+  './src/js/04_scope_adjust.js?v=154',
+  './src/js/05_mileage_engine.js?v=154',
+  './src/js/06_common_ui_utils.js?v=154',
+  './src/js/07_firebase_init.js?v=154',
+  './src/js/08_auth_logic.js?v=154',
+  './src/js/09_navigation_sync.js?v=154',
+  './src/js/10_dashboard_logic.js?v=154',
+  './src/js/11_vote_logic.js?v=154',
+  './src/js/12_team_mgmt.js?v=154',
+  './src/js/13_finance_logic.js?v=154',
+  './src/js/14_member_mgmt.js?v=154',
+  './src/js/15_board_logic.js?v=154',
+  './src/js/16_gallery_report.js?v=154',
+  './src/js/17_calendar_logic.js?v=154',
+  './src/js/18_member_positions.js?v=154'
 ];
 
 self.addEventListener('install', (event) => {
@@ -56,6 +56,24 @@ self.addEventListener('fetch', (event) => {
 
   // 외부 API나 Firebase 통신(firestore, googleapis 등)은 Service Worker가 간섭하지 않음
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // HTML 페이지 탐색 요청은 절대로 브라우저 디스크 캐시를 타지 않고 항상 최신 상태를 네트워크에서 가져옴
+  if (event.request.mode === 'navigate' || event.request.destination === 'document' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-cache' }).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        return caches.match(event.request) || caches.match('./') || caches.match('./index.html?v=154');
+      })
+    );
     return;
   }
 

@@ -62,15 +62,27 @@ window._pendingGoogleUser = null;
 // [보안/환경 안내] 모바일 브라우저 쿠키/웹 저장소 제한 시 친절한 한글 안내 모달
 window.showGoogleStorageGuidanceModal = (rawError = null) => {
     const msg = 
-        "현재 사용 중이신 브라우저(Chrome/Safari 등)의 보안 설정으로 인해 구글 로그인이 차단되었습니다.\n\n" +
-        "【원인】\n" +
-        "브라우저의 '서드파티 쿠키 차단' 또는 '웹 저장소(Web Storage) 제한' 설정\n\n" +
-        "【10초 만에 해결하는 방법】\n" +
-        "1. 브라우저 우측 상단 점 3개(⋮) > [설정] 클릭\n" +
-        "2. [개인정보 및 보안] > [서드파티 쿠키] 클릭\n" +
-        "3. [서드파티 쿠키 허용] 선택 후 다시 시도해주세요.\n\n" +
-        "※ 브라우저 설정 변경이 번거로우신 경우 아래 기존 [아이디 / 비밀번호]로도 즉시 정상 로그인하실 수 있습니다.";
-    window.showAlert(msg, "구글 로그인 브라우저 설정 안내");
+        "구글 로그인 브라우저 캐시 / 환경 안내\n\n" +
+        "현재 브라우저에 저장된 이전 버전 캐시 또는 보안 설정으로 인해 구글 로그인이 원활하지 않습니다.\n\n" +
+        "【권장 해결 조치】\n" +
+        "아래 [캐시 초기화]를 누르시면 최신 코드로 즉시 자동 갱신됩니다.\n" +
+        "(또는 아래 기존 아이디 / 비밀번호로도 즉시 정상 로그인하실 수 있습니다.)";
+    
+    if (window.showConfirm) {
+        window.showConfirm(
+            msg,
+            () => {
+                window.location.href = window.location.pathname + '?clear-cache=' + Date.now();
+            },
+            "구글 로그인 환경 갱신",
+            "지금 캐시 초기화 및 새로고침",
+            "닫기"
+        );
+    } else {
+        if (confirm(msg + "\n\n지금 캐시를 초기화하고 새로고침하시겠습니까?")) {
+            window.location.href = window.location.pathname + '?clear-cache=' + Date.now();
+        }
+    }
 };
 
 // [공통 처리] 구글 사용자 계정 검증 및 매칭 로직 (팝업/리다이렉트 공통)
@@ -167,10 +179,18 @@ window.checkGoogleRedirectResult = async () => {
             `;
         }
         console.error("Google redirect result error:", err);
-        if (err.code === 'auth/operation-not-supported-in-this-environment' || err.code === 'auth/web-storage-unsupported') {
+        const errMsg = (err && (err.message || err.code || '')) + '';
+        const isStorageIssue = 
+            err.code === 'auth/operation-not-supported-in-this-environment' || 
+            err.code === 'auth/web-storage-unsupported' ||
+            errMsg.includes('web storage') ||
+            errMsg.includes('location.protocol') ||
+            errMsg.includes('operation-not-supported');
+
+        if (isStorageIssue) {
             window.showGoogleStorageGuidanceModal(err);
         } else if (err.code && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-            window.showAlert("구글 로그인 처리 중 오류가 발생했습니다:\n" + (err.message || err.code));
+            window.showAlert("구글 로그인 처리 중 오류가 발생했습니다:\n" + errMsg);
         }
     }
 };
@@ -225,7 +245,16 @@ window.handleGoogleLogin = async () => {
                 return; // 모바일 전체 화면 구글 로그인으로 부드럽게 이동
             } catch (redirectErr) {
                 sessionStorage.removeItem('sonamu_google_redirecting');
-                console.error("Direct mobile redirect error:", redirectErr);
+                console.warn("Direct mobile redirect threw error, falling back to popup:", redirectErr);
+                try {
+                    const popResult = await firebase.auth().signInWithPopup(provider);
+                    if (popResult && popResult.user) {
+                        await window.processGoogleUserLogin(popResult.user);
+                        return;
+                    }
+                } catch (popupErr) {
+                    console.error("Popup fallback also failed:", popupErr);
+                }
                 throw redirectErr;
             }
         }
@@ -261,17 +290,25 @@ window.handleGoogleLogin = async () => {
 
     } catch (error) {
         console.error("구글 로그인 실패:", error);
+        const errMsg = (error && (error.message || error.code || '')) + '';
+        const isStorageIssue = 
+            error.code === 'auth/operation-not-supported-in-this-environment' || 
+            error.code === 'auth/web-storage-unsupported' ||
+            errMsg.includes('web storage') ||
+            errMsg.includes('location.protocol') ||
+            errMsg.includes('operation-not-supported');
+
         if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
             // 사용자가 의도적으로 팝업 닫음 - 경고 불필요
             return;
-        } else if (error.code === 'auth/operation-not-supported-in-this-environment' || error.code === 'auth/web-storage-unsupported') {
+        } else if (isStorageIssue) {
             window.showGoogleStorageGuidanceModal(error);
         } else if (error.code === 'auth/popup-blocked') {
             window.showAlert("브라우저에서 팝업이 차단되었습니다.\n주소창 설정에서 팝업을 허용해주세요.", "팝업 차단 해제");
         } else if (error.code === 'auth/network-request-failed') {
             window.showAlert("네트워크 연결 상태를 확인하고 다시 시도해주세요.", "연결 확인");
         } else {
-            window.showAlert("구글 로그인 중 오류가 발생했습니다:\n" + (error.message || error.code));
+            window.showAlert("구글 로그인 중 오류가 발생했습니다:\n" + errMsg);
         }
     } finally {
         if (btn && sessionStorage.getItem('sonamu_google_redirecting') !== '1') {
