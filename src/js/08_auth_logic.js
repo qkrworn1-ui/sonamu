@@ -84,6 +84,10 @@ window.switchLoginTab = (tab, savePreference = true) => {
         btnPw.classList.remove('active');
         panelGoogle.classList.remove('hidden');
         panelPw.classList.add('hidden');
+        // 구글 탭으로 전환 시 GIS 클라이언트 준비 상태 점검 및 초기화
+        if (!window.gisTokenClient && typeof window.initGIS === 'function') {
+            window.initGIS();
+        }
     }
 
     if (savePreference && typeof localStorage !== 'undefined') {
@@ -143,6 +147,7 @@ window.gisTokenClient = null;
 
 // [신규] Google Identity Services (GIS) 최신 공식 클라이언트 초기화 (승인된 도메인 연동)
 window.initGIS = () => {
+    if (window.gisTokenClient) return true;
     if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
         try {
             window.gisTokenClient = google.accounts.oauth2.initTokenClient({
@@ -221,14 +226,23 @@ window.initGIS = () => {
                 }
             });
             console.log("✅ Google Identity Services (GIS) client ready!");
+            return true;
         } catch(e) {
             console.warn("GIS init exception:", e);
         }
     }
+    return false;
 };
-window.initGIS();
-setTimeout(window.initGIS, 1000);
-setTimeout(window.initGIS, 2500);
+
+// [적극적 GIS 로딩 감지] 구글 클라이언트 라이브러리가 준비될 때까지 150ms마다 체크 (최대 10초)
+let _gisCheckCount = 0;
+window._ensureGIS = () => {
+    if (window.initGIS()) return;
+    if (_gisCheckCount++ < 60) {
+        setTimeout(window._ensureGIS, 150);
+    }
+};
+window._ensureGIS();
 
 // [보안/환경 안내] 모바일 브라우저 쿠키/웹 저장소 제한 시 친절한 한글 안내 모달
 window.showGoogleStorageGuidanceModal = (rawError = null) => {
@@ -237,10 +251,11 @@ window.showGoogleStorageGuidanceModal = (rawError = null) => {
 
     const msg = 
         "구글 로그인 브라우저 캐시 / 환경 안내\n\n" +
-        "현재 브라우저에 저장된 이전 버전 캐시 또는 보안 설정(쿠키/저장소 차단)으로 인해 구글 로그인이 원활하지 않습니다.\n\n" +
+        "브라우저의 이전 버전 캐시 또는 구글 클라이언트 초기화 지연으로 인해 구글 로그인이 일시적으로 원활하지 않았습니다.\n\n" +
         "아이디/비밀번호 로그인으로 자동 전환되었습니다.\n\n" +
         "【구글 로그인을 원하시는 경우】\n" +
-        "아래 [캐시 초기화]를 누르시면 최신 코드로 즉시 자동 갱신됩니다.";
+        "1. 잠시 후 상단 [Google 로그인] 탭을 다시 눌러 [시작하기]를 진행해 주세요.\n" +
+        "2. 지속될 경우 아래 [캐시 초기화]를 누르시면 최신 코드로 즉시 자동 갱신됩니다.";
     
     if (window.showConfirm) {
         window.showConfirm(
@@ -398,7 +413,36 @@ window.handleGoogleLogin = async () => {
         return window.showAlert("인증 시스템을 준비 중입니다. 아이디/비밀번호로 로그인해주세요.");
     }
 
-    // 2. [최우선] Google Identity Services (GIS) 최신 공식 인증 사용
+    const btn = window.$('btn-google-login');
+    const origBtnHtml = btn ? btn.innerHTML : '';
+
+    // 2. [핵심 방어] GIS 클라이언트 준비 여부 확인 및 로딩 대기 (최대 3초)
+    // 페이지 접속 직후 구글 라이브러리(gsi/client)가 아직 다운로드 중일 때
+    // 곧바로 레거시 Firebase iframe으로 넘어가 브라우저 쿠키/저장소 오류(환경안내 팝업)가 뜨는 현상을 원천 방지
+    if (!window.gisTokenClient) {
+        window.initGIS();
+    }
+    if (!window.gisTokenClient && (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2)) {
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-70');
+            btn.innerHTML = `
+                <div class="w-5 h-5 border-2 border-slate-400 border-t-blue-600 rounded-full animate-spin"></div>
+                <span>Google 연결 준비 중...</span>
+            `;
+        }
+        for (let i = 0; i < 30; i++) {
+            await new Promise(r => setTimeout(r, 100));
+            if (window.initGIS()) break;
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-70');
+            btn.innerHTML = origBtnHtml;
+        }
+    }
+
+    // 3. [최우선] Google Identity Services (GIS) 최신 공식 인증 사용
     // 승인된 원본(https://qkrworn1-ui.github.io)을 통해 브라우저 iframe 제약 없이 원터치 로그인 실행
     if (window.gisTokenClient) {
         try {
@@ -407,18 +451,7 @@ window.handleGoogleLogin = async () => {
         } catch (gisErr) {
             console.warn("GIS request error, falling back to Firebase Auth:", gisErr);
         }
-    } else if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
-        window.initGIS();
-        if (window.gisTokenClient) {
-            try {
-                window.gisTokenClient.requestAccessToken({ prompt: 'select_account' });
-                return;
-            } catch(e) {}
-        }
     }
-
-    const btn = window.$('btn-google-login');
-    const origBtnHtml = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
         btn.classList.add('opacity-70');
