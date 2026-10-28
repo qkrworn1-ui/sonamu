@@ -150,6 +150,18 @@ window.initGIS = () => {
                 scope: 'email profile openid',
                 callback: async (tokenResponse) => {
                     const btn = window.$('btn-google-login');
+                    if (tokenResponse && tokenResponse.error) {
+                        console.warn("GIS token response error:", tokenResponse.error);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-70');
+                        }
+                        window.switchLoginTab('pw', false);
+                        if (window.showToast) {
+                            window.showToast("구글 로그인이 취소되어 아이디/비밀번호 로그인으로 전환되었습니다.");
+                        }
+                        return;
+                    }
                     if (tokenResponse && tokenResponse.access_token) {
                         try {
                             if (btn) {
@@ -169,7 +181,8 @@ window.initGIS = () => {
                             }
                         } catch (err) {
                             console.error("GIS signInWithCredential error:", err);
-                            window.showAlert("구글 계정 인증 처리 중 오류가 발생했습니다:\n" + (err.message || err.code));
+                            window.switchLoginTab('pw', false);
+                            window.showAlert("구글 계정 인증 처리 중 오류가 발생하여 아이디/비밀번호 로그인으로 전환합니다:\n" + (err.message || err.code));
                         } finally {
                             if (btn) {
                                 btn.disabled = false;
@@ -185,6 +198,12 @@ window.initGIS = () => {
                                 `;
                             }
                         }
+                    } else {
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-70');
+                        }
+                        window.switchLoginTab('pw', false);
                     }
                 },
                 error_callback: (err) => {
@@ -193,6 +212,11 @@ window.initGIS = () => {
                     if (btn) {
                         btn.disabled = false;
                         btn.classList.remove('opacity-70');
+                    }
+                    // 구글 팝업 닫힘 또는 인증 오류 시 아이디/비밀번호 탭으로 자동 전환
+                    window.switchLoginTab('pw', false);
+                    if (window.showToast) {
+                        window.showToast("구글 로그인이 취소되어 아이디/비밀번호 로그인으로 전환되었습니다.");
                     }
                 }
             });
@@ -208,12 +232,15 @@ setTimeout(window.initGIS, 2500);
 
 // [보안/환경 안내] 모바일 브라우저 쿠키/웹 저장소 제한 시 친절한 한글 안내 모달
 window.showGoogleStorageGuidanceModal = (rawError = null) => {
+    // 저장소 제한 시 아이디/비밀번호 탭으로 즉시 자동 전환
+    window.switchLoginTab('pw', false);
+
     const msg = 
         "구글 로그인 브라우저 캐시 / 환경 안내\n\n" +
-        "현재 브라우저에 저장된 이전 버전 캐시 또는 보안 설정으로 인해 구글 로그인이 원활하지 않습니다.\n\n" +
-        "【권장 해결 조치】\n" +
-        "아래 [캐시 초기화]를 누르시면 최신 코드로 즉시 자동 갱신됩니다.\n" +
-        "(또는 아래 기존 아이디 / 비밀번호로도 즉시 정상 로그인하실 수 있습니다.)";
+        "현재 브라우저에 저장된 이전 버전 캐시 또는 보안 설정(쿠키/저장소 차단)으로 인해 구글 로그인이 원활하지 않습니다.\n\n" +
+        "아이디/비밀번호 로그인으로 자동 전환되었습니다.\n\n" +
+        "【구글 로그인을 원하시는 경우】\n" +
+        "아래 [캐시 초기화]를 누르시면 최신 코드로 즉시 자동 갱신됩니다.";
     
     if (window.showConfirm) {
         window.showConfirm(
@@ -221,9 +248,9 @@ window.showGoogleStorageGuidanceModal = (rawError = null) => {
             () => {
                 window.location.href = window.location.pathname + '?clear-cache=' + Date.now();
             },
-            "구글 로그인 환경 갱신",
+            "구글 로그인 환경 안내",
             "지금 캐시 초기화 및 새로고침",
-            "닫기"
+            "아이디/비밀번호로 계속하기"
         );
     } else {
         if (confirm(msg + "\n\n지금 캐시를 초기화하고 새로고침하시겠습니까?")) {
@@ -334,10 +361,15 @@ window.checkGoogleRedirectResult = async () => {
             errMsg.includes('location.protocol') ||
             errMsg.includes('operation-not-supported');
 
+        // [자동 전환] 리다이렉트 로그인 실패 시 아이디/비밀번호 탭으로 자동 전환
+        window.switchLoginTab('pw', false);
+
         if (isStorageIssue) {
             window.showGoogleStorageGuidanceModal(err);
         } else if (err.code && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-            window.showAlert("구글 로그인 처리 중 오류가 발생했습니다:\n" + errMsg);
+            window.showAlert("구글 로그인 처리 중 오류가 발생하여 아이디/비밀번호 로그인으로 전환합니다:\n" + errMsg);
+        } else {
+            if (window.showToast) window.showToast("구글 로그인이 취소되어 아이디/비밀번호 로그인으로 전환되었습니다.");
         }
     }
 };
@@ -346,21 +378,24 @@ window.handleGoogleLogin = async () => {
     // 0. 서버 연결 전 비활성화 가드
     const googleBtn = document.getElementById('btn-google-login');
     if (googleBtn && googleBtn.disabled) {
-        return window.showAlert("서버 연결 중입니다. 잠시 후 다시 시도해주세요.", "연결 확인");
+        window.switchLoginTab('pw', false);
+        return window.showAlert("서버 연결 중이거나 오프라인 상태입니다.\n아이디/비밀번호 로그인으로 전환합니다.", "연결 확인");
     }
 
     // 1. 카카오톡 인앱 브라우저 체크 (구글 OAuth 차단 사전 방어)
     const ua = (navigator.userAgent || '').toLowerCase();
     if (ua.includes('kakaotalk')) {
+        window.switchLoginTab('pw', false);
         return window.showAlert(
-            "카카오톡 인앱 브라우저에서는 구글 보안 정책상 로그인이 제한됩니다.\n\n" +
-            "화면 우측 하단 점 3개(···)를 누르고 '다른 브라우저로 열기(Safari/Chrome)'를 이용하시거나, 아래 기존 아이디/비밀번호로 로그인해주세요.",
+            "카카오톡 인앱 브라우저에서는 구글 보안 정책상 구글 로그인이 제한되어 아이디/비밀번호 로그인으로 자동 전환합니다.\n\n" +
+            "기존 아이디/비밀번호로 로그인하시거나, 화면 우측 하단 (···)을 누르고 '다른 브라우저로 열기(Safari/Chrome)'를 이용해주세요.",
             "브라우저 안내"
         );
     }
 
     if (typeof firebase === 'undefined' || !firebase.auth) {
-        return window.showAlert("인증 시스템을 준비 중입니다. 잠시 후 다시 시도해주세요.");
+        window.switchLoginTab('pw', false);
+        return window.showAlert("인증 시스템을 준비 중입니다. 아이디/비밀번호로 로그인해주세요.");
     }
 
     // 2. [최우선] Google Identity Services (GIS) 최신 공식 인증 사용
@@ -464,17 +499,23 @@ window.handleGoogleLogin = async () => {
             errMsg.includes('location.protocol') ||
             errMsg.includes('operation-not-supported');
 
+        // [핵심] 실패/취소/미지원 시 즉시 아이디/패스워드 탭으로 자동 전환
+        window.switchLoginTab('pw', false);
+
         if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-            // 사용자가 의도적으로 팝업 닫음 - 경고 불필요
+            // 사용자가 의도적으로 팝업 닫음 - 아이디/비밀번호 탭으로 부드럽게 전환 후 토스트 안내
+            if (window.showToast) {
+                window.showToast("구글 로그인이 취소되어 아이디/비밀번호 로그인으로 전환되었습니다.");
+            }
             return;
         } else if (isStorageIssue) {
             window.showGoogleStorageGuidanceModal(error);
         } else if (error.code === 'auth/popup-blocked') {
-            window.showAlert("브라우저에서 팝업이 차단되었습니다.\n주소창 설정에서 팝업을 허용해주세요.", "팝업 차단 해제");
+            window.showAlert("브라우저에서 팝업이 차단되어 아이디/비밀번호 로그인으로 전환합니다.\n(구글 로그인을 원하시면 주소창 설정에서 팝업을 허용해주세요.)", "팝업 차단 안내");
         } else if (error.code === 'auth/network-request-failed') {
-            window.showAlert("네트워크 연결 상태를 확인하고 다시 시도해주세요.", "연결 확인");
+            window.showAlert("네트워크 연결 상태가 원활하지 않아 아이디/비밀번호 로그인으로 전환합니다.\n연결 확인 후 다시 시도해주세요.", "연결 확인");
         } else {
-            window.showAlert("구글 로그인 중 오류가 발생했습니다:\n" + errMsg);
+            window.showAlert("구글 로그인 중 오류가 발생하여 아이디/비밀번호 로그인으로 전환합니다:\n" + errMsg);
         }
     } finally {
         if (btn && sessionStorage.getItem('sonamu_google_redirecting') !== '1') {
@@ -529,6 +570,11 @@ window.closeGoogleLinkModal = () => {
         modal.classList.remove('flex');
     }
     window._pendingGoogleUser = null;
+    // 구글 계정 연동을 취소하거나 닫은 경우, 바로 아이디/패스워드로 로그인할 수 있도록 자동 전환
+    window.switchLoginTab('pw', false);
+    if (window.showToast) {
+        window.showToast("아이디/비밀번호 로그인으로 전환되었습니다.");
+    }
 };
 
 window.confirmGoogleAccountLink = async () => {
@@ -559,7 +605,7 @@ window.confirmGoogleAccountLink = async () => {
     });
 
     if (!matchedMember) {
-        return window.showAlert(`'${inputName}' 회원 정보를 찾을 수 없거나 인증 정보가 일치하지 않습니다.\n등록된 성함과 전화번호 뒷 4자리를 다시 확인해주세요.`);
+        return window.showAlert(`'${inputName}' 회원 정보를 찾을 수 없거나 인증 정보가 일치하지 않습니다.\n등록된 성함과 전화번호 뒷 4자리를 다시 확인해주세요.\n(기존 아이디/비밀번호로 로그인하시려면 [취소]를 눌러주세요.)`);
     }
 
     // 다른 회원이 이미 이 구글 계정으로 연동되어 있는지 검사 (다중 계정 방지)

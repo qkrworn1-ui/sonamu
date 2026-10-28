@@ -116,6 +116,10 @@ window.startCloudSync = async () => {
             mLogoClasses += ' border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.3)]';
             window.setLoginFormEnabled(true);
             window.setGoogleLoginEnabled(false); // 오프라인 시 구글 로그인 비활성화
+            // 오프라인 상태에서는 구글 로그인이 불가능하므로 아이디/비밀번호 탭으로 자동 전환
+            if (typeof window.switchLoginTab === 'function') {
+                window.switchLoginTab('pw', false);
+            }
         }
 
         const html = `${icon}<span class="tracking-tight">${text}</span>`;
