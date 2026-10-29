@@ -70,13 +70,13 @@ window.setGoogleLoginEnabled = (enabled) => {
     if (!btn) return;
     btn.disabled = !enabled;
     if (enabled) {
-        btn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.remove('opacity-40', 'opacity-70', 'opacity-75', 'cursor-not-allowed', 'cursor-wait', 'pointer-events-none');
         btn.classList.add('cursor-pointer');
         btn.removeAttribute('title');
     } else {
-        btn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        btn.classList.add('opacity-75', 'cursor-wait');
         btn.classList.remove('cursor-pointer');
-        btn.setAttribute('title', '서버 연결 후 구글 로그인이 가능합니다.');
+        btn.setAttribute('title', '서버 연결 확인 중입니다...');
     }
 };
 
