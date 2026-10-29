@@ -320,6 +320,8 @@ window.processGoogleUserLogin = async (gUser) => {
 window.checkGoogleRedirectResult = async () => {
     if (typeof firebase === 'undefined' || !firebase.auth) return;
     const isRedirecting = sessionStorage.getItem('sonamu_google_redirecting') === '1';
+    // [중요 가드] 리다이렉트 플래그가 없으면 절대 getRedirectResult를 호출하지 않음 (불필요한 iframe 호출 및 환경안내 팝업 원천 차단)
+    if (!isRedirecting) return;
     const googleBtn = document.getElementById('btn-google-login');
     if (isRedirecting && googleBtn) {
         googleBtn.disabled = true;
@@ -408,156 +410,67 @@ window.handleGoogleLogin = async () => {
         );
     }
 
-    if (typeof firebase === 'undefined' || !firebase.auth) {
-        window.switchLoginTab('pw', false);
-        return window.showAlert("인증 시스템을 준비 중입니다. 아이디/비밀번호로 로그인해주세요.");
-    }
-
-    const btn = window.$('btn-google-login');
-    const origBtnHtml = btn ? btn.innerHTML : '';
-
-    // 2. [핵심 방어] GIS 클라이언트 준비 여부 확인 및 로딩 대기 (최대 3초)
-    // 페이지 접속 직후 구글 라이브러리(gsi/client)가 아직 다운로드 중일 때
-    // 곧바로 레거시 Firebase iframe으로 넘어가 브라우저 쿠키/저장소 오류(환경안내 팝업)가 뜨는 현상을 원천 방지
+    // 2. GIS 토큰 클라이언트 준비 확인 및 즉시 동기 실행 (사용자 제스처 유지)
     if (!window.gisTokenClient) {
         window.initGIS();
     }
-    if (!window.gisTokenClient && (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2)) {
-        if (btn) {
-            btn.disabled = true;
-            btn.classList.add('opacity-70');
-            btn.innerHTML = `
-                <div class="w-5 h-5 border-2 border-slate-400 border-t-blue-600 rounded-full animate-spin"></div>
-                <span>Google 연결 준비 중...</span>
-            `;
-        }
-        for (let i = 0; i < 30; i++) {
-            await new Promise(r => setTimeout(r, 100));
-            if (window.initGIS()) break;
-        }
-        if (btn) {
-            btn.disabled = false;
-            btn.classList.remove('opacity-70');
-            btn.innerHTML = origBtnHtml;
-        }
-    }
 
-    // 3. [최우선] Google Identity Services (GIS) 최신 공식 인증 사용
-    // 승인된 원본(https://qkrworn1-ui.github.io)을 통해 브라우저 iframe 제약 없이 원터치 로그인 실행
     if (window.gisTokenClient) {
         try {
+            // [최우선 & 단독 사용] 제3자 쿠키/iframe 제약 없는 구글 최신 공식 GIS 인증 실행
+            // (동기 호출로 iOS Safari / Chrome 모바일 팝업 차단 원천 방지)
             window.gisTokenClient.requestAccessToken({ prompt: 'select_account' });
             return;
         } catch (gisErr) {
-            console.warn("GIS request error, falling back to Firebase Auth:", gisErr);
+            console.error("GIS request error:", gisErr);
+            window.switchLoginTab('pw', false);
+            window.showAlert("구글 로그인 창을 여는 중 오류가 발생하여 아이디/비밀번호 로그인으로 전환합니다:\n" + (gisErr.message || gisErr));
+            return;
         }
     }
+
+    // 3. 만약 구글 스크립트가 아직 로딩 중인 극히 드문 경우 (최대 2초간 비동기 대기)
+    const btn = window.$('btn-google-login');
+    const origBtnHtml = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
         btn.classList.add('opacity-70');
         btn.innerHTML = `
             <div class="w-5 h-5 border-2 border-slate-400 border-t-blue-600 rounded-full animate-spin"></div>
-            <span>Google 인증 중...</span>
+            <span>Google 연결 준비 중...</span>
         `;
     }
 
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-
-        // [중요 모바일 환경 최적화]
-        // 모바일 브라우저(Android Chrome, iOS Safari 등)는 다중 창 팝업 및 크로스 도메인 iframe 통신이
-        // 보안상 원천 차단되어 signInWithPopup 실행 시 "operation not supported" 에러가 발생합니다.
-        // 따라서 모바일 환경에서는 Firebase 공식 권장 방식인 signInWithRedirect를 직접 호출하여 안전하게 이동합니다.
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                              (window.innerWidth <= 768 && ('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)));
-
-        if (isMobileDevice) {
-            try {
-                sessionStorage.setItem('sonamu_google_redirecting', '1');
-                await firebase.auth().signInWithRedirect(provider);
-                return; // 모바일 전체 화면 구글 로그인으로 부드럽게 이동
-            } catch (redirectErr) {
-                sessionStorage.removeItem('sonamu_google_redirecting');
-                console.warn("Direct mobile redirect threw error, falling back to popup:", redirectErr);
-                try {
-                    const popResult = await firebase.auth().signInWithPopup(provider);
-                    if (popResult && popResult.user) {
-                        await window.processGoogleUserLogin(popResult.user);
-                        return;
-                    }
-                } catch (popupErr) {
-                    console.error("Popup fallback also failed:", popupErr);
-                }
-                throw redirectErr;
-            }
-        }
-        
-        let gUser = null;
-        try {
-            const result = await firebase.auth().signInWithPopup(provider);
-            gUser = result ? result.user : null;
-        } catch (popupErr) {
-            console.warn("Popup sign-in error/warning:", popupErr);
-            // 데스크톱 환경에서 팝업이 차단되거나 환경 미지원 오류 발생 시 signInWithRedirect로 자동 폴백
-            if (popupErr.code === 'auth/operation-not-supported-in-this-environment' || 
-                popupErr.code === 'auth/popup-blocked') {
-                try {
-                    sessionStorage.setItem('sonamu_google_redirecting', '1');
-                    await firebase.auth().signInWithRedirect(provider);
-                    return; // 브라우저가 구글 로그인으로 이동
-                } catch (redirectErr) {
-                    sessionStorage.removeItem('sonamu_google_redirecting');
-                    console.error("Redirect fallback error:", redirectErr);
-                    throw redirectErr;
-                }
-            } else {
-                throw popupErr;
-            }
-        }
-
-        if (!gUser) {
-            throw new Error("사용자 정보를 불러올 수 없습니다.");
-        }
-
-        await window.processGoogleUserLogin(gUser);
-
-    } catch (error) {
-        console.error("구글 로그인 실패:", error);
-        const errMsg = (error && (error.message || error.code || '')) + '';
-        const isStorageIssue = 
-            error.code === 'auth/operation-not-supported-in-this-environment' || 
-            error.code === 'auth/web-storage-unsupported' ||
-            errMsg.includes('web storage') ||
-            errMsg.includes('location.protocol') ||
-            errMsg.includes('operation-not-supported');
-
-        // [핵심] 실패/취소/미지원 시 즉시 아이디/패스워드 탭으로 자동 전환
-        window.switchLoginTab('pw', false);
-
-        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-            // 사용자가 의도적으로 팝업 닫음 - 아이디/비밀번호 탭으로 부드럽게 전환 후 토스트 안내
-            if (window.showToast) {
-                window.showToast("구글 로그인이 취소되어 아이디/비밀번호 로그인으로 전환되었습니다.");
-            }
-            return;
-        } else if (isStorageIssue) {
-            window.showGoogleStorageGuidanceModal(error);
-        } else if (error.code === 'auth/popup-blocked') {
-            window.showAlert("브라우저에서 팝업이 차단되어 아이디/비밀번호 로그인으로 전환합니다.\n(구글 로그인을 원하시면 주소창 설정에서 팝업을 허용해주세요.)", "팝업 차단 안내");
-        } else if (error.code === 'auth/network-request-failed') {
-            window.showAlert("네트워크 연결 상태가 원활하지 않아 아이디/비밀번호 로그인으로 전환합니다.\n연결 확인 후 다시 시도해주세요.", "연결 확인");
-        } else {
-            window.showAlert("구글 로그인 중 오류가 발생하여 아이디/비밀번호 로그인으로 전환합니다:\n" + errMsg);
-        }
-    } finally {
-        if (btn && sessionStorage.getItem('sonamu_google_redirecting') !== '1') {
-            btn.disabled = false;
-            btn.classList.remove('opacity-70');
-            btn.innerHTML = origBtnHtml;
-            if (window.lucide) window.lucide.createIcons();
+    let ready = false;
+    for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        if (window.initGIS()) {
+            ready = true;
+            break;
         }
     }
+
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-70');
+        btn.innerHTML = origBtnHtml;
+    }
+
+    if (ready && window.gisTokenClient) {
+        try {
+            window.gisTokenClient.requestAccessToken({ prompt: 'select_account' });
+            return;
+        } catch (gisErr) {
+            console.error("GIS request error after wait:", gisErr);
+        }
+    }
+
+    // 구글 스크립트가 차단(광고차단기 등)되었거나 로드 실패한 경우
+    window.switchLoginTab('pw', false);
+    return window.showAlert(
+        "구글 인증 서비스에 일시적으로 연결할 수 없습니다.\n광고 차단기 설정을 확인하시거나, 아이디/비밀번호로 로그인해주세요.",
+        "구글 연결 안내"
+    );
 };
 
 window.openGoogleLinkModal = (gUser) => {
