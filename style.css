@@ -606,6 +606,18 @@
             opacity: 0.75 !important;
             cursor: wait !important;
         }
+        /* 다크모드 및 라이트모드 공통 - 버튼 텍스트가 흰색으로 치환되는 현상 원천 차단 */
+        .btn-google-prominent .btn-google-text,
+        html.dark .btn-google-prominent .btn-google-text,
+        html.dark .btn-google-prominent span:not(.badge-recommend):not(.badge-recommend *) {
+            color: #0f172a !important;
+        }
+        .btn-google-prominent .badge-recommend,
+        .btn-google-prominent .badge-recommend *,
+        html.dark .btn-google-prominent .badge-recommend,
+        html.dark .btn-google-prominent .badge-recommend * {
+            color: #ffffff !important;
+        }
 
         /* [로그인 탭 세그먼트 전용 스타일] */
         .login-tab-btn {
